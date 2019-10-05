@@ -17,7 +17,8 @@ I am currently using :
 
 > You do not need to run the above npm commands. running `npm install` from command prompt should help you install the packages automatically. Make sure you run the command within the project root directory.
 
-Sox is required for node-record-lpcm16.
+Sox is required for node-record-lpcm16. Make sure sox is in the environment variables.
+> For e.g. I added the following path to the PATH variables 'C:\Program Files (x86)\sox-14-4-1'.
 
 For Windows users, download the [binaries](https://sourceforge.net/projects/sox/files/sox/14.4.1/) here.
 > get sox-14.4.1-win32.exe. The latest version 14.4.2 is not compatible with Windows 10.
