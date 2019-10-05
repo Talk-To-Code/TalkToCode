@@ -1,0 +1,53 @@
+#c_program QuickSort
+#include #access stdio h #access_end;;
+#function_declare quicksort #parameter_a #dimension 1 int #array X #parameter int first #parameter int last
+#function_start
+#create int #variable pivot #dec_end #variable j #dec_end #variable temp #dec_end #variable i #dec_end;;
+if #condition #variable first < #variable last
+#if_branch_start
+#assign #variable pivot #with #variable first;;
+#assign #variable i #with #variable first;;
+#assign #variable j #with #variable last;;
+while #condition #variable i < #variable j
+#while_start
+while #condition #array X #indexes #variable i #index_end <= #array X #indexes #variable pivot #index_end && #variable i < #variable last
+#while_start
+#post #variable i ++;;
+#while_end;;
+while #condition #array X #indexes #variable j #index_end > #array X #indexes #variable pivot #index_end
+#while_start
+#post #variable j --;;
+#while_end;;
+if #condition #variable i < #variable j
+#if_branch_start
+#assign #variable temp #with #array X #indexes #variable i #index_end;;
+#assign #array X #indexes #variable i #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#if_branch_end;;
+#while_end;;
+#assign #variable temp #with #array X #indexes #variable pivot #index_end;;
+#assign #array X #indexes #variable pivot #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#function quicksort(#parameter #variable X #parameter #variable first #parameter #variable j - #value 1);;
+#function quicksort(#parameter #variable X #parameter #variable j + #value 1 #parameter #variable last);;
+#if_branch_end;;
+#function_end;;
+#function_declare main int
+#function_start
+#create int #variable size #dec_end #variable i #dec_end #array #variable X #indexes #value 100 #index_end #dec_end;;
+#function printf(#parameter #value "Enter size of the array: ");;
+#function scanf(#parameter #value "%d" #parameter & #variable size);;
+#function printf(#parameter #value "Enter %d elements: " #parameter #variable size);;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable size #condition #post #variable i ++
+#for_start
+#function scanf(#parameter #value "%d" #parameter & #array X #indexes #variable i #index_end);;
+#for_end;;
+#function quicksort(#parameter #variable X #parameter #value 0 #parameter #variable size - #value 1);;
+#function printf(#parameter #value "Sorted elements: ");;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable size #condition #post #variable i ++
+#for_start
+#function printf(#parameter #value " %d" #parameter #array X #indexes #variable i #index_end);;
+#for_end;;
+return #value 0;;
+#function_end;;
+#program_end

@@ -1,0 +1,71 @@
+#c_program Draw
+#include #access stdio h #access_end;;
+#function_declare printStar
+#function_start
+#function printf(#parameter #value "  *  \n");;
+#function printf(#parameter #value "*****\n");;
+#function printf(#parameter #value " *** \n");;
+#function printf(#parameter #value "*****\n");;
+#function printf(#parameter #value "  *  \n");;
+#function_end;;
+#function_declare printTriangle #parameter int a
+#function_start
+#create int #variable i #dec_end #variable j #dec_end #variable k #dec_end;;
+for #condition #assign #variable i #with #value 0 #condition #variable i <= #variable a #condition #post #variable i ++
+#for_start
+for #condition #assign #variable j #with #variable a #condition #variable j >= #value 0 #condition #post #variable j --
+#for_start
+#function printf(#parameter #value " ");;
+#for_end;;
+for #condition #assign #variable k #with #value 0 #condition #variable k < #value 2 * #variable i + #value 1 #condition #post #variable k ++
+#for_start
+#function printf(#parameter #value "*");;
+#for_end;;
+#function printf(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare printRectangle #parameter int n #parameter int l
+#function_start
+#create int #variable i #dec_end #variable j #dec_end;;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable n #condition #post #variable i ++
+#for_start
+for #condition #assign #variable j #with #value 0 #condition #variable j < #variable l #condition #post #variable j --
+#for_start
+if  #condition #variable i == #value 0 || #variable i == #variable n - #value 1
+#if_branch_start
+#function printf(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+if  #condition #variable j == #value 0 || #variable j == #variable l - #value 1
+#if_branch_start
+#function printf(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+#function printf(#parameter #value " ");;
+#else_branch_end;;
+#else_branch_end;;
+#for_end;;
+#function printf(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare main int
+#function_start
+#create int #variable a #dec_end;;
+#label LOOP;;
+#function printf(#parameter #value "Enter a number\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable a);;
+#function printf(#parameter #value "a = %d\n" #parameter #variable a);;
+switch #condition #variable a
+case #value 0
+#case_start #function printStar();; break;; #case_end
+case #value 1
+#case_start #function printTriangle(#parameter #value 5);; break;; #case_end
+case #value 2
+#case_start #function printRectangle(#parameter #value 4 #parameter #value 5);; break;; #case_end
+case #value 3
+#case_start #function printf(#parameter #value "END\n");; break;; #case_end
+default
+#case_start goto LOOP;; #case_end;;
+return #value 0;;
+#function_end;;
+#program_end

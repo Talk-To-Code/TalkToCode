@@ -1,0 +1,8 @@
+#c_program HelloWorld
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#function printf(#parameter #value "Hello World!\n");;
+return #value 0;;
+#function_end;;
+#program_end
