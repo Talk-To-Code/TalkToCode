@@ -1,65 +1,36 @@
 # talk-to-code README
 
-This is the README for your extension "talk-to-code". After writing up a brief description, we recommend including the following sections.
+This is the README for your extension "talk-to-code".
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
-
-For example if there is an image subfolder under your extension project workspace:
-
-\!\[feature X\]\(images/feature-x.png\)
-
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+The extension can simply be used by running it from the Command Palette (`Ctrl Shit P`).
+The Command for enabling the Talk To Code extension is "Hello World" for now.
 
 ## Requirements
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+I am currently using :
+* Node JS version    : 10.16.3.
+* NPM version        : 6.11.3 
+* google-cloud/speech: 3.3.0  (`npm install --save @google-cloud/speech`)
+* node-record-lpcm16 : 1.0.1  (`npm install node-record-lpcm16`)
 
-## Extension Settings
+> You do not need to run the above npm commands. running `npm install` from command prompt should help you install the packages automatically. Make sure you run the command within the project root directory.
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Sox is required for node-record-lpcm16.
 
-For example:
+For Windows users, download the [binaries](https://sourceforge.net/projects/sox/files/sox/14.4.1/) here.
+> get sox-14.4.1-win32.exe. The latest version 14.4.2 is not compatible with Windows 10.
 
-This extension contributes the following settings:
+For mac OS users, running `brew install sox` should suffice.
 
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
+## Starting Up
 
-## Known Issues
+Within VSCode editor, go to root directory and debug the code with `F5`. This will run the extension in a new Extension Development Host Window.
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+Open the Command Palette (`Ctrl Shift P`) and search for the command "Hello World".
 
-## Release Notes
+## Resources
 
-Users appreciate release notes as you update your extension.
+[Tutorial for creating extension](https://code.visualstudio.com/api/get-started/your-first-extension)
 
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
