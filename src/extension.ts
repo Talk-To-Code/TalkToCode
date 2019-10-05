@@ -27,7 +27,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 
 function listen() {
+
+	// cwd is the current working directory. Make sure you update this.
 	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\src';
+	// cred is the credential json from google you have to obtain to use their speech engine.
 	let cred = 'C:\\Users\\Lawrence\\Desktop\\fyp\\benchmarking\\test_google_cloud\\My-Project-f25f37c6fac1.json';
 	
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
