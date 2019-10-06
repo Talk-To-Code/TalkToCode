@@ -4,7 +4,7 @@ Write a program:
 
 statement():
 	simpleStatement()
-	| blockStatementC()
+	| blockStatement()
 	| query()
 
 
@@ -13,10 +13,10 @@ query():
 	|#tree  					//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
 	)
 
-blockStatementC():
+blockStatement():
 	structDeclareStatement()
 	| doWhileStatement()
-	| forStatementC()
+	| forStatement()
 	| functionStatementC()
 	| if_statementC()
 	| whileStatementC()
@@ -56,25 +56,31 @@ create_variable() :
 	< TERMINATOR >
 
 switchStatement() :
-	 < SWITCH > < CONDITION > expressionC() (< CASE > expressionC() < CASE_START > (statementC())*< CASE_END >)* (< _DEFAULT >< CASE_START >< CASE_END >)?< TERMINATOR >
+	 < SWITCH > < CONDITION > expression() (< CASE > expression() < CASE_START > (statement())*< CASE_END >)* (< _DEFAULT >< CASE_START >< CASE_END >)?< TERMINATOR >
 
 doWhileStatement() :
-	< DO > < CONDITION > exp = expressionC()< WHILE_START >(statementC())*< WHILE_END > < TERMINATOR >
+	< DO > < CONDITION > exp = expression()< WHILE_START >(statement())*< WHILE_END > < TERMINATOR >
 
 whileStatementC() :
-	< WHILE > < CONDITION >expressionC()< WHILE_START > (statementC())*< WHILE_END > < TERMINATOR >
+	< WHILE > < CONDITION >expression()< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
+
+forStatement() :
+	< FOR > (forStatementC() | forStatementP())
 
 forStatementC() :
-	< FOR >< CONDITION >(expressionC())?< CONDITION >(expressionC())?< CONDITION >(expressionC())?< FOR_START >(statementC())*< FOR_END > < TERMINATOR >
+	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expressionC())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+
+forStatementP() :
+	< VARIABLE >< IDENTIFIER > fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 if_statementC() :
-	< IF > < CONDITION > expressionC()< IF_BRANCH_START >(statementC())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statementC())*< ELSE_BRANCH_END >)?< TERMINATOR >
+	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
 functionStatementC() :
-	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >types_C()< IDENTIFIER >)*< FUNCTION_START >(statementC())*< FUNCTION_END > < TERMINATOR >
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >types_C()< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
 
 structDeclareStatement() :
-	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variableC())+< STRUCT_END > < TERMINATOR >
+	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
 
 expression():
 	prefix_expression()
