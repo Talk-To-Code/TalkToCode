@@ -94,11 +94,52 @@
     if (pType == programType.P && operator != "~") throw new ParseException("Not supported in Python!\n");    result = new ASTExpressionPrefixOperation(operator, exp);    return result;  }| op = < MINUS > exp = expression(pType)  {    result = new ASTExpressionPrefixOperation(op.image, exp);
     return result;  }}ASTExpression postfix_expression(programType pType) :{  String operator;  Token var;}{  < POST > < VARIABLE > var = < IDENTIFIER > operator = incrDecrOperators()  {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(var.image);    ASTExpressionPostfixOperation result = new ASTExpressionPostfixOperation(operator, i);    return result;  }}ASTExpression expression(programType pType) :{  ASTExpression result1;  ASTExpression result2;  ASTExpression result3;  ASTExpression result4;}{  (    result1 = prefix_expression(pType)    {      return result1;    }  | result2 = infix_expression(pType)    {      return result2;    }  | result3 = postfix_expression(pType)    {      return result3;    }  )| result4 = assignment(pType)  {    return result4;  }}ASTExpression assignment(programType pType) :{  ASTExpression term;  Token operator;  ASTExpression exp;  String op;}{  < ASSIGNMENT > term = fragment(pType)  {}  (    token = < WITH >    {      op = " = ";    }  | op = compoundOperators()  )  exp = expression(pType)  {    ASTExpressionAssignment result = new ASTExpressionAssignment(term, exp, op);    return result;  }}/*Block Statement*/ASTStructDeclaration structDeclareStatement(ASTNode parent, programType pType) :{  Token name;  ASTDeclarationStatement attribute;}{  < STRUCT_DEC > name = < IDENTIFIER >  {
-    if (pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    ASTStructDeclaration result = new ASTStructDeclaration(name.image);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatementC(ASTNode parent, programType pType) :{  String modifier;  String returnType;  Token name;  String parameterType;  Token parameterName;  ASTStatement s;  Token dimension;}{  < FUNCTION_DEC > name = < IDENTIFIER >  {    ASTFunctionC result = new ASTFunctionC(name.image);    result.addParent(parent);  }  (    modifier = catchModifier()    {      result.addModifier(modifier);    }  )*  (    returnType = types_C()    {      result.addReturnType(new ASTExpressionUnitTypes(returnType));    }  )?  (    (      < PARAMETER > parameterType = types_C() parameterName = < IDENTIFIER >      {        ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);        ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);        result.addParameter(t, i);      }    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY > parameterName = < IDENTIFIER >      {        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));        ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);        result.addParameter(type, id);      }    )  )*  < FUNCTION_START >  (    s = statement(result, pType)    {
+    if (pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    ASTStructDeclaration result = new ASTStructDeclaration(name.image);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatement(ASTNode parent, programType pType) :{  String modifier;  String returnType;  Token name;  String parameterType = "";  Token parameterName;  ASTStatement s;  Token dimension;
+  ASTFunction result;}{  < FUNCTION_DEC > name = < IDENTIFIER >  {
+    switch (pType) {
+      case C:
+      	result = new ASTFunctionC(name.image);
+      	break;
+      case P:
+      	result = new ASTFunctionP(name.image);
+      	break;
+      default:
+      	result = new ASTFunction(name.image);
+      	break;
+    }    result.addParent(parent);  }  (    modifier = catchModifier()    {
+      if (pType == programType.P) throw new ParseException("Not supported in Python!\n");      ((ASTFunctionC) result).addModifier(modifier);    }  )*  (    returnType = types_C()    {
+      if (pType == programType.P) throw new ParseException("Not supported in Python!\n");      ((ASTFunctionC) result).addReturnType(new ASTExpressionUnitTypes(returnType));    }  )?  (    (      < PARAMETER >
+      (        < TYPE > parameterType = types_C()
+	    {
+	      if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
+	    }
+      )?
+      parameterName = < IDENTIFIER >      {
+        if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");        ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);        ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);		switch (pType) {
+	      case C:
+        	((ASTFunctionC) result).addParameter(t, i);
+	      	break;
+	      case P:
+	      	((ASTFunctionP) result).addParameter(i);
+	      	break;
+	    }      }    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY > parameterName = < IDENTIFIER >      {
+        if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));        ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);        ((ASTFunctionC) result).addParameter(type, id);      }    )  )*  < FUNCTION_START >  (    s = statement(result, pType)    {
       if (!s.toSyntax().equals("\n"))
       {
         result.addStatement(s);      	//System.out.println(s.toSyntax());
-      }    }  )*  < FUNCTION_END > < TERMINATOR >  {    return result;  }}ASTIfStatementC if_statementC(ASTNode parent, programType pType) :{  ASTExpression condition;  ASTStatement stat1;  ASTStatement stat2;}{  < IF > < CONDITION > condition = expression(pType)  {    ASTIfStatementC result = new ASTIfStatementC(condition);    result.addParent(parent);    //System.out.println(condition.toSyntax());  }  < IF_BRANCH_START >  (    stat1 = statement(result, pType)    {      result.setIf(stat1);      //System.out.println(stat1.toSyntax());    }  )*  < IF_BRANCH_END >  (    < ELSE_BRANCH_START >    (      stat2 = statement(result, pType)      {        result.setElse(stat2);        //System.out.println(stat2.toSyntax());      }    )*    < ELSE_BRANCH_END >  )?  < TERMINATOR >  {    return result;  }}ASTForStatement forStatement(ASTNode parent, programType pType) :
+      }    }  )*  < FUNCTION_END > < TERMINATOR >  {    return result;  }}ASTIfStatement if_statement(ASTNode parent, programType pType) :{  ASTExpression condition;  ASTStatement stat1;  ASTStatement stat2;
+  ASTIfStatement result;}{  < IF > < CONDITION > condition = expression(pType)  {
+    switch (pType) {
+      case C:
+      	result = new ASTIfStatementC(condition);
+      	break;
+      case P:
+      	result = new ASTIfStatementP(condition);
+      	break;
+      default:
+      	result = new ASTIfStatement(condition);
+      	break;
+    }    result.addParent(parent);    //System.out.println(condition.toSyntax());  }  < IF_BRANCH_START >  (    stat1 = statement(result, pType)    {      result.setIf(stat1);      //System.out.println(stat1.toSyntax());    }  )*  < IF_BRANCH_END >  (    < ELSE_BRANCH_START >    (      stat2 = statement(result, pType)      {        result.setElse(stat2);        //System.out.println(stat2.toSyntax());      }    )*    < ELSE_BRANCH_END >  )?  < TERMINATOR >  {    return result;  }}ASTForStatement forStatement(ASTNode parent, programType pType) :
 {  ASTForStatement result;
 }
 {  < FOR >
@@ -166,11 +207,24 @@ ASTForStatementP forStatementP(programType pType) :
   {
     return result;
   }
-}ASTWhileStatementC whileStatementC(ASTNode parent, programType pType) :{  ASTExpression exp;  ASTStatement temp;}{  < WHILE > < CONDITION > exp = expression(pType)  {    ASTWhileStatementC result = new ASTWhileStatementC(exp);    result.addParent(parent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
+}ASTWhileStatement whileStatement(ASTNode parent, programType pType) :{  ASTExpression exp;  ASTStatement temp;
+  ASTWhileStatement result;}{  < WHILE > < CONDITION > exp = expression(pType)  {
+    switch (pType) {
+      case C:
+      	result = new ASTWhileStatementC(exp);
+      	break;
+      case P:
+      	result = new ASTWhileStatementP(exp);
+      	break;
+      default:
+      	result = new ASTWhileStatement(exp);
+      	break;
+    }    result.addParent(parent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
   {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
   }
-  < CONDITION > exp = expression(pType)  {    ASTDoWhileStatement result = new ASTDoWhileStatement(exp);    result.addParent(parent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTSwitchStatement switchStatement(ASTNode parent, programType pType) :{  ASTExpression condition;  ASTExpression case_condition;  ASTStatement temp;}{  < SWITCH > < CONDITION > condition = expression(pType)  {    ASTSwitchStatement result = new ASTSwitchStatement(condition);    result.addParent(parent);    //System.out.println(condition.toSyntax());  }  (    < CASE > case_condition = expression(pType)    {      result.addCase(case_condition);      //System.out.println(case_condition.toSyntax());    }    < CASE_START >    (      temp = statement(result, pType)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )*  (    < _DEFAULT >    {      result.addDefault();    }    < CASE_START >    (      temp = statement(result, pType)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )?  < TERMINATOR >  {    return result;  }}/*SimpleStatement*/ASTBreakStatement breakStatement(programType pType) :{  Token n;  ASTBreakStatement result;}{  < BREAK >  {
+  < CONDITION > exp = expression(pType)  {    ASTDoWhileStatement result = new ASTDoWhileStatement(exp);    result.addParent(parent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTSwitchStatement switchStatement(ASTNode parent, programType pType) :{  ASTExpression condition;  ASTExpression case_condition;  ASTStatement temp;}{  < SWITCH > < CONDITION > condition = expression(pType)  {
+    if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTSwitchStatement result = new ASTSwitchStatement(condition);    result.addParent(parent);    //System.out.println(condition.toSyntax());  }  (    < CASE > case_condition = expression(pType)    {      result.addCase(case_condition);      //System.out.println(case_condition.toSyntax());    }    < CASE_START >    (      temp = statement(result, pType)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )*  (    < _DEFAULT >    {      result.addDefault();    }    < CASE_START >    (      temp = statement(result, pType)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )?  < TERMINATOR >  {    return result;  }}/*SimpleStatement*/ASTBreakStatement breakStatement(programType pType) :{  Token n;  ASTBreakStatement result;}{  < BREAK >  {
     switch (pType) {
       case C:
       	result = new ASTBreakStatementC();
@@ -312,7 +366,7 @@ ASTForStatementP forStatementP(programType pType) :
     return gt;
   }
 }
-ASTBlockStatement blockStatement(ASTNode parent, programType pType) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;}{  structDeclare = structDeclareStatement(parent, pType)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType)  {    return doWhile;  }| forStatement = forStatement(parent, pType)  {    return forStatement;  }| functionDeclare = functionStatementC(parent, pType)  {    return functionDeclare;  }| ifStatement = if_statementC(parent, pType)  {    return ifStatement;  }| whileStatement = whileStatementC(parent, pType)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType)  {    return switchStatement;  }}ASTStatement query() :{}{  "?"  (    < STRUCT >    {      getStructure(current);      return new ASTStatement();    }  | < TREE >    {      getTree(current);      return new ASTStatement();    }  )}
+ASTBlockStatement blockStatement(ASTNode parent, programType pType) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;}{  structDeclare = structDeclareStatement(parent, pType)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType)  {    return doWhile;  }| forStatement = forStatement(parent, pType)  {    return forStatement;  }| functionDeclare = functionStatement(parent, pType)  {    return functionDeclare;  }| ifStatement = if_statement(parent, pType)  {    return ifStatement;  }| whileStatement = whileStatement(parent, pType)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType)  {    return switchStatement;  }}ASTStatement query() :{}{  "?"  (    < STRUCT >    {      getStructure(current);      return new ASTStatement();    }  | < TREE >    {      getTree(current);      return new ASTStatement();    }  )}
 ASTStatement statement(ASTNode parent, programType pType) :
 {
   ASTStatement result;

@@ -19,7 +19,7 @@ public final class ASTIfStatementC extends ASTIfStatement {
 		for(int i = 0;i<this.ifBranch.size();i++){
 			result+= ("\t"+this.ifBranch.get(i).toSyntax());
 		}
-		result += "\t}\n";
+		result += "}\n";
 		if(!this.elseBranch.isEmpty()){
 			result += "else {\n";
 			for(int j = 0; j<this.elseBranch.size();j++){

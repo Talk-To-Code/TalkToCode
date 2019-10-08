@@ -8,7 +8,7 @@ import java.util.ArrayList;
  *
  */
 public class ASTFunctionP extends ASTFunction {
-	private ArrayList<ASTExpression> parameters;
+	private ArrayList<ASTExpression> parameters = new ArrayList<ASTExpression>();
 	public ASTFunctionP(String name) {
 		super(name);
 	}

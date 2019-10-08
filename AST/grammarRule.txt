@@ -77,7 +77,7 @@ if_statementC() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
 functionStatementC() :
-	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >types_C()< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
 
 structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
