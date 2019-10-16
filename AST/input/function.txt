@@ -1,0 +1,7 @@
+I want to create a function
+create a function
+set x to a plus b
+i plus plus
+set i to i plus plus
+set a to a plus b minus c plus d
+set a to result of b plus c times a

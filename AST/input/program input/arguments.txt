@@ -1,0 +1,8 @@
+#c_program arguments
+#include "stdio.h";;
+#function_declare main int #parameter #type int argc
+#function_start
+#function printf(#parameter #value "Number of command line arguments passed: %d\n" #parameter #variable argc);;
+return #parameter #value 0;;
+#function_end;;
+#program_end

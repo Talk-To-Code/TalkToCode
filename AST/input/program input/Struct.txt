@@ -1,0 +1,16 @@
+#c_program Struct
+#include "stdio.h";;
+#struct_declare point
+#struct_start
+#create int #variable x #dec_end #variable y #dec_end;;
+#struct_end;;
+#function_declare main int
+#function_start
+#create #struct point #variable p #dec_end;;
+#assign #access p x #access_end #with #value 1;;
+#assign #access p y #access_end #with #value 2;;
+#function printf(#parameter #value "%d\n" #parameter #access p x #access_end);;
+#function printf(#parameter #value "%d\n" #parameter #access p y #access_end);;
+return #parameter #value 0;;
+#function_end;;
+#program_end

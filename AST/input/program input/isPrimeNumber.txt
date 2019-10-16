@@ -1,0 +1,31 @@
+#c_program isPrimeNumber
+#include "stdio.h";;
+#function_declare main int
+#function_start
+#create int #variable n #dec_end #variable c #dec_end;;
+#function printf(#parameter #value "Enter an integer\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable n);;
+if #condition #variable n == #value 2
+#if_branch_start
+#function printf(#parameter #value "Prime number.\n");;
+#if_branch_end
+#else_branch_start
+for #condition #assign #variable c #with #value 2 #condition #variable c <= #variable n - #value 1 #condition #post #variable c ++
+#for_start
+if #condition #variable n % #variable c == #value 0
+#if_branch_start
+break;;
+#if_branch_end;;
+#for_end;;
+if #condition #variable c != #variable n
+#if_branch_start
+#function printf(#parameter #value "Not prime.\n");;
+#if_branch_end
+#else_branch_start
+#function printf(#parameter #value "Prime number.\n");;
+#else_branch_end;;
+#else_branch_end;;
+return #parameter #value 0;;
+#function_end;;
+#program_end
+

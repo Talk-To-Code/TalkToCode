@@ -1,0 +1,375 @@
+Write a program:
+
+(< PROGRAM_C >|< PROGRAM_P >) <IDENTIFIER > (statement())+ < PROGRAM_END >
+
+statement():
+	simpleStatement()
+	| blockStatement()
+	| query()
+
+
+query():
+	"?"(#struct    				//display the partial struct of the current node in the tree (like where this node	belongs to
+	|#tree  					//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
+	)
+
+blockStatement():
+	structDeclareStatement()
+	| doWhileStatement()
+	| forStatement()
+	| functionStatement()
+	| if_statement()
+	| whileStatement()
+	| switchStatement()
+
+simpleStatement():
+	expression() < TERMINATOR >
+	| create_variable()
+	| breakStatement()
+	| continueStatement()
+	| labelStatement()
+	| returnStatement()
+	| importStatement()
+
+importStatement() :
+	< INCLUDE >< STRING_LITERAL > < TERMINATOR >
+
+labelStatement() :
+	< LABEL >< IDENTIFIER > < TERMINATOR >
+
+returnStatement() :
+	< RETURN >(< PARAMETER > expressionC())*< TERMINATOR >
+
+continueStatement() :
+	< CONTINUE >< IDENTIFIER > < TERMINATOR >
+
+breakStatement() :
+	< BREAK > (< IDENTIFIER >)? < TERMINATOR >
+
+gotoStatement() :
+	< GOTO >< IDENTIFIER > < TERMINATOR >
+
+create_variable() :
+	< CREATE >(catchModifier())*(types_C())?
+	((<VARIABLE><IDENTIFIER>(expression())?<DECLARE_END>)
+	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>expression()<INDEX_END>)+<DECLARE_END>))+
+	< TERMINATOR >
+
+switchStatement() :
+	 < SWITCH > < CONDITION > expression() (< CASE > expression() < CASE_START > (statement())*< CASE_END >)* (< _DEFAULT >< CASE_START >< CASE_END >)?< TERMINATOR >
+
+doWhileStatement() :
+	< DO > < CONDITION > exp = expression()< WHILE_START >(statement())*< WHILE_END > < TERMINATOR >
+
+whileStatementC() :
+	< WHILE > < CONDITION >expression()< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
+
+forStatement() :
+	< FOR > (forStatementC() | forStatementP())
+
+forStatementC() :
+	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expressionC())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+
+forStatementP() :
+	< VARIABLE >< IDENTIFIER > fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+
+if_statementC() :
+	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
+
+functionStatementC() :
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
+
+structDeclareStatement() :
+	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
+
+expression():
+	prefix_expression()
+	| infix_expression()
+	| postfix_expression()
+	| assignment()
+
+assignment() :
+	< ASSIGNMENT > fragment()(< WITH >| compoundOperators())expression()
+
+postfix_expression() :
+	< POST > < VARIABLE > < IDENTIFIER > incrDecrOperators()
+
+prefix_expression() :
+	incrDecrOperators() < VARIABLE > < IDENTIFIER >
+	| prefixOperators() fragment()
+	| < MINUS >expression()
+
+infix_expression() :
+	term()
+
+term() :
+	fragment()(infixOperators()fragment())*
+
+fragment() :
+	< VALUE >value()
+	| < VARIABLE >< IDENTIFIER >
+	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
+	| < LPAREN > expressionC() < RPAREN >
+	| < LBRACE >(< PARAMETER > expression())*< RBRACE >
+	| < ARRAY > < IDENTIFIER > ( < INDEX > expression())+
+	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
+
+types_C():
+	< IDENTIFIER >
+	| (primitive_typesC())+
+
+primitive_typesC() :
+	< INT >
+	| < CHAR >
+	| < C_TYPES_MODIFIERS_UNSIGNED >
+	| < DOUBLE >
+	| < FLOAT >
+	| < C_TYPES_MODIFIERS_SIGNED >
+	| < LONG>
+	| < SHORT>
+
+value():
+	< INTEGER_LITERAL >
+	| < FLOATING_POINT_LITERAL >
+	| < CHARACTER_LITERAL >
+	| < STRING_LITERAL >
+	| < TRUE >
+	| < FALSE >
+
+catchModifier():
+	< ABSTRACT >
+	| < PRIVATE >
+	| < PROTECTED >
+	| < PUBLIC >
+	| < STATIC >
+	| < FINAL >
+	| < SYNCHRONIZED >
+	| < VOLATILE >
+	| < CONST >
+
+incrDecrOperators() :
+	< INCR >
+	| < DECR >
+
+prefixOperators() :
+	< BANG >
+	| < TILDE >
+	| < BIT_AND >
+
+compoundOperators() :
+	< PLUSASSIGN >
+	| < MINUSASSIGN >
+	| < STARASSIGN >
+	| < SLASHASSIGN >
+	| < REMASSIGN >
+	| < ORASSIGN >
+	| < ANDASSIGN >
+	| < XORASSIGN >
+
+infixOperators() :
+	< PLUS >
+	| < MINUS >
+	| < STAR >
+	| < SLASH >
+	| < LT >
+	| < GT >
+	| < EQ >
+	| < LE >
+	| < GE >
+	| < NE >
+	| < SC_OR >
+	| < SC_AND >
+	| < BIT_AND >
+	| < BIT_OR >
+	| < XOR >
+	| < REM >
+	| < SHIFT_LEFT >
+	| < SHIFT_RIGHT >
+
+##TOKENS	
+< IDENTIFIER : < LETTER > (< PART_LETTER >)* >
+| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >
+| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >
+
+< C_TYPES_MODIFIERS_SIGNED : "signed" >
+< C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >
+< ASSIGNMENT : "#assign" >
+< CREATE : "#create" >
+< TYPE : "#type" >
+< VARIABLE : "#variable" >
+< VALUE : "#value" >
+< FUNCTION : "#function" >
+< WITH : "#with" >
+< CONDITION : "#condition" >
+< EXPRESSIONS : "#expression" >
+< IF_BRANCH_START : "#if_branch_start" >
+< IF_BRANCH_END : "#if_branch_end" >
+< ELSE_BRANCH_START : "#else_branch_start" >
+< ELSE_BRANCH_END : "#else_branch_end" >
+< PRE : "#pre" >
+< POST : "#post" >
+< TERMINATOR : ";;" >
+< PARAMETER : "#parameter" >
+< STRUCT : "#struct" >
+< ARRAY : "#array" >
+< ACCESS : "#access" >
+< ACCESS_END : "#access_end" >
+< LABEL : "#label" >
+< INDEX : "#indexes" >
+< INCLUDE : "#include" >
+< FOR_START : "#for_start" >
+< FOR_END : "#for_end" >
+< WHILE_START : "#while_start" >
+< WHILE_END : "#while_end" >
+< SWITCH_START : "#switch_start" >
+< SWITCH_END : "#switch_end" >
+< CASE_START : "#case_start" >
+< CASE_END : "#case_end" >
+< FUNCTION_DEC : "#function_declare" >
+< FUNCTION_START : "#function_start" >
+< FUNCTION_END : "#function_end" >
+< STRUCT_DEC : "#struct_declare" >
+< STRUCT_START : "#struct_start" >
+< STRUCT_END : "#struct_end" >
+< PROGRAM_END : "#program_end" >
+< PROGRAM_C : "#c_program" >
+< PROGRAM_P : "#p_program" >
+< DECLARE_END : "#dec_end" >
+< DIMENSION : "#dimension" >
+< PARAMETER_A : "#parameter_a" >
+< TREE : "#tree" >
+< ASSIGN : "=" >
+< LT : "<" >
+< GT : ">" >
+< BANG : "!" >
+< TILDE : "~" >
+< HOOK : "?" >
+< COLON : ":" >
+< EQ : "==" >
+< LE : "<=" >
+< GE : ">=" >
+< NE : "!=" >
+< SC_OR : "||" >
+< SC_AND : "&&" >
+< INCR : "++" >
+< DECR : "--" >
+< PLUS : "+" >
+< MINUS : "-" >
+< STAR : "*" >
+< SLASH : "/" >
+< BIT_AND : "&" >
+< BIT_OR : "|" >
+< XOR : "^" >
+< REM : "%" >
+< PLUSASSIGN : "+=" >
+< MINUSASSIGN : "-=" >
+< STARASSIGN : "*=" >
+< SLASHASSIGN : "/=" >
+< ANDASSIGN : "&=" >
+< ORASSIGN : "|=" >
+< XORASSIGN : "^=" >
+< REMASSIGN : "%=" >
+< SHIFT_LEFT : "<<" >
+< SHIFT_RIGHT : ">>" >
+< LPAREN : "(" >
+< RPAREN : ")" >
+< LBRACE : "{" >
+< RBRACE : "}" >
+< INTEGER_LITERAL :
+    < DECIMAL_LITERAL > ([ "l", "L" ])?
+  | < HEX_LITERAL > ([ "l", "L" ])?
+  | < OCTAL_LITERAL > ([ "l", "L" ])? >
+| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >
+| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >
+| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >
+| < FLOATING_POINT_LITERAL :
+    < DECIMAL_FLOATING_POINT_LITERAL >
+  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>
+| < #DECIMAL_FLOATING_POINT_LITERAL :
+    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?
+  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?
+  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?
+  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >
+| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >
+| < #HEXADECIMAL_FLOATING_POINT_LITERAL :
+    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?
+  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >
+| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >
+| < CHARACTER_LITERAL :
+    "\'"
+    (
+      ~[ "\'", "\\", "\n", "\r" ]
+    | "\\"
+      (
+        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]
+      | [ "0"-"7" ] ([ "0"-"7" ])?
+      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]
+      )
+    )
+    "\'" >
+| < STRING_LITERAL :
+    "\""
+    (
+      ~[ "\"", "\\", "\n", "\r" ]
+    | "\\"
+      (
+        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]
+      | [ "0"-"7" ] ([ "0"-"7" ])?
+      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]
+      )
+    )*
+    "\"" >
+
+< ABSTRACT : "abstract" >
+< ASSERT : "assert" >
+< BOOLEAN : "boolean" >
+< BREAK : "break" >
+< BYTE : "byte" >
+< CASE : "case" >
+< CATCH : "catch" >
+< CHAR : "char" >
+< CLASS : "class" >
+< CONST : "const" >
+< CONTINUE : "continue" >
+< _DEFAULT : "default" >
+< DO : "do" >
+< DOUBLE : "double" >
+< ELSE : "else" >
+< ENUM : "enum" >
+< EXTENDS : "extends" >
+< FALSE : "false" >
+< FINAL : "final" >
+< FINALLY : "finally" >
+< FLOAT : "float" >
+< FOR : "for" >
+< GOTO : "goto" >
+< IF : "if" >
+< IMPLEMENTS : "implements" >
+< IMPORT : "import" >
+< INSTANCEOF : "instanceof" >
+< INT : "int" >
+< INTERFACE : "interface" >
+< LONG : "long" >
+< NATIVE : "native" >
+< NEW : "new" >
+< NULL : "null" >
+< PACKAGE : "package" >
+< PRIVATE : "private" >
+< PROTECTED : "protected" >
+< PUBLIC : "public" >
+< RETURN : "return" >
+< SHORT : "short" >
+< STATIC : "static" >
+< STRICTFP : "strictfp" >
+< SUPER : "super" >
+< SWITCH : "switch" >
+< SYNCHRONIZED : "synchronized" >
+< THIS : "this" >
+< THROW : "throw" >
+< THROWS : "throws" >
+< TRANSIENT : "transient" >
+< TRUE : "true" >
+< TRY : "try" >
+< VOID : "void" >
+< VOLATILE : "volatile" >
+< WHILE : "while" >
