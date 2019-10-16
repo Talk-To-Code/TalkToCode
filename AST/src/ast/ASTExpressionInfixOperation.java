@@ -22,7 +22,7 @@ public class ASTExpressionInfixOperation extends ASTExpression{
 		this.identifier2 = id2;
 		
 		this.op.addParent(this);
-		this.identifier1.addParent(this);;
+		this.identifier1.addParent(this);
 		this.identifier2.addParent(this);
 	}
 	public boolean isValid(int currentProgrammingLanguage){
@@ -30,6 +30,7 @@ public class ASTExpressionInfixOperation extends ASTExpression{
 	}
 	public String toSyntax() {
 		this.result = identifier1.toSyntax() + " "+this.op.toSyntax() +" "+ identifier2.toSyntax();
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 	public String typeof() {

@@ -18,7 +18,9 @@ public class ASTExpressionUnitIdentifier extends ASTExpressionUnit{
 		this.name = name;
 	}
 	public String toSyntax(){
-		return this.name;
+		this.result = this.name;
+		if(this.isQuoted) quote();
+		return super.toSyntax();
 	}
 	public String typeof() {
 		return super.typeof()+"->"+NODE_TYPE;

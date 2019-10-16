@@ -57,6 +57,7 @@ public class ASTExpressionUnitAccess extends ASTExpressionUnit {
 	//syntax construction
 	public String toSyntax(){
 		this.result = this.accessParent.toSyntax()+"."+this.child.toSyntax();
+		if(this.isQuoted) quote();
 		return super.toSyntax();
 	}
 	public String typeof(){

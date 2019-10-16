@@ -1,5 +1,5 @@
 #c_program isPrimeNumber
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare main int
 #function_start
 #create int #variable n #dec_end #variable c #dec_end;;
@@ -25,7 +25,7 @@ if #condition #variable c != #variable n
 #function printf(#parameter #value "Prime number.\n");;
 #else_branch_end;;
 #else_branch_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end
 

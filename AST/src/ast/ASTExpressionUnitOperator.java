@@ -86,6 +86,8 @@ public class ASTExpressionUnitOperator extends ASTExpressionUnit{
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	public String toSyntax(){
-		return this.operator;
+		this.result = this.operator;
+		if(this.isQuoted) quote();
+		return super.toSyntax();
 	}
 }

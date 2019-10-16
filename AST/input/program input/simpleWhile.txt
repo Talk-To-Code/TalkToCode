@@ -1,5 +1,5 @@
 #c_program simpleWhile
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare main int
 #function_start
 #create int #variable value #value 1 #dec_end;;
@@ -8,6 +8,6 @@ while #condition #variable value <= #value 3
 #function printf(#parameter #value "Value is %d\n" #parameter #variable value);;
 #post #variable value ++;;
 #while_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

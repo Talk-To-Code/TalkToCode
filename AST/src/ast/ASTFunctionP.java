@@ -30,6 +30,7 @@ public class ASTFunctionP extends ASTFunction {
 		}
 		this.result+="):\n";
 		for(ASTStatement s:this.statements){
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result+="\t";
 			this.result+=s.toSyntax();
 			this.result+="\n";

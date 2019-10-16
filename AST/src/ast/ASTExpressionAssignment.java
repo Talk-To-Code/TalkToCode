@@ -27,6 +27,7 @@ public class ASTExpressionAssignment extends ASTExpression{
 	//code construction
 	public String toSyntax(){
 		this.result = this.object.toSyntax() + " "+this.op.toSyntax()+" "+this.exp.toSyntax();
+		if(this.isQuoted) quote();
 		return super.toSyntax();
 	}
 	public String typeof(){

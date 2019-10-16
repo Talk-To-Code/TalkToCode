@@ -40,8 +40,9 @@ public class ASTExpression extends ASTNode {
 	public void setResult(String text){
 		this.result = text;
 	}
-	public void setQuote(){
+	public void quote(){
 		this.isQuoted = true;
+		this.result = "("+this.result+")";
 	}
 	public String typeof() {
 		return super.typeof()+"->"+NODE_TYPE;
@@ -49,8 +50,5 @@ public class ASTExpression extends ASTNode {
 	//virtual method
 	public String toSyntax() {	
 		return this.result;
-	}
-	protected void quote(){
-		this.result = "("+this.result+")";
 	}
 }

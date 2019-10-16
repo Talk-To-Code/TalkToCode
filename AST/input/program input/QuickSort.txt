@@ -1,6 +1,6 @@
 #c_program QuickSort
-#include #access stdio h #access_end;;
-#function_declare quicksort #parameter_a #dimension 1 int #array X #parameter int first #parameter int last
+#include "stdio.h";;
+#function_declare quicksort #parameter_a #dimension 1 int #array X #parameter #type int first #parameter #type int last
 #function_start
 #create int #variable pivot #dec_end #variable j #dec_end #variable temp #dec_end #variable i #dec_end;;
 if #condition #variable first < #variable last
@@ -48,6 +48,6 @@ for #condition #assign #variable i #with #value 0 #condition #variable i < #vari
 #for_start
 #function printf(#parameter #value " %d" #parameter #array X #indexes #variable i #index_end);;
 #for_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

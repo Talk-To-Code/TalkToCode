@@ -1,5 +1,5 @@
 #c_program array
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare main int
 #function_start
 #create int #variable n #dec_end #variable c #dec_end #array #variable array #indexes #value 100 #index_end #dec_end;;
@@ -15,6 +15,6 @@ for #condition #assign #variable c #with #value 0 #condition #variable c < #vari
 #for_start
 #function printf(#parameter #value "array[%d] = %d\n" #parameter #variable c #parameter #array array #indexes #variable c #index_end);;
 #for_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

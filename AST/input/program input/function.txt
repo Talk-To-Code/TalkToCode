@@ -1,5 +1,5 @@
 #c_program function
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare my_function
 #function_start
 #function printf(#parameter #value "Welcome to my function. Feel at home.\n");;
@@ -10,6 +10,6 @@ return ;;
 #function printf(#parameter #value "Main function.\n");;
 #function my_function();;
 #function printf(#parameter #value "Back in function main.\n");;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

@@ -35,6 +35,7 @@ public class ASTExpressionPostfixOperation extends ASTExpression{
 	}
 	public String toSyntax() {
 		this.result = identifier1.toSyntax() + this.op.toSyntax();
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 	public String typeof() {

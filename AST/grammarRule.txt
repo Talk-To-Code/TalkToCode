@@ -17,9 +17,9 @@ blockStatement():
 	structDeclareStatement()
 	| doWhileStatement()
 	| forStatement()
-	| functionStatementC()
-	| if_statementC()
-	| whileStatementC()
+	| functionStatement()
+	| if_statement()
+	| whileStatement()
 	| switchStatement()
 
 simpleStatement():
@@ -96,8 +96,8 @@ postfix_expression() :
 
 prefix_expression() :
 	incrDecrOperators() < VARIABLE > < IDENTIFIER >
-	| prefixOperators() fragmentC()
-	| < MINUS >expressionC()
+	| prefixOperators() fragment()
+	| < MINUS >expression()
 
 infix_expression() :
 	term()
@@ -110,8 +110,8 @@ fragment() :
 	| < VARIABLE >< IDENTIFIER >
 	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
 	| < LPAREN > expressionC() < RPAREN >
-	| < LBRACE >(< PARAMETER > expressionC())*< RBRACE >
-	| < ARRAY > < IDENTIFIER > ( < INDEX > expressionC())+
+	| < LBRACE >(< PARAMETER > expression())*< RBRACE >
+	| < ARRAY > < IDENTIFIER > ( < INDEX > expression())+
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 
 types_C():
@@ -270,7 +270,7 @@ infixOperators() :
 < XORASSIGN : "^=" >
 < REMASSIGN : "%=" >
 < SHIFT_LEFT : "<<" >
-< SHIFT_RIGHT : " >>" >
+< SHIFT_RIGHT : ">>" >
 < LPAREN : "(" >
 < RPAREN : ")" >
 < LBRACE : "{" >

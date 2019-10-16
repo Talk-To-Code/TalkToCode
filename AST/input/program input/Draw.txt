@@ -1,5 +1,5 @@
 #c_program Draw
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare printStar
 #function_start
 #function printf(#parameter #value "  *  \n");;
@@ -8,7 +8,7 @@
 #function printf(#parameter #value "*****\n");;
 #function printf(#parameter #value "  *  \n");;
 #function_end;;
-#function_declare printTriangle #parameter int a
+#function_declare printTriangle #parameter #type int a
 #function_start
 #create int #variable i #dec_end #variable j #dec_end #variable k #dec_end;;
 for #condition #assign #variable i #with #value 0 #condition #variable i <= #variable a #condition #post #variable i ++
@@ -24,7 +24,7 @@ for #condition #assign #variable k #with #value 0 #condition #variable k < #valu
 #function printf(#parameter #value "\n");;
 #for_end;;
 #function_end;;
-#function_declare printRectangle #parameter int n #parameter int l
+#function_declare printRectangle #parameter #type int n #parameter #type int l
 #function_start
 #create int #variable i #dec_end #variable j #dec_end;;
 for #condition #assign #variable i #with #value 0 #condition #variable i < #variable n #condition #post #variable i ++
@@ -66,6 +66,6 @@ case #value 3
 #case_start #function printf(#parameter #value "END\n");; break;; #case_end
 default
 #case_start goto LOOP;; #case_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

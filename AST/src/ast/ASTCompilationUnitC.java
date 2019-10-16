@@ -19,10 +19,15 @@ public final class ASTCompilationUnitC extends ASTCompilationUnit {
 		String filename = path + this.name + ".c";
 		File textOutput = new File(filename);
 		try {
+			String output = "";
+			for (char c : this.result.toCharArray()){
+				if(c == '\n') output += '\r';
+				output += c;
+			}
             textOutput.createNewFile();
             FileOutputStream fos = new FileOutputStream(
                     textOutput.getAbsolutePath());
-            fos.write(this.result.getBytes());
+            fos.write(output.getBytes());
             fos.flush();
             fos.close();
         } catch (IOException e) {

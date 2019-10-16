@@ -49,6 +49,7 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 			}
 			this.result+= this.entries.get(index).toSyntax();
 			this.result += "}";
+			if(this.isQuoted) quote();
 			return this.result;
 		}
 		case INDEX_PYTHON:
@@ -62,6 +63,7 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 			}
 			this.result+= this.entries.get(index).toSyntax();
 			this.result += "]";
+			if(this.isQuoted) quote();
 			return this.result;
 		}
 		default:

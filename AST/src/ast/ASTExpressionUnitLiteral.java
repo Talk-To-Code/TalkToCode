@@ -22,6 +22,8 @@ public class ASTExpressionUnitLiteral extends ASTExpressionUnit{
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	public String toSyntax(){
-		return this.value;
+		this.result = this.value;
+		if(this.isQuoted) quote();
+		return super.toSyntax();
 	}
 }

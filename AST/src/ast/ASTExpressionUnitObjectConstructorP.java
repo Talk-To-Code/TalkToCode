@@ -20,6 +20,7 @@ public class ASTExpressionUnitObjectConstructorP extends ASTExpressionUnitObject
 			}
 		}
 		this.result +=")";
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 }

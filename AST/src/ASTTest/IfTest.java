@@ -22,11 +22,11 @@ public class IfTest extends TestCase {
 	@Test
 	public void testIf() {
 		try {
-			InputStream in = new FileInputStream(new File("Ifinput.txt"));
+			InputStream in = new FileInputStream(new File("./input/Ifinput.txt"));
 			//parser = new ASTParser(in);
-			InputStream out = new FileInputStream(new File("Ifoutput.txt"));
-			pro.parse("Ifinput.txt", "ActualOutput.txt");
-			InputStream actualOut = new FileInputStream(new File("ActualOutput.txt"));
+			InputStream out = new FileInputStream(new File("./output/Ifoutput.txt"));
+			pro.parse("./input/Ifinput.txt", "./output/ActualOutput.txt");
+			InputStream actualOut = new FileInputStream(new File("./output/ActualOutput.txt"));
 			BufferedReader br1 = new BufferedReader(new InputStreamReader(out));
 			BufferedReader br2 = new BufferedReader(new InputStreamReader(actualOut));
 			ArrayList<String> expectedOutput = new ArrayList<String>();

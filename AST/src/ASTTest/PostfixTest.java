@@ -21,9 +21,10 @@ public class PostfixTest extends TestCase {
 	@Test
 	public void testPostfix() {
 		try {
-			InputStream in = new FileInputStream(new File("Postfixinput.txt"));
-			parser = new ASTParser(in);
-			InputStream out = new FileInputStream(new File("Postfixoutput.txt"));
+			InputStream in = new FileInputStream(new File("./input/Postfixinput.txt"));
+			//parser = new ASTParser(in);
+			ASTParser.ReInit(in);
+			InputStream out = new FileInputStream(new File("./output/Postfixoutput.txt"));
 			BufferedReader br = new BufferedReader(new InputStreamReader(out));
 			ArrayList<String> expectedOutput = new ArrayList<String>();
 			String temp;
@@ -35,7 +36,7 @@ public class PostfixTest extends TestCase {
 			int testNo = 0;
 			while(testNo!=count){
 				try {
-					assertEquals(testNo+" "+expectedOutput.get(testNo),testNo+" "+parser.statementC(new ASTNode()).toSyntax());
+					assertEquals(testNo+" "+expectedOutput.get(testNo)+"\n",testNo+" "+parser.statement(new ASTNode(), ASTParser.programType.C, 0).toSyntax());
 					testNo++;
 				} catch (Exception ex){
 					ex.printStackTrace();

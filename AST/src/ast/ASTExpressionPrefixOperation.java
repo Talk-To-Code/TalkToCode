@@ -59,6 +59,7 @@ public class ASTExpressionPrefixOperation extends ASTExpression{
 
 	public String toSyntax() {
 		this.result = this.op.toSyntax() + identifier1.toSyntax();
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 	public String typeof() {

@@ -19,7 +19,8 @@ public class ASTTestInputProcessor {
 			//InputStream in = new FileInputStream(new File("Prefixinput.txt"));
 			//InputStream in = new FileInputStream(new File("Assignmentinput.txt"));
 			//InputStream in = new FileInputStream(new File("input.txt"));
-			this.parser = new ASTParser(in);
+			//parser = new ASTParser(in);
+			ASTParser.ReInit(in);
 			//File outputFile = new File("output.txt");
 			//File outputFile = new File("Assignmentoutput.txt");
 			//File outputFile = new File("Prefixoutput.txt");
@@ -35,8 +36,8 @@ public class ASTTestInputProcessor {
 			try {
 				int i = 0;
 				while(i<10000){
-					ASTNode temp = parser.statementC(new ASTNode());
-					result.add(temp.toSyntax()+"\n");
+					ASTNode temp = parser.statement(new ASTNode(), ASTParser.programType.C, 0);
+					result.add(temp.toSyntax());
 					i++;
 				}
 				System.out.println(result.size());

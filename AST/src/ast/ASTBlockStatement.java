@@ -8,9 +8,13 @@ package ast;
  */
 public class ASTBlockStatement extends ASTStatement {
 	private static final String NODE_TYPE = "Block Statement";
+	protected int indent = 0;
 	public ASTBlockStatement() {
 		super();
 		this.isBlock = true;
+	}
+	public void setIndent(int indent){
+		this.indent = indent;
 	}
 	//virtual method
 	public String toSyntax(){

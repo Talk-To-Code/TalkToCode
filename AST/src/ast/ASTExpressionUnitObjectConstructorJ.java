@@ -21,6 +21,7 @@ public final class ASTExpressionUnitObjectConstructorJ extends ASTExpressionUnit
 			}
 		}
 		this.result +=")";
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 }

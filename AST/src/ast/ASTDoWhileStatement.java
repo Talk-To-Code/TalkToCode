@@ -33,10 +33,12 @@ public class ASTDoWhileStatement extends ASTBlockStatement {
 	public String toSyntax(){
 		this.result = "do {\n";
 		for(ASTStatement s:this.statements){
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result+="\t";
 			this.result+=s.toSyntax();
 			this.result+="\n";
 		}
+		for(int i = 0; i < this.indent; i++) this.result+="\t";
 		this.result+="} while (";
 		this.result += this.exp.toSyntax();
 		this.result+= ");\n";

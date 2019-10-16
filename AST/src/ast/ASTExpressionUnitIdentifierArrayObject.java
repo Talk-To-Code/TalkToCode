@@ -41,6 +41,8 @@ public class ASTExpressionUnitIdentifierArrayObject extends ASTExpressionUnitIde
 				this.result+=this.indexes.get(i).toSyntax();
 				this.result+="]";
 			}
+
+			if(this.isQuoted) quote();
 			
 			return this.result;
 		

@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Stack;
 
+import ast.ASTCompilationUnit;
 import ast.ASTCompilationUnitC;
 import ast.ASTParser;
 import ast.ParseException;
@@ -22,6 +23,7 @@ import org.junit.Test;
  * well as the content of generated C program and the expected outputs
  */
 public class C_Program_Test {
+	private static ASTParser parser;
 
 	@Test
 	public void test() {
@@ -32,9 +34,8 @@ public class C_Program_Test {
 
 
 	private void generateActualOutput() {
-		ASTParser parser = null;
 		//enter the input path
-		File inputDirectory = new File("E:\\study\\FYP\\talk-to-code\\input\\program input\\");
+		File inputDirectory = new File("./input/program input/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {
@@ -47,14 +48,11 @@ public class C_Program_Test {
             } else {
             	try {            		
 					FileInputStream fis = new FileInputStream(f);
-					if(parser == null){
-						parser = new ASTParser(fis);
-					} else {
-						ASTParser.ReInit(fis);
-					}
-					ASTCompilationUnitC actualProgram = ASTParser.programC();
+					//if(parser == null) parser = new ASTParser(fis);
+					ASTParser.ReInit(fis);
+					ASTCompilationUnit actualProgram = ASTParser.program();
 					//enter the output path
-					actualProgram.toFile("E:\\study\\FYP\\talk-to-code\\output\\program actual outputs\\");
+					((ASTCompilationUnitC) actualProgram).toFile("./output/program actual outputs/");
 				} catch (FileNotFoundException e) {
 
 					e.printStackTrace();
@@ -67,7 +65,7 @@ public class C_Program_Test {
 	
 	private HashMap<String,String> constructComparisonMap(){
 		HashMap<String,String> allPrograms = new HashMap<String,String>();
-		File inputDirectory = new File("E:\\study\\FYP\\talk-to-code\\output\\program expected outputs\\");
+		File inputDirectory = new File("./output/program expected outputs/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {
@@ -90,7 +88,7 @@ public class C_Program_Test {
         return allPrograms;
 	}
 	private void compare(HashMap<String,String> map){
-		File inputDirectory = new File("E:\\study\\FYP\\talk-to-code\\output\\program expected outputs\\");
+		File inputDirectory = new File("./output/program actual outputs/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {

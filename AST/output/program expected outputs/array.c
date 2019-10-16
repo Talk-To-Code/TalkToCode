@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int  main(){
-	int  n, c, array[100];
+	int n, c, array[100];
 
 	printf("Enter the number of elements in array\n");
 
@@ -9,17 +9,17 @@ int  main(){
 
 	printf("Enter %d elements\n",n);
 
-	for (c  =  0;c < n;c++){
-	scanf("%d",&array[c]);
+	for (c = 0;c < n;c++){
+		scanf("%d",&array[c]);
 
-}
+	}
 
 	printf("Array elements entered by you are:\n");
 
-	for (c  =  0;c < n;c++){
-	printf("array[%d] = %d\n",c,array[c]);
+	for (c = 0;c < n;c++){
+		printf("array[%d] = %d\n",c,array[c]);
 
-}
+	}
 
 	return 0;
 

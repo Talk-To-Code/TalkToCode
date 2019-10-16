@@ -51,30 +51,35 @@ public class ASTSwitchStatement extends ASTBlockStatement {
 		this.result = "switch (";
 		this.result += this.exp.toSyntax() + ") {\n";
 		for (int i = 0; i < this.cases.size(); i++) {
+			for(int k = 0; k < this.indent; k++) this.result+="\t";
 			this.result += "\tcase ";
 			this.result += this.cases.get(i).toSyntax();
 			this.result += ":";
 			if (this.blocks.get(i).isEmpty()) {
 				this.result += "\n";
 			} else {
-				this.result += "{\n";
+				this.result += "\n";
 				for (int j = 0; j < this.blocks.get(i).size(); j++) {
-					this.result += "\t";
+					for(int k = 0; k < this.indent; k++) this.result+="\t";
+					this.result += "\t\t";
 					this.result += this.blocks.get(i).get(j).toSyntax();
 				}
-				this.result += "\n}\n";
+				this.result += "\n";
 
 			}
 		}
 		if (!this.defaultBranch.isEmpty()) {
-			this.result += "\tdefault:{\n";
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
+			this.result += "\tdefault:\n";
 			for (int k = 0; k < this.defaultBranch.size(); k++) {
-				this.result += "\t";
+				for(int i = 0; i < this.indent; i++) this.result+="\t";
+				this.result += "\t\t";
 				this.result += this.defaultBranch.get(k).toSyntax();
 			}
-			this.result += "}\n";
+			this.result += "\n";
 		}
-		this.result += "\n}\n";
+		for(int i = 0; i < this.indent; i++) this.result+="\t";
+		this.result += "}\n";
 		return this.result;
 	}
 

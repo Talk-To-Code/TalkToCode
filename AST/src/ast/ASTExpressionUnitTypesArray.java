@@ -29,6 +29,7 @@ public class ASTExpressionUnitTypesArray extends ASTExpressionUnitTypes {
 		for(int i = 0;i<this.dimension;i++){
 			this.result+="[]";
 		}
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 	public String typeof(){

@@ -49,7 +49,6 @@ public final class ASTDeclarationStatementC extends ASTDeclarationStatement {
 			this.result += this.modifiers.get(i)+" ";
 		}
 		this.result += this.type.toSyntax();
-		this.result += " ";
 		for(int j = 0;j<this.variables.size();j++){
 			this.result += this.variables.get(j).toSyntax();
 			if(!this.exps.get(j).toSyntax().equals("")){

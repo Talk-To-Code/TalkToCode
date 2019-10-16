@@ -33,7 +33,9 @@ public class ASTExpressionUnitTypes extends ASTExpressionUnit{
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	public String toSyntax(){
-		return this.type;
+		this.result = this.type;
+		if(this.isQuoted) quote();
+		return super.toSyntax();
 	}
 	public static boolean isValidPrimitive(int programmingLanguageIndex,String type) throws Exception{
 		switch(programmingLanguageIndex){

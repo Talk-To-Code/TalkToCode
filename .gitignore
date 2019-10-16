@@ -5,3 +5,5 @@ node_modules
 AST/.classpath
 AST/.project
 AST/.settings/org.eclipse.jdt.core.prefs
+AST/input.txt
+AST/src/output2.txt

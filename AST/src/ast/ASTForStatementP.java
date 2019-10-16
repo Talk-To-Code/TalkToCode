@@ -39,13 +39,16 @@ public class ASTForStatementP extends ASTForStatement {
 		this.result += " in ";
 		this.result += this.range.toSyntax() +": \n";
 		for(int i = 0;i<this.statements.size();i++){
+			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";
 			this.result += this.statements.get(i).toSyntax();
 			this.result += "\n";
 		}
 		if(!this.elseBranch.isEmpty()){
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result+="else:\n";
 			for(int i = 0;i<this.elseBranch.size();i++){
+				for(int j = 0; j < this.indent; j++) this.result+="\t";
 				this.result += "\t";
 				this.result += this.elseBranch.get(i).toSyntax();
 				this.result += "\n";

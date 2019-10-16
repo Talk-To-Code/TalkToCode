@@ -57,6 +57,7 @@ public class ASTFunctionC extends ASTFunction {
 			this.result+=");\n";
 		}
 		//adding modifiers
+		for(int i = 0; i < this.indent; i++) this.result+="\t";
 		for(String mod : this.modifiers){
 			this.result += mod;
 			this.result += " ";
@@ -93,10 +94,12 @@ public class ASTFunctionC extends ASTFunction {
 		this.result+="){\n";
 		//Adding statements
 		for(ASTStatement s:this.statements){
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result+="\t";
 			this.result+=s.toSyntax();
 			this.result+="\n";
 		}
+		for(int i = 0; i < this.indent; i++) this.result+="\t";
 		this.result+="}\n";
 		return this.result;
 	}

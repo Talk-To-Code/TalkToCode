@@ -34,6 +34,7 @@ public class ASTExpressionUnitFunctionCall extends ASTExpressionUnit{
 			}
 		}
 		this.result += ")";
+		if(this.isQuoted) quote();
 		return this.result;
 	}
 

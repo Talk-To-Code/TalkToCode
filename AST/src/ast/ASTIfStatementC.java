@@ -17,17 +17,22 @@ public final class ASTIfStatementC extends ASTIfStatement {
 		String result = "";
 		result += ("if("+this.condition.toSyntax()+") {\n");
 		for(int i = 0;i<this.ifBranch.size();i++){
+			for(int j = 0; j < this.indent; j++) result+="\t";
 			result+= ("\t"+this.ifBranch.get(i).toSyntax());
 		}
+		for(int i = 0; i < this.indent; i++) result+="\t";
 		result += "}\n";
 		if(!this.elseBranch.isEmpty()){
+			for(int i = 0; i < this.indent; i++) result+="\t";
 			result += "else {\n";
 			for(int j = 0; j<this.elseBranch.size();j++){
+				for(int i = 0; i < this.indent; i++) result+="\t";
 				result+=("\t"+this.elseBranch.get(j).toSyntax());
 			}
+			for(int i = 0; i < this.indent; i++) result+="\t";
 			result +="}\n";
 		}
-		this.result = result;
+		this.result = result + "\n";
 		return this.result;
 	}
 }

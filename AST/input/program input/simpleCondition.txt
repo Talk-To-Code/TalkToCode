@@ -1,5 +1,5 @@
 #c_program simpleCondition
-#include #access stdio h #access_end;;
+#include "stdio.h";;
 #function_declare main int
 #function_start
 #create int #variable x #value 1 #dec_end;;
@@ -10,6 +10,6 @@ if #condition #variable x == #value 1
 #else_branch_start
 #function printf(#parameter #value "x is not equal to one.\n");;
 #else_branch_end;;
-return #value 0;;
+return #parameter #value 0;;
 #function_end;;
 #program_end

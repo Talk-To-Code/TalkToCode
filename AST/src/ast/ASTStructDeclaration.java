@@ -28,8 +28,10 @@ public class ASTStructDeclaration extends ASTBlockStatement {
 	public String toSyntax(){
 		this.result = "typedef struct "+this.name.toSyntax()+" {\n";
 		for(ASTDeclarationStatementC s:this.attributes){
+			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result +="\t"+s.toSyntax();
 		}
+		for(int i = 0; i < this.indent; i++) this.result+="\t";
 		this.result+="} "+this.name.toSyntax()+";\n";
 		return this.result;
 	}
