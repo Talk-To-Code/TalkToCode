@@ -1,0 +1,24 @@
+#c_program Fibonacci
+#include "stdio.h";;
+#function_declare main int
+#function_start
+#create int #variable n #dec_end #variable first #value 0 #dec_end #variable second #value 1 #dec_end #variable next #dec_end #variable c #dec_end;;
+#function printf(#parameter #value "Enter the number of terms\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable n);;
+#function printf(#parameter #value "First %d terms of Fibonacci series are :-\n" #parameter #variable n);;
+for #condition #assign #variable c #with #value 0 #condition #variable c < #variable n #condition #post #variable c ++
+#for_start
+if #condition #variable c <= #value 1
+#if_branch_start
+#assign #variable next #with #variable c;;
+#if_branch_end
+#else_branch_start
+#assign #variable next #with #variable first + #variable second;;
+#assign #variable first #with #variable second;;
+#assign #variable second #with #variable next;;
+#else_branch_end;;
+#function printf(#parameter #value "%d\n" #parameter #variable next);;
+#for_end;;
+return #parameter #value 0;;
+#function_end;;
+#program_end

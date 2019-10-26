@@ -1,0 +1,312 @@
+12 test cases master scripts
+except the last 2 Draw and QuickSort
+Source of other sample C programs 
+http://www.programmingsimplified.com/c-program-examples
+
+
+#c_program HelloWorld
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#function printf(#parameter #value "Hello World!\n");;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+#c_program printInt
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable number #dec_end;;
+#function printf(#parameter #value "Enter an integer\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable number);;
+#function printf(#parameter #value "Integer entered by you is %d\n" #parameter #variable number);;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+
+#c_program simpleCondition
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable x #value 1 #dec_end;;
+if #condition #variable x == #value 1
+#if_branch_start
+#function printf(#parameter #value "x is equal to one.\n");;
+#if_branch_end
+#else_branch_start
+#function printf(#parameter #value "x is not equal to one.\n");;
+#else_branch_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+#c_program simpleWhile
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable value #value 1 #dec_end;;
+while #condition #variable value <= #value 3
+#while_start
+#function printf(#parameter #value "Value is %d\n" #parameter #variable value);;
+#post #variable value ++;;
+#while_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+
+#c_program isPrimeNumber
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable n #dec_end #variable c #dec_end;;
+#function printf(#parameter #value "Enter an integer\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable n);;
+if #condition #variable n == #value 2
+#if_branch_start
+#function printf(#parameter #value "Prime number.\n");;
+#if_branch_end
+#else_branch_start
+for #condition #assign #variable c #with #value 2 #condition #variable c <= #variable n - #value 1 #condition #post #variable c ++
+#for_start
+if #condition #variable n % #variable c == #value 0
+#if_branch_start
+break;;
+#if_branch_end;;
+#for_end;;
+if #condition #variable c != #variable n
+#if_branch_start
+#function printf(#parameter #value "Not prime.\n");;
+#if_branch_end
+#else_branch_start
+#function printf(#parameter #value "Prime number.\n");;
+#else_branch_end;;
+#else_branch_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+#c_program arguments
+#include #access stdio h #access_end;;
+#function_declare main int #parameter int argc
+#function_start
+#function printf(#parameter #value "Number of command line arguments passed: %d\n" #parameter #variable argc);;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+#c_program function
+#include #access stdio h #access_end;;
+#function_declare my_function
+#function_start
+#function printf(#parameter #value "Welcome to my function. Feel at home.\n");;
+return ;;
+#function_end;;
+#function_declare main int
+#function_start
+#function printf(#parameter #value "Main function.\n");;
+#function my_function();;
+#function printf(#parameter #value "Back in function main.\n");;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+
+#c_program array
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable n #dec_end #variable c #dec_end #array #variable array #indexes #value 100 #index_end #dec_end;;
+#function printf(#parameter #value "Enter the number of elements in array\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable n);;
+#function printf(#parameter #value "Enter %d elements\n" #parameter #variable n);;
+for #condition #assign #variable c #with #value 0 #condition #variable c < #variable n #condition #post #variable c ++
+#for_start
+#function scanf(#parameter #value "%d" #parameter & #array array #indexes #variable c #index_end);;
+#for_end;;
+#function printf(#parameter #value "Array elements entered by you are:\n");;
+for #condition #assign #variable c #with #value 0 #condition #variable c < #variable n #condition #post #variable c ++
+#for_start
+#function printf(#parameter #value "array[%d] = %d\n" #parameter #variable c #parameter #array array #indexes #variable c #index_end);;
+#for_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+
+
+#c_program Struct
+#include #access stdio h #access_end;;
+#struct_declare point
+#struct_start
+#create int #variable x #dec_end #variable y #dec_end;;
+#struct_end;;
+#function_declare main int
+#function_start
+#create #struct point #variable p #dec_end;;
+#assign #access p x #access_end #with #value 1;;
+#assign #access p y #access_end #with #value 2;;
+#function printf(#parameter #value "%d\n" #parameter #access p x #access_end);;
+#function printf(#parameter #value "%d\n" #parameter #access p y #access_end);;
+return #value 0;;
+#function_end;;
+#program_end
+
+#c_program Fibonacci
+#include #access stdio h #access_end;;
+#function_declare main int
+#function_start
+#create int #variable n #dec_end #variable first #value 0 #dec_end #variable second #value 1 #dec_end #variable next #dec_end #variable c #dec_end;;
+#function printf(#parameter #value "Enter the number of terms\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable n);;
+#function printf(#parameter #value "First %d terms of Fibonacci series are :-\n" #parameter #variable n);;
+for #condition #assign #variable c #with #value 0 #condition #variable c < #variable n #condition #post #variable c ++
+#for_start
+if #condition #variable c <= #value 1
+#if_branch_start
+#assign #variable next #with #variable c;;
+#if_branch_end
+#else_branch_start
+#assign #variable next #with #variable first + #variable second;;
+#assign #variable first #with #variable second;;
+#assign #variable second #with #variable next;;
+#else_branch_end;;
+#function printf(#parameter #value "%d\n" #parameter #variable next);;
+#for_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+#c_program Draw
+#include #access stdio h #access_end;;
+#function_declare printStar
+#function_start
+#function printf(#parameter #value "  *  \n");;
+#function printf(#parameter #value "*****\n");;
+#function printf(#parameter #value " *** \n");;
+#function printf(#parameter #value "*****\n");;
+#function printf(#parameter #value "  *  \n");;
+#function_end;;
+#function_declare printTriangle #parameter int a
+#function_start
+#create int #variable i #dec_end #variable j #dec_end #variable k #dec_end;;
+for #condition #assign #variable i #with #value 0 #condition #variable i <= #variable a #condition #post #variable i ++
+#for_start
+for #condition #assign #variable j #with #variable a #condition #variable j >= #value 0 #condition #post #variable j --
+#for_start
+#function printf(#parameter #value " ");;
+#for_end;;
+for #condition #assign #variable k #with #value 0 #condition #variable k < #value 2 * #variable i + #value 1 #condition #post #variable k ++
+#for_start
+#function printf(#parameter #value "*");;
+#for_end;;
+#function printf(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare printRectangle #parameter int n #parameter int l
+#function_start
+#create int #variable i #dec_end #variable j #dec_end;;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable n #condition #post #variable i ++
+#for_start
+for #condition #assign #variable j #with #value 0 #condition #variable j < #variable l #condition #post #variable j --
+#for_start
+if  #condition #variable i == #value 0 || #variable i == #variable n - #value 1
+#if_branch_start
+#function printf(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+if  #condition #variable j == #value 0 || #variable j == #variable l - #value 1
+#if_branch_start
+#function printf(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+#function printf(#parameter #value " ");;
+#else_branch_end;;
+#else_branch_end;;
+#for_end;;
+#function printf(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare main int
+#function_start
+#create int #variable a #dec_end;;
+#label LOOP;;
+#function printf(#parameter #value "Enter a number\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable a);;
+#function printf(#parameter #value "a = %d\n" #parameter #variable a);;
+switch #condition #variable a
+case #value 0
+#case_start #function printStar();; break;; #case_end
+case #value 1
+#case_start #function printTriangle(#parameter #value 5);; break;; #case_end
+case #value 2
+#case_start #function printRectangle(#parameter #value 4 #parameter #value 5);; break;; #case_end
+case #value 3
+#case_start #function printf(#parameter #value "END\n");; break;; #case_end
+default
+#case_start goto LOOP;; #case_end;;
+return #value 0;;
+#function_end;;
+#program_end
+
+#c_program QuickSort
+#include #access stdio h #access_end;;
+#function_declare quicksort #parameter_a #dimension 1 int #array X #parameter int first #parameter int last
+#function_start
+#create int #variable pivot #dec_end #variable j #dec_end #variable temp #dec_end #variable i #dec_end;;
+if #condition #variable first < #variable last
+#if_branch_start
+#assign #variable pivot #with #variable first;;
+#assign #variable i #with #variable first;;
+#assign #variable j #with #variable last;;
+while #condition #variable i < #variable j
+#while_start
+while #condition #array X #indexes #variable i #index_end <= #array X #indexes #variable pivot #index_end && #variable i < #variable last
+#while_start
+#post #variable i ++;;
+#while_end;;
+while #condition #array X #indexes #variable j #index_end > #array X #indexes #variable pivot #index_end
+#while_start
+#post #variable j --;;
+#while_end;;
+if #condition #variable i < #variable j
+#if_branch_start
+#assign #variable temp #with #array X #indexes #variable i #index_end;;
+#assign #array X #indexes #variable i #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#if_branch_end;;
+#while_end;;
+#assign #variable temp #with #array X #indexes #variable pivot #index_end;;
+#assign #array X #indexes #variable pivot #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#function quicksort(#parameter #variable X #parameter #variable first #parameter #variable j - #value 1);;
+#function quicksort(#parameter #variable X #parameter #variable j + #value 1 #parameter #variable last);;
+#if_branch_end;;
+#function_end;;
+#function_declare main int
+#function_start
+#create int #variable size #dec_end #variable i #dec_end #array #variable X #indexes #value 100 #index_end #dec_end;;
+#function printf(#parameter #value "Enter size of the array: ");;
+#function scanf(#parameter #value "%d" #parameter & #variable size);;
+#function printf(#parameter #value "Enter %d elements: " #parameter #variable size);;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable size #condition #post #variable i ++
+#for_start
+#function scanf(#parameter #value "%d" #parameter & #array X #indexes #variable i #index_end);;
+#for_end;;
+#function quicksort(#parameter #variable X #parameter #value 0 #parameter #variable size - #value 1);;
+#function printf(#parameter #value "Sorted elements: ");;
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable size #condition #post #variable i ++
+#for_start
+#function printf(#parameter #value " %d" #parameter #array X #indexes #variable i #index_end);;
+#for_end;;
+return #value 0;;
+#function_end;;
+#program_end

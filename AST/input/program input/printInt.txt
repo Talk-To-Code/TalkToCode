@@ -1,0 +1,11 @@
+#c_program printInt
+#include "stdio.h";;
+#function_declare main int
+#function_start
+#create int #variable number #dec_end;;
+#function printf(#parameter #value "Enter an integer\n");;
+#function scanf(#parameter #value "%d" #parameter & #variable number);;
+#function printf(#parameter #value "Integer entered by you is %d\n" #parameter #variable number);;
+return #parameter #value 0;;
+#function_end;;
+#program_end
