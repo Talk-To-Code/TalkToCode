@@ -5,4 +5,5 @@ list of struct commands.
 "#c_program SampleProgram", "#include #access stdio h #access_end;;",
 <code>, " #program_end"
 
-<code> e.g. = "#create int #variable count #value 5 #dec_end;;"
+<code> e.g. = "#create int #variable count #value 5 #dec_end;;",
+"#assign #variable count #with #value 5 + #value 6;;"

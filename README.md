@@ -10,7 +10,8 @@ The Command for enabling the Talk To Code extension is "Hello World" for now.
 ## Requirements
 
 I am currently using :
-* Node JS version    : 10.16.3.
+* VSCode version     : 1.39.1 (If you are using a version older than 1.18.1, it might not work.)
+* Node JS version    : 10.16.3 (Make sure Node JS is updated. google-cloud speech requires updated version.)
 * NPM version        : 6.11.3 
 * google-cloud/speech: 3.3.0  (`npm install --save @google-cloud/speech`)
 * node-record-lpcm16 : 1.0.1  (`npm install node-record-lpcm16`)
@@ -27,7 +28,8 @@ For mac OS users, running `brew install sox` should suffice.
 
 ## Starting Up
 
-Within VSCode editor, go to root directory and debug the code with `F5`. This will run the extension in a new Extension Development Host Window.
+Within VSCode editor, go to root directory. `extensions.ts` is the main file. Make sure the cred path is set correctly to your credentials json file from Google. 
+Finally, debug the code with `F5`. This will run the extension in a new Extension Development Host Window.
 
 Open the Command Palette (`Ctrl Shift P`) and search for the command "Hello World".
 
