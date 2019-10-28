@@ -7,6 +7,7 @@ const {spawn} = require('child_process');
 
 var current_speech = ""
 var speech_hist = [""]
+var variable_list = [""]
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -69,9 +70,18 @@ function listen() {
 
 				/* concat latest speech with current line of speech */
 				current_speech = current_speech + " " + transcribed_word;
-				var struct_command = get_struct(current_speech.trim());
-				if (struct_command == "Not ready") display_current_command(current_speech);
-				else display_current_command(struct_command);
+				var struct_command = get_struct(current_speech.trim(), variable_list);
+				
+				if (struct_command[0] == "Not ready") {	
+					display_current_command(current_speech);
+				}
+				else {
+					display_current_command(struct_command[0]);
+
+					/* Adds new variables to the variable list. */
+					concat_variable_list(struct_command[1]);
+
+				}
 			}
 		}
 	});
@@ -157,6 +167,18 @@ function next_line() {
 		let new_anchor = new vscode.Position(anchor.line+1, 0);
 		editor.selection = new vscode.Selection(new_anchor, new_anchor);
 	}
+}
+
+
+function concat_variable_list(var_list: string|string[]) {
+	if (var_list.length > 0) {
+		let i;
+		for (i = 0; i < var_list.length; i++) {
+			if (var_list[i].length > 0) variable_list.push(var_list[i]);
+		}
+	}
+	console.log("variable list");
+	console.log(variable_list);
 }
 
 

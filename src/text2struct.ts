@@ -1,12 +1,16 @@
 var variable_types = ["integer", "long", "float", "double", "boolean", "character", "string", "void"];
 var struct_ver_variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
-export function get_struct(text) {
+export function get_struct(text, var_list) {
 
     text = compress_name(text);
 
     var starting_command = text.split(" ")[0];
-    var struct_command = "";
+    /* Returns ["Not ready"] if current line is not ready to be parsed.
+       If current line ready to be parsed, struct_command[0] contains the struct command.
+       struct_command[1] contains the new variables added.
+    */
+    var struct_command = [""];
 
     switch(starting_command) {
         case "declare":
@@ -14,10 +18,9 @@ export function get_struct(text) {
             struct_command = parse_declare_statement(text, checker);
             break;
         default:
-            struct_command = "Not ready";
+            struct_command = ["Not ready"];
             break;
     }
-
     return struct_command;
 }
 
@@ -25,9 +28,12 @@ export function get_struct(text) {
 /* So far it does not check for end declare */
 function parse_declare_statement(text, checker) {
 
+    /* variable list to return to caller */
+    var var_list = [""]
+
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return checker[0];
+        return [checker[0], var_list];
     } 
     
     var struct_command = "#create "
@@ -38,7 +44,7 @@ function parse_declare_statement(text, checker) {
 
     /* User declaring an array type */
     if (splitted_text[2] == "array") {
-        /* Add var name */
+        var_list.push(splitted_text[3]);
         struct_command = struct_command + " #array #variable " + splitted_text[3];
         struct_command = struct_command + " #value " + splitted_text[5] + " dec_end;;";
     }
@@ -46,13 +52,13 @@ function parse_declare_statement(text, checker) {
     /* User declaring variable type */
     else {
         struct_command = struct_command + " #variable ";
-
+        var_list.push(splitted_text[2]);
         if (splitted_text.includes("equal")) {
             struct_command = struct_command + splitted_text[2] + " value " + splitted_text[4] + " dec_end;;";
         }
         else struct_command = struct_command + splitted_text[2] + " dec_end;;";
     }
-    return struct_command;
+    return [struct_command, var_list];
 }
 
 
@@ -205,5 +211,5 @@ function check_var_type(var_type, value) {
 }
 
 if (require.main === module) {
-    get_struct("declare integer array hello world");
+    get_struct("declare integer", [""]);
 }
