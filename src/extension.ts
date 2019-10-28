@@ -3,12 +3,10 @@
 import * as vscode from 'vscode';
 import { clean } from './clean_text';
 import { get_struct } from './text2struct';
-import { print } from 'util';
 const {spawn} = require('child_process');
 
 var current_speech = ""
 var speech_hist = [""]
-var printed_length = 0 // used for undo and replace
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -66,14 +64,8 @@ function listen() {
 				/* concat latest speech with current line of speech */
 				current_speech = current_speech + " " + transcribed_word;
 				var struct_command = get_struct(current_speech.trim());
-				if (struct_command == "Not ready") {
-					display_current_command(current_speech);
-					printed_length = current_speech.length;
-				}
-				else {
-					display_current_command(struct_command);
-					printed_length = struct_command.length;
-				}
+				if (struct_command == "Not ready") display_current_command(current_speech);
+				else display_current_command(struct_command);
 			}
 		}
 	});
@@ -120,13 +112,8 @@ function display_current_command(text: string) {
 	if (editor) {
 		// Current line being edited
 		let curr_line = editor.selection.anchor.line;
-
+		let current_range = editor.document.lineAt(curr_line).range;
 		editor.edit(editBuilder => {
-
-			// Declare new range for editBuilder to replace
-			var start_position = new vscode.Position(curr_line, 0);
-			var end_position = new vscode.Position(curr_line, text.length);
-			var current_range = new vscode.Range(start_position, end_position);
 			editBuilder.replace(current_range, text);
 		});
 		// Select the whole line
@@ -140,19 +127,26 @@ function undo_prev_command(text: string) {
 	if (editor) {
 		// Current line being edited
 		let curr_line = editor.selection.anchor.line;
-
+		// Declare new range for editBuilder to replace
+		let current_range = editor.document.lineAt(curr_line).range;
 		editor.edit(editBuilder => {
-
-			// Declare new range for editBuilder to replace
-			var start_position = new vscode.Position(curr_line, 0);
-			var end_position = new vscode.Position(curr_line, printed_length);
-			var current_range = new vscode.Range(start_position, end_position);
 			editBuilder.replace(current_range, text);
 		});
 		// Select the whole line
 		editor.selection = new vscode.Selection(curr_line, 0, curr_line, text.length);
 	}
 }
+
+// function next_line() {
+// 	let editor = vscode.window.activeTextEditor;
+// 	if (editor) {
+// 		// Current line being edited
+// 		let curr_line = editor.selection.anchor.line;
+// 		editor.edit(editBuilder => {
+// 			editBuilder.insert(editor.selection.end, "\n");
+// 		});
+// 	}
+// }
 
 
 // this method is called when your extension is deactivated
