@@ -48,6 +48,7 @@ function listen() {
 			console.log("Transcribed word: " + transcribed_word)
 			transcribed_word = clean(transcribed_word);
 
+			/* Current command for undo */
 			if (transcribed_word == 'scratch that') {
 				console.log(speech_hist)
 				if (speech_hist.length > 0) {
@@ -56,6 +57,11 @@ function listen() {
 					undo_prev_command(prev_speech);
 					current_speech = prev_speech;
 				}
+			}
+			/* Current command for next line */
+			else if (transcribed_word == "skip") {
+				speech_hist.push("skip");
+				next_line();
 			}
 			else {
 				/* update prev speech in the case of a future undo */
@@ -137,16 +143,21 @@ function undo_prev_command(text: string) {
 	}
 }
 
-// function next_line() {
-// 	let editor = vscode.window.activeTextEditor;
-// 	if (editor) {
-// 		// Current line being edited
-// 		let curr_line = editor.selection.anchor.line;
-// 		editor.edit(editBuilder => {
-// 			editBuilder.insert(editor.selection.end, "\n");
-// 		});
-// 	}
-// }
+function next_line() {
+	let editor = vscode.window.activeTextEditor;
+	if (editor) {
+		/* Current line being edited */
+		let eol_position = editor.selection.end;
+		editor.edit(editBuilder => {
+			editBuilder.insert(eol_position, "\n");
+		});
+		current_speech = "";
+		/* Unselect previous line */
+		let anchor = editor.selection.anchor;
+		let new_anchor = new vscode.Position(anchor.line+1, 0);
+		editor.selection = new vscode.Selection(new_anchor, new_anchor);
+	}
+}
 
 
 // this method is called when your extension is deactivated
