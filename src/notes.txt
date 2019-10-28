@@ -7,3 +7,9 @@ list of struct commands.
 
 <code> e.g. = "#create int #variable count #value 5 #dec_end;;",
 "#assign #variable count #with #value 5 + #value 6;;"
+
+
+As of now, cannot parse integer array with assignment.
+e.g. int mark[5] = {19, 10, 8, 17, 9}
+
+write comments after "Not ready" to be more specific about error

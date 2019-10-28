@@ -3,10 +3,12 @@
 import * as vscode from 'vscode';
 import { clean } from './clean_text';
 import { get_struct } from './text2struct';
+import { print } from 'util';
 const {spawn} = require('child_process');
 
-var current_speech = "" // Think of using a history stack
-var prev_speech = ""
+var current_speech = ""
+var speech_hist = [""]
+var printed_length = 0 // used for undo and replace
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -41,27 +43,37 @@ function listen() {
 	let cred = 'C:\\Users\\Lawrence\\Desktop\\fyp\\benchmarking\\test_google_cloud\\My-Project-f25f37c6fac1.json';
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
-		let transcribed_word = data.toString();
-		transcribed_word = transcribed_word.trim();  // remove white space around input
-		
+		let transcribed_word = data.toString().trim();
+
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else {
 			console.log("Transcribed word: " + transcribed_word)
 			transcribed_word = clean(transcribed_word);
 
-			if (transcribed_word == 'undo') {
-				undo_prev_command(prev_speech, current_speech.length);
-				current_speech = prev_speech;
+			if (transcribed_word == 'scratch that') {
+				console.log(speech_hist)
+				if (speech_hist.length > 0) {
+					var prev_speech = speech_hist[speech_hist.length-1];
+					speech_hist.pop();
+					undo_prev_command(prev_speech);
+					current_speech = prev_speech;
+				}
 			}
 			else {
 				/* update prev speech in the case of a future undo */
-				prev_speech = current_speech;
+				speech_hist.push(current_speech);
 
 				/* concat latest speech with current line of speech */
 				current_speech = current_speech + " " + transcribed_word;
 				var struct_command = get_struct(current_speech.trim());
-				if (struct_command == "Not ready") display_current_command(current_speech);
-				else display_current_command(struct_command);
+				if (struct_command == "Not ready") {
+					display_current_command(current_speech);
+					printed_length = current_speech.length;
+				}
+				else {
+					display_current_command(struct_command);
+					printed_length = struct_command.length;
+				}
 			}
 		}
 	});
@@ -109,7 +121,6 @@ function display_current_command(text: string) {
 		// Current line being edited
 		let curr_line = editor.selection.anchor.line;
 
-		let cursor_position = editor.selection.anchor;
 		editor.edit(editBuilder => {
 
 			// Declare new range for editBuilder to replace
@@ -123,18 +134,18 @@ function display_current_command(text: string) {
 	}
 }
 
-function undo_prev_command(text: string, prev_end_position: number) {
+function undo_prev_command(text: string) {
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		// Current line being edited
 		let curr_line = editor.selection.anchor.line;
-		let cursor_position = editor.selection.anchor;
+
 		editor.edit(editBuilder => {
 
 			// Declare new range for editBuilder to replace
 			var start_position = new vscode.Position(curr_line, 0);
-			var end_position = new vscode.Position(curr_line, prev_end_position);
+			var end_position = new vscode.Position(curr_line, printed_length);
 			var current_range = new vscode.Range(start_position, end_position);
 			editBuilder.replace(current_range, text);
 		});
