@@ -71,16 +71,16 @@ function listen() {
 				/* concat latest speech with current line of speech */
 				current_speech = current_speech + " " + transcribed_word;
 				var struct_command = get_struct(current_speech.trim(), variable_list);
-				
+
 				if (struct_command[0] == "Not ready") {	
-					display_current_command(current_speech);
+					display_current_command(current_speech, struct_command[2]);
 				}
 				else {
-					display_current_command(struct_command[0]);
-
+					display_current_command(struct_command[0], struct_command[2]);
 					/* Adds new variables to the variable list. */
+					
 					concat_variable_list(struct_command[1]);
-
+					if (struct_command[2]) next_line();
 				}
 			}
 		}
@@ -122,18 +122,32 @@ function check_if_comment_line(text: String) {
 }
 
 
-function display_current_command(text: string) {
+function display_current_command(text: any, newline: any) {
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		// Current line being edited
 		let curr_line = editor.selection.anchor.line;
 		let current_range = editor.document.lineAt(curr_line).range;
+		console.log("length of text: " + text.length);
+
+		if (newline) text = text + "\n";
+
 		editor.edit(editBuilder => {
 			editBuilder.replace(current_range, text);
 		});
-		// Select the whole line
-		editor.selection = new vscode.Selection(curr_line, 0, curr_line, text.length);
+
+		/* Select the whole line */
+		if (!newline){
+			editor.selection = new vscode.Selection(curr_line, 0, curr_line, text.length);
+		}
+		/* Move cursor to new line */
+		else {
+			let cursor = editor.selection.active;
+			let new_anchor = new vscode.Position(cursor.line+1, 0);
+			editor.selection = new vscode.Selection(new_anchor, new_anchor);
+		}
+		
 	}
 }
 
@@ -157,24 +171,26 @@ function next_line() {
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		/* Current line being edited */
-		let eol_position = editor.selection.end;
+		let eol_position = editor.selection.active;
 		editor.edit(editBuilder => {
-			editBuilder.insert(eol_position, "\n");
+			editBuilder.insert(eol_position, "\r\n");
 		});
 		current_speech = "";
 		/* Unselect previous line */
-		let anchor = editor.selection.anchor;
-		let new_anchor = new vscode.Position(anchor.line+1, 0);
+		let cursor = editor.selection.active;
+		let new_anchor = new vscode.Position(cursor.line+1, 0);
 		editor.selection = new vscode.Selection(new_anchor, new_anchor);
 	}
 }
 
 
-function concat_variable_list(var_list: string|string[]) {
+function concat_variable_list(var_list: any) {
 	if (var_list.length > 0) {
 		let i;
 		for (i = 0; i < var_list.length; i++) {
-			if (var_list[i].length > 0) variable_list.push(var_list[i]);
+			if (var_list[i].length > 0 && !variable_list.includes(var_list[i])) {
+				variable_list.push(var_list[i]);
+			}
 		}
 	}
 	console.log("variable list");

@@ -1,26 +1,37 @@
 var variable_types = ["integer", "long", "float", "double", "boolean", "character", "string", "void"];
 var struct_ver_variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
-export function get_struct(text, var_list) {
 
-    text = compress_name(text);
-
-    var starting_command = text.split(" ")[0];
-    /* Returns ["Not ready"] if current line is not ready to be parsed.
+/* Returns ["Not ready"] if current line is not ready to be parsed.
        If current line ready to be parsed, struct_command[0] contains the struct command.
        struct_command[1] contains the new variables added.
+       struct_command[2] contains bool of whether new line is needed.
     */
-    var struct_command = [""];
+function get_struct(text, var_list) {
+
+    text = compress_name(text);
+    var starting_command = text.split(" ")[0];
+
+    var struct_command = ["", [""], false];
+
+    /* For the following switch case */
+    if (var_list.includes(starting_command)) starting_command = "assign";
 
     switch(starting_command) {
         case "declare":
             var checker = check_declare_statement(text);  
             struct_command = parse_declare_statement(text, checker);
             break;
+        case "assign":
+            var checker = check_assign_statement(text);
+            struct_command = parse_assign_statement(text, checker);
+            break;
         default:
-            struct_command = ["Not ready"];
+            struct_command = ["Not ready", [""], false];
             break;
     }
+
+    console.log(struct_command)
     return struct_command;
 }
 
@@ -30,10 +41,11 @@ function parse_declare_statement(text, checker) {
 
     /* variable list to return to caller */
     var var_list = [""]
+    var new_line = false;
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [checker[0], var_list];
+        return [checker[0], var_list, false];
     } 
     
     var struct_command = "#create "
@@ -45,6 +57,7 @@ function parse_declare_statement(text, checker) {
     /* User declaring an array type */
     if (splitted_text[2] == "array") {
         var_list.push(splitted_text[3]);
+        new_line = true;
         struct_command = struct_command + " #array #variable " + splitted_text[3];
         struct_command = struct_command + " #value " + splitted_text[5] + " dec_end;;";
     }
@@ -54,11 +67,40 @@ function parse_declare_statement(text, checker) {
         struct_command = struct_command + " #variable ";
         var_list.push(splitted_text[2]);
         if (splitted_text.includes("equal")) {
+            new_line = true;
             struct_command = struct_command + splitted_text[2] + " value " + splitted_text[4] + " dec_end;;";
         }
         else struct_command = struct_command + splitted_text[2] + " dec_end;;";
     }
-    return [struct_command, var_list];
+    return [struct_command, var_list, new_line];
+}
+
+/* As of now, does not check whether variable is being assigned the correct element.
+   Also, it only allows assignment of numbers and variables.
+   It only checks if the variable being assigned has been declared. However, perhaps
+   we should also check the variable being used to assign as well.
+*/
+function parse_assign_statement(text, checker) {
+    /* variable list to return to caller */
+    var var_list = [""]
+    var new_line = true;
+
+    if (checker[0] == "Not ready"){
+        console.log(checker[1]);
+        return [checker[0], var_list, false];
+    }
+    
+    var splitted_text = text.split(" ");  
+    var struct_command = "#assign #variable " + splitted_text[0] + " #with ";
+
+    /* Check if assigning a number or variable */
+    if (!isNaN(splitted_text[2])) struct_command = struct_command + "#value " + splitted_text[2] + ";;";
+
+    else struct_command = struct_command + "#variable " + splitted_text[2] + ";;";
+
+    return [struct_command, var_list, new_line];
+      
+
 }
 
 
@@ -72,7 +114,7 @@ function parse_declare_statement(text, checker) {
    Returns an array notes or ["Not ready"]
 */
 function check_declare_statement(text) {
-    var notes = []
+    var notes = ["Ready"]
     var splitted_text = text.split(" ");
     var last_word = splitted_text[splitted_text.length-1];
 
@@ -83,24 +125,20 @@ function check_declare_statement(text) {
 
     /* Check if its an array declaration */
     if (splitted_text.includes("array")) {
-        notes.push("array detected");
         /* Check if 'array' is in correct position */
         if (splitted_text[2] != "array") return ["Not ready", "array in wrong position"];
         /* Check if user specified size */
         if (!splitted_text.includes("size")) return ["Not ready", "size not declared"];
         /* 'size' is in correct position */
         else if (splitted_text[4] != "size") return ["Not ready", "size in wrong position"];
-
         /* Check if 'array' or 'size' is last word. */
         if (last_word == "array" || last_word == "size") return ["Not ready", "array or size is last word spoken"];
-
         /* Check if size declared is an integer */
-        if (check_var_type(splitted_text[5], 'integer')) return ["Not ready", "size of array should be integer"];
+        if (!check_var_type('integer', splitted_text[5])) return ["Not ready", "size of array should be integer"];
     }
 
     /* Check if assigning a value */
     if (splitted_text.includes("equal")) {
-        notes.push("equal detected");
         /* 'equal' is in correct position */
         if (splitted_text[3] != "equal") return ["Not ready", "equal in wrong position"];
         /* If assigning a value, make sure 'equal' is not the last word. */
@@ -111,7 +149,6 @@ function check_declare_statement(text) {
         var value_of_var = splitted_text[equal_idx+1];
         if (check_var_type(splitted_text[1], value_of_var)) return ["Not ready", "wrong variable type declared"];
     } 
-
     /* No 'equal' detected. Case where it is just a declaration without assignment of value.
      E.g. 'declare integer count' -> int count;
     */
@@ -125,13 +162,29 @@ function check_declare_statement(text) {
 }
 
 
+/* Helps to check if assign statement is parseable. Returns helpful information. */
+/* E.g. statements:
+   - first equal second -> first = second;
+   Returns an array notes or ["Not ready"]
+*/
+function check_assign_statement(text) {
+    var notes = ["Ready"]
+    var splitted_text = text.split(" ");
+    var last_word = splitted_text[splitted_text.length-1];
+
+    if (splitted_text.includes("equal")) {
+        if (last_word == "equal") return ["Not ready", "equal in last word spoken"];
+    }
+
+    return notes;
+}
+
+
 /* Compress names into camel case. E.g. 'declare integer number of name' -> declare integer numberOfName */
 function compress_name(text) {
+    var splitted_text = text.split(" ");
 
-    var statement_type = text.split(" ")[0];
-
-    if (statement_type == "declare") {
-        var splitted_text = text.split(" ");
+    if (splitted_text[0] == "declare") {
         /* If length is < 3, name can't be longer than 1 word, assuming first 2 words
         are 'declare <var type>' */
         if (splitted_text.length < 3) return text;
@@ -184,6 +237,38 @@ function compress_name(text) {
             return splitted_text.join(' ');
         }
     }
+
+    /* assign case */
+    else if (!splitted_text.includes("declare") && splitted_text.includes("equal")) {
+
+        /* compress var name before the 'equal' keyword. */
+        var equal_idx = splitted_text.indexOf("equal");
+        var var_name_arr = splitted_text.slice(0, equal_idx);
+        /* Convert to camel case*/
+        compressed_name = convert_to_camel_case(var_name_arr);
+        /* Replace old uncompressed name and insert compressed name */
+        /* Eg. hello world equal 5 -> helloWorld equal 5 */
+        splitted_text.splice(0, var_name_arr.length);
+        splitted_text.splice(0, 0, compressed_name);
+        if (splitted_text[splitted_text.length-1] == "equal") return splitted_text.join(" ");
+
+        /* compress var name after the 'equal' keyword. */
+        var equal_idx = splitted_text.indexOf("equal");
+        var var_name_arr = splitted_text.slice(equal_idx+1);
+
+        /* Check if assigning a number or variable name */
+        if (var_name_arr.length == 1 && isNaN(var_name_arr[0])) return splitted_text.join(" ");
+
+        /* Convert to camel case*/
+        compressed_name = convert_to_camel_case(var_name_arr);
+
+        /* Replace old uncompressed name and insert compressed name */
+        /* Eg. hello world equal 5 -> helloWorld equal 5 */
+        splitted_text.splice(equal_idx+1, var_name_arr.length);
+        splitted_text.splice(equal_idx+1, 0, compressed_name);
+
+        return splitted_text.join(" ");
+    }
 }
 
 /* E.g. hello world -> helloWorld */
@@ -202,8 +287,11 @@ function convert_to_camel_case(name_arr) {
 function check_var_type(var_type, value) {
     switch(var_type) {
         case 'integer':
-            if (isNaN(value)) return true;
-            else return false;
+            if (isNaN(value)) return false;
+            else {
+                console.log("is a number")
+                return true;
+            }
             
         default:
             return false;
@@ -211,5 +299,5 @@ function check_var_type(var_type, value) {
 }
 
 if (require.main === module) {
-    get_struct("declare integer", [""]);
+    get_struct("declare integer array hello size five", ["helloWorld"]);
 }
