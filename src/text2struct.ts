@@ -147,7 +147,7 @@ function check_declare_statement(text) {
         /* Get value you are assigning to variable. Check if value does not match var type declared. */
         var equal_idx = splitted_text.indexOf("equal");
         var value_of_var = splitted_text[equal_idx+1];
-        if (check_var_type(splitted_text[1], value_of_var)) return ["Not ready", "wrong variable type declared"];
+        if (check_var_type(value_of_var, splitted_text[1])) return ["Not ready", "wrong variable type declared"];
     } 
     /* No 'equal' detected. Case where it is just a declaration without assignment of value.
      E.g. 'declare integer count' -> int count;
@@ -175,6 +175,8 @@ function check_assign_statement(text) {
     if (splitted_text.includes("equal")) {
         if (last_word == "equal") return ["Not ready", "equal in last word spoken"];
     }
+
+    else return ["Not ready", "equal was not mentioned"];
 
     return notes;
 }
@@ -269,6 +271,9 @@ function compress_name(text) {
 
         return splitted_text.join(" ");
     }
+
+    /* Worse case it does not return any text. */
+    return text
 }
 
 /* E.g. hello world -> helloWorld */
@@ -284,20 +289,23 @@ function convert_to_camel_case(name_arr) {
 }
 
 /* Check if var type given matches value. E.g. Check if "integer" matches 5.*/
+/* Returns true if it matches. */
 function check_var_type(var_type, value) {
     switch(var_type) {
         case 'integer':
-            if (isNaN(value)) return false;
+            if (isNaN(value)) {
+                console.log("is not a number")
+                return false;
+            }
             else {
                 console.log("is a number")
                 return true;
             }
-            
         default:
             return false;
     }
 }
 
 if (require.main === module) {
-    get_struct("declare integer array hello size five", ["helloWorld"]);
+    get_struct("hello world equal 4", ["helloWorld"]);
 }
