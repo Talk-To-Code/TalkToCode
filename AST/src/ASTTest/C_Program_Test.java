@@ -35,7 +35,7 @@ public class C_Program_Test {
 
 	private void generateActualOutput() {
 		//enter the input path
-		File inputDirectory = new File("./input/program input/");
+		File inputDirectory = new File("./input/program input/C Progs/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {
@@ -52,7 +52,7 @@ public class C_Program_Test {
 					ASTParser.ReInit(fis);
 					ASTCompilationUnit actualProgram = ASTParser.program();
 					//enter the output path
-					((ASTCompilationUnitC) actualProgram).toFile("./output/program actual outputs/");
+					((ASTCompilationUnitC) actualProgram).toFile("./output/program actual outputs/C Progs/");
 				} catch (FileNotFoundException e) {
 
 					e.printStackTrace();
@@ -65,7 +65,7 @@ public class C_Program_Test {
 	
 	private HashMap<String,String> constructComparisonMap(){
 		HashMap<String,String> allPrograms = new HashMap<String,String>();
-		File inputDirectory = new File("./output/program expected outputs/");
+		File inputDirectory = new File("./output/program expected outputs/C Progs/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {
@@ -88,7 +88,7 @@ public class C_Program_Test {
         return allPrograms;
 	}
 	private void compare(HashMap<String,String> map){
-		File inputDirectory = new File("./output/program actual outputs/");
+		File inputDirectory = new File("./output/program actual outputs/C Progs/");
 		Stack<File> allFiles = new Stack<File>();
         allFiles.push(inputDirectory);
         while (!allFiles.isEmpty()) {

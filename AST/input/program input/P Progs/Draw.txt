@@ -1,0 +1,82 @@
+#p_program Draw
+#include "sys";;
+#function_declare printStar
+#function_start
+#function print(#parameter #value "  *  \n");;
+#function print(#parameter #value "*****\n");;
+#function print(#parameter #value " *** \n");;
+#function print(#parameter #value "*****\n");;
+#function print(#parameter #value "  *  \n");;
+#function_end;;
+#function_declare printTriangle #parameter a
+#function_start
+#create #variable i #value 0 #dec_end #variable j #value 0 #dec_end #variable k #value 0 #dec_end;;
+for #variable i #function range(#parameter #variable a + #value 1)
+#for_start
+for #variable j #function range(#parameter #variable a + #value 1)
+#for_start
+#function print(#parameter #value " ");;
+#for_end;;
+for #variable k #function range(#parameter #value 2 * #variable i + #value 1)
+#for_start
+#function print(#parameter #value "*");;
+#for_end;;
+#function print(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare printRectangle #parameter n #parameter l
+#function_start
+#create #variable i #value 0 #dec_end #variable j #value 0 #dec_end;;
+for #variable i #function range(#parameter #variable n)
+#for_start
+while #condition #variable j < #variable l
+#while_start
+if  #condition #variable i == #value 0 or #variable i == #variable n - #value 1
+#if_branch_start
+#function print(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+if  #condition #variable j == #value 0 or #variable j == #variable l - #value 1
+#if_branch_start
+#function print(#parameter #value "*");;
+#if_branch_end
+#else_branch_start
+#function print(#parameter #value " ");;
+#else_branch_end;;
+#else_branch_end;;
+#assign #variable j -= #value 1;;
+#while_end;;
+#function print(#parameter #value "\n");;
+#for_end;;
+#function_end;;
+#function_declare main
+#function_start
+#create int #variable a #value "" #dec_end;;
+#function print(#parameter #value "Enter a number\n");;
+#assign #variable a #with #function input();;
+#function print(#parameter #value "a = " + #variable a + #value "\n");;
+if #condition #variable a == #value 0
+#if_branch_start
+#function printStar();;
+#if_branch_end
+#else_branch_start
+if #condition #variable a == #value 1
+#if_branch_start
+#function printTriangle(#parameter #value 5);;
+#if_branch_end
+#else_branch_start
+if #condition #variable a == #value 2
+#if_branch_start
+#function printRectangle(#parameter #value 4 #parameter #value 5);;
+#if_branch_end
+#else_branch_start
+if #condition #variable a == #value 3
+#if_branch_start
+#function print(#parameter #value "END\n");;
+#if_branch_end;;
+#else_branch_end;;
+#else_branch_end;;
+#else_branch_end;;
+return;;
+#function_end;;
+#program_end

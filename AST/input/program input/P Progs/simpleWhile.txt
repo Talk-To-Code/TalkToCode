@@ -1,0 +1,13 @@
+#p_program simpleWhile
+#include "sys";;
+#function_declare main
+#function_start
+#create #variable value #value 1 #dec_end;;
+while #condition #variable value <= #value 3
+#while_start
+#function print(#parameter #value "Value is " + #variable value + #value "\n");;
+#assign #variable value += #value 1;;
+#while_end;;
+return;;
+#function_end;;
+#program_end

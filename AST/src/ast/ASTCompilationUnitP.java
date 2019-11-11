@@ -13,15 +13,20 @@ public class ASTCompilationUnitP extends ASTCompilationUnit {
 		super(name);
 	}
 	//This method outputs a Python program with respective program name
-	public void toFile(){
+	public void toFile(String path){
 		this.toSyntax();
-		String filename = this.name + ".py";
+		String filename = path + this.name + ".py";
 		File textOutput = new File(filename);
 		try {
+			String output = "";
+			for (char c : this.result.toCharArray()){
+				if(c == '\n') output += '\r';
+				output += c;
+			}
             textOutput.createNewFile();
             FileOutputStream fos = new FileOutputStream(
                     textOutput.getAbsolutePath());
-            fos.write(this.result.getBytes());
+            fos.write(output.getBytes());
             fos.flush();
             fos.close();
         } catch (IOException e) {

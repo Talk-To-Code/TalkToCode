@@ -179,6 +179,8 @@ infixOperators() :
 	| < NE >
 	| < SC_OR >
 	| < SC_AND >
+	| < PY_OR >
+	| < PY_AND >
 	| < BIT_AND >
 	| < BIT_OR >
 	| < XOR >
@@ -251,6 +253,8 @@ infixOperators() :
 < NE : "!=" >
 < SC_OR : "||" >
 < SC_AND : "&&" >
+< PY_OR : "or" >
+< PY_AND : "and" >
 < INCR : "++" >
 < DECR : "--" >
 < PLUS : "+" >
