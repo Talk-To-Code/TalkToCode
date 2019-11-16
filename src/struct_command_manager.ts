@@ -20,6 +20,10 @@ export class StructCommandManager {
     /* If the command is extendable. e.g. "declare integer hello", can be extended with "equals 5" */
     extendable: boolean
 
+    /* Contains 2D list of string. Rows indicate completed struct commands. Columns indicate segments
+    of speech that make up the struct command. Uses curr_index as well to splice speech segments.
+    Think of it as a list of prev curr_speech instances. */
+    speech_hist: string[][]
 
     constructor() {
         this.curr_index = 0
@@ -27,22 +31,33 @@ export class StructCommandManager {
         this.curr_speech = [""]
         this.variable_list = [""]
         this.extendable = false
+        this.speech_hist = [[""]]
     }
 
     parse_speech(transcribed_word: string) {
-
+        console.log("#######################NEXT COMMAND#######################");
         var cleaned_speech = clean(transcribed_word);
 
-        this.curr_speech.push(cleaned_speech)
+        /* Check if it is undo command */
+        if (cleaned_speech == "scratch that") {
+            console.log("scratch it good")
+        }
 
-        /* Remove the "" blanks from the curr speech. */
-        this.curr_speech = this.curr_speech.filter(function(value, index, arr){
-            return value != "";
-        });
+        else {
+            this.curr_speech.push(cleaned_speech);
 
-        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
+            /* Remove the "" blanks from the curr speech. */
+            this.curr_speech = this.curr_speech.filter(function(value, index, arr){
+                return value != "";
+            });
+            this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
 
-        this.updateStructCommandList(struct_command)
+            console.log("speech hist: ")
+            console.log(this.speech_hist)
+
+            var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
+            this.updateStructCommandList(struct_command);
+        }
     }
 
     /* Updating the struct command list */
@@ -75,7 +90,7 @@ export class StructCommandManager {
                 this.struct_command_list.splice(this.curr_index, 0, struct_command[0][1])
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.
 
-                this.curr_speech = [""]
+                this.curr_speech = [""] // Clear curr speech to prepare for next command
             }
     
             /* Single line */
