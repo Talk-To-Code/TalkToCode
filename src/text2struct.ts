@@ -36,7 +36,9 @@ export function get_struct(text_segment, var_list, is_extendable) {
 
     var text = ""
     var go_ahead = false
-    /* For now only assign statements are extendable */
+    /* For now only assign statements are extendable.
+    for now only checks if next text segment contains equal. By right should check if first word of next
+    segment contains equal. */
     if (is_extendable) {
         /* extendable! */
         if (text_segment[1].includes("equal")) text = text_segment.join(" ");

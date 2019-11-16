@@ -6,7 +6,6 @@ import { generate_test_cases } from './tester'
 const {spawn} = require('child_process');
 
 var speech_hist = [""]
-var variable_list = [""]
 
 var manager = new StructCommandManager();
 
@@ -54,22 +53,6 @@ function listen() {
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
-
-			// /* Current command for undo */
-			// if (transcribed_word == 'scratch that') {
-			// 	console.log(speech_hist)
-			// 	if (speech_hist.length > 0) {
-			// 		var prev_speech = speech_hist[speech_hist.length-1];
-			// 		speech_hist.pop();
-			// 		undo_prev_command(prev_speech);
-			// 		current_speech = prev_speech;
-			// 	}
-			// }
-			// /* Current command for next line */
-			// else if (transcribed_word == "skip") {
-			// 	speech_hist.push("skip");
-			// 	next_line();
-			// }
 
 			if (transcribed_word == "show me the document") showTextDocument();
 
