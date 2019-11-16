@@ -1,0 +1,131 @@
+======================= Swap Two Variables =========================
+#create int #variable first #value 1 #dec_end;;
+#create int #variable second #value 2 #dec_end;; 
+#create int #variable temporary #variable first #dec_end;; 
+#assign #variable first #with #variable second;;
+#assign #variable second #with #variable temporary;;
+======================= Find max integer from array ================
+#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter int length #function_start 
+#create int #variable max #array numbers #indexes #value 0 #index_end #dec_end;; 
+#create int #variable i #dec_end;; 
+for #condition #assign #variable i #with #value 1 #condition #variable i < #variable length #condition #post #variable i ++ #for_start 
+if #condition #array numbers #indexes #variable i #index_end > #variable max #if_branch_start 
+#assign #variable max #with #array numbers #indexes #variable i #index_end;;
+#if_branch_end;; 
+#for_end;; 
+return #variable max;; 
+#function_end;;
+====================== multiply two Floating Point Numbers  ================
+#function_declare main int #function_start 
+#create double #variable firstNumber #dec_end;; 
+#create double #variable secondNumber #dec_end;; 
+#create double #variable product #dec_end;; 
+#function printf(#parameter #value "enter two numbers :");; 
+#function scanf(#parameter #value "%lf %lf" #parameter & #variable firstNumber #parameter & #variable secondNumber);; 
+#assign #variable product #with #variable firstNumber * #variable secondNumber;; 
+#function printf(#parameter #value "product =%.2lf" #parameter #variable product);; 
+return #value 0;; 
+#function_end;;
+========================= GCD ==========================
+#function_declare main int #function_start 
+#create int #variable first #dec_end;; 
+#create int #variable second #dec_end;; 
+#function printf(#parameter #value "enter two positive integers :");; 
+#function scanf(#parameter #value "%d %d" #parameter & #variable first #parameter & #variable second);; 
+while #condition #variable first != #variable second #while_start 
+if #condition #variable first > #variable second #if_branch_start 
+#assign #variable first -= #variable second;; 
+#if_branch_end 
+#else_branch_start #assign #variable second -= #variable first;; 
+#else_branch_end;; 
+#while_end;; 
+#function printf(#parameter #value "gcd =%d" #parameter #variable first);; 
+return #value 0;; 
+#function_end;;
+===================== Display English Alphabets from a to z ==========================
+#function_declare main int #function_start 
+#create char #variable c #dec_end;; 
+for #condition #assign #variable c #with #value \'a\' #condition #variable c <= #value \'z\' #condition ++ #variable c #for_start 
+#function printf(#parameter #value "%c" #parameter #variable c);; 
+#for_end;; 
+return #value 0;; 
+#function_end;;
+===================== Count number of digits in a long number =====================
+#create long #variable number #dec_end;; 
+#create int #variable count #value 0 #dec_end;; 
+#function printf(#parameter #value "enter an integer : ");; 
+#function scanf(#parameter #value "%l d" #parameter & #variable number);; 
+while #condition #variable number != #value 0 #while_start 
+#assign #variable number /= #value 10;; ++ #variable count;; 
+#while_end;; 
+#function printf(#parameter #value "number of digits : %d" #parameter #variable count);;
+======================= Check prime number ==================================
+#create int #variable number #dec_end;; 
+#create int #variable i #dec_end;; 
+#create int #variable flag #value 0 #dec_end;; 
+#function printf(#parameter #value "enter a positive integer : ");; 
+#function scanf(#parameter #value "%d" #parameter & #variable number);; 
+for #condition #assign #variable i #with #value 2 #condition #variable i <= #variable number / #value 2 #condition ++ #variable i #for_start 
+if #condition #variable number % #variable i == #value 0 #if_branch_start 
+#assign #variable flag #with #value 1;; 
+break;; 
+#if_branch_end;; 
+#for_end;; 
+if #condition #variable flag == #value 0 #if_branch_start 
+#function printf(#parameter #value "%d is a prime number ." #parameter #variable number);; 
+#if_branch_end 
+#else_branch_start #function printf(#parameter #value "%d is not a prime number ." #parameter #variable number);; 
+#else_branch_end;;
+======================== Check if number is palindrome ====================
+#create int #variable number #dec_end;; 
+#create int #variable reversedNumber #value 0 #dec_end;; 
+#create int #variable remainder #dec_end;; 
+#create int #variable originalNumber #dec_end;; 
+#function printf(#parameter #value "enter an integer : ");; 
+#function scanf(#parameter #value "%d" #parameter & #variable number);; 
+#assign #variable originalNumber #with #variable number;; 
+while #condition #variable number != #value 0 #while_start 
+#assign #variable remainder #with #variable number % #value 10;; 
+#assign #variable reversedNumber #with #variable reversedNumber * #value 10 + #variable remainder;; 
+#assign #variable number /= #value 10;; 
+#while_end;; 
+if #condition #variable originalNumber == #variable reversedNumber #if_branch_start 
+#function printf(#parameter #value "it is palindrome");; 
+#if_branch_end 
+#else_branch_start 
+#function printf(#parameter #value "it is not palindrome");; 
+#else_branch_end;;
+======================= Sum of natural numbers using Recursion ===============
+#function_declare addNumbers int #parameter int number #function_start 
+if #condition #variable number != #value 0 #if_branch_start 
+return #variable number + #function addNumbers(#parameter #variable number - #value 1);; 
+#if_branch_end 
+#else_branch_start return #variable number;; 
+#else_branch_end;; 
+#function_end;; 
+#function_declare main int #function_start 
+#create int #variable number #dec_end;; 
+#function printf(#parameter #value "enter a positive integer : ");; 
+#function scanf(#parameter #value "%d" #parameter & #variable number);; 
+#function printf(#parameter #value "sum = %d" #parameter #function addNumbers(#parameter #variable number));; 
+return #value 0;; 
+#function_end;;
+===================== Calculate average using arrays ======================
+#create int #variable numberElements #dec_end;; 
+#create int #variable i #dec_end;; 
+#create float #array #variable number #indexes #value 100 #index_end #dec_end;; 
+#create float #variable summation #value 0 #dec_end;; 
+#create float #variable average #dec_end;; 
+#function printf(#parameter #value "enter the numbers of elements : ");; 
+#function scanf(#parameter #value "%d" #parameter & #variable numberElements);; 
+while #condition #variable numberElements > #value 100 || #variable numberElements <= #value 0 #while_start 
+#function printf(#parameter #value "enter the number again : ");; 
+#function scanf(#parameter #value "%d" #parameter & #variable numberElements);; 
+#while_end;; 
+for #condition #assign #variable i #with #value 0 #condition #variable i < #variable numberElements #condition ++ #variable i #for_start 
+#function printf(#parameter #value "%d . enter number : " #parameter #variable i + #value 1);; 
+#function scanf(#parameter #value "%f" #parameter & #array number #indexes #variable i #index_end);; 
+#assign #variable summation += #array number #indexes #variable i #index_end;; 
+#for_end;; 
+#assign #variable average #with #variable summation / #variable numberElements;; 
+#function printf(#parameter #value "average = %.2f" #parameter #variable average);;

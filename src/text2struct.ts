@@ -1,23 +1,60 @@
-/* Port this over to clean_text. So there is less computing over conversion of var types. */
-var variable_types = ["integer", "long", "float", "double", "boolean", "character", "string", "void"];
-var struct_ver_variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
+var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 var infix_operators = [">", ">=", "<", "<=", "!=", "=="];
 
 
-/* Returns ["Not ready"] if current line is not ready to be parsed.
-       If current line ready to be parsed, struct_command[0] contains the struct command.
-       struct_command[1] contains the new variables added.
-       struct_command[2] contains bool of whether new line is needed.
+/*     
+
+Parameters - list of commands, variable list
+
+list of commands
+    list of commands the user has spoken. For e.g. ['declare', 'int', 'hello']
+
+variable list
+    list of variable already declared
+
+Returns the struct command in the format [list of struct commands, variable list, conditions list]
+
+list of struct commands 
+    each element is a line of struct command. 
+    For e.g. [#create int #variable first #value 1 #dec_end;;]
+    If the struct command contains multiple lines, i.e. is a block statement, then
+    the list of struct commands will contain:
+    ['if #condition #variable helloWorld > #value 5  #if_branch_start', '#if_branch_end;;' ]
+
+variable list
+    list of new variables declared by the user. This is only updated when a declare command is given
+
+conditions list
+    next_line: Is true when the command ends and the user can proceed to new line.
+    extendable: Is true when the command is already parseable and it can still be extended.
+        e.g. "declare int hello" is parseable, but can be extended with "equal 5".
+    go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
+    This flag will tell the manager to go ahead with next command.
     */
-export function get_struct(text, var_list) {
+export function get_struct(text_segment, var_list, is_extendable) {
+
+    var text = ""
+    var go_ahead = false
+    /* For now only assign statements are extendable */
+    if (is_extendable) {
+        /* extendable! */
+        if (text_segment[1].includes("equal")) text = text_segment.join(" ");
+        /* Not extendable :( */
+        else {
+            go_ahead = true
+            text = text_segment[1];
+        }
+    }
+    /* Just a normal case. */
+    else text = text_segment.join(" ");
 
     text = compress_name(text);
     text = replace_infix_operators(text);
 
     var starting_command = text.split(" ")[0];
 
-    var struct_command = ["", [""], false];
+    var struct_command = [[""], [""], [false, false]];
 
     /* For the following switch case */
     if (var_list.includes(starting_command)) starting_command = "assign";
@@ -36,9 +73,11 @@ export function get_struct(text, var_list) {
                 struct_command = parse_if_statement(text, checker);
                 break;
         default:
-            struct_command = ["Not ready", [""], false];
+            struct_command = [["Not ready"], [""], [false, false, false]];
             break;
     }
+
+    struct_command[2][2] = go_ahead;
 
     return struct_command;
 }
@@ -50,17 +89,17 @@ function parse_declare_statement(text, checker) {
     /* variable list to return to caller */
     var var_list = [""]
     var new_line = false;
+    var extendable = false;
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [checker[0], var_list, false];
+        return [["Not ready"], var_list, [false, false, false]];
     } 
     
     var struct_command = "#create "
     var splitted_text = text.split(" ");
 
-    var var_idx = variable_types.indexOf(splitted_text[1]);
-    struct_command = struct_command + struct_ver_variable_types[var_idx];
+    struct_command = struct_command + splitted_text[1];
 
     /* User declaring an array type */
     if (splitted_text[2] == "array") {
@@ -74,13 +113,19 @@ function parse_declare_statement(text, checker) {
     else {
         struct_command = struct_command + " #variable ";
         var_list.push(splitted_text[2]);
+        /* Assigning value to declared int */
         if (splitted_text.includes("equal")) {
             new_line = true;
             struct_command = struct_command + splitted_text[2] + " value " + splitted_text[4] + " dec_end;;";
         }
-        else struct_command = struct_command + splitted_text[2] + " dec_end;;";
+
+        /* No value assigned */
+        else {
+            extendable = true
+            struct_command = struct_command + splitted_text[2] + " dec_end;;";
+        }
     }
-    return [struct_command, var_list, new_line];
+    return [[struct_command], var_list, [new_line, extendable, false]];
 }
 
 /* As of now, does not check whether variable is being assigned the correct element.
@@ -92,10 +137,11 @@ function parse_assign_statement(text, checker) {
     /* variable list to return to caller */
     var var_list = [""]
     var new_line = true;
+    var extendable = false;
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [checker[0], var_list, false];
+        return [["Not ready"], var_list, [false, false, false]];
     }
     
     var splitted_text = text.split(" ");  
@@ -106,17 +152,18 @@ function parse_assign_statement(text, checker) {
 
     else struct_command = struct_command + "#variable " + splitted_text[2] + ";;";
 
-    return [struct_command, var_list, new_line];
+    return [[struct_command], var_list, [new_line, extendable, false]];
 }
 
 function parse_if_statement(text, checker) {
     /* variable list to return to caller */
     var var_list = [""]
     var new_line = true;
+    var extendable = false;
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [checker[0], var_list, false];
+        return [["Not ready"], var_list, [false, false, false]];
     }
     
     var splitted_text = text.split(" ");  
@@ -140,9 +187,12 @@ function parse_if_statement(text, checker) {
         }
     }
 
-    struct_command += " #if_branch_start\n\n#if_branch_end;;"
+    struct_command += " #if_branch_start"
+    var struct_command_list = []
+    struct_command_list.push(struct_command)
+    struct_command_list.push("#if_branch_end;;")
 
-    return [struct_command.trim(), var_list, new_line];
+    return [struct_command_list, var_list, [new_line, extendable, false]];
 }
 
 
@@ -459,5 +509,5 @@ function replace_infix_operators(text) {
 }
 
 if (require.main === module) {
-    get_struct("begin if hello world > 5", ["helloWorld"]);
+    console.log(get_struct("declare int hello", ["hello"], false));
 }

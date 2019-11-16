@@ -1,0 +1,187 @@
+======================= Swap Two Variables =========================
+declare integer first equal one
+declare integer second equal two
+declare integer temporary equal first
+first equal second
+second equal temporary
+======================= Find max integer from array ================
+create function find maximum with return type integer 
+with parameter integer array numbers 
+with parameter integer length begin
+declare integer max equal numbers array index zero end declare 
+declare integer i end declare
+for loop condition i equal one condition i less than length condition i plus plus begin
+begin if numbers array index i greater than max then
+max equal numbers array index i end equal
+end if 
+end for loop 
+return max 
+end function 
+====================== multiply two Floating Point Numbers  ================
+create function main return type integer begin
+declare double first number
+declare double second number
+declare double product
+call function print f parameter 
+string enter two numbers symbol colon end string end function
+call function scan f parameter 
+string symbol percent lf symbol percent lf end string 
+parameter symbol ampersand first number parameter symbol ampersand second number end function
+product equal first number times second number
+call function printf parameter 
+string product symbol equal symbol percent symbol dot 2lf end string 
+parameter product end function
+return zero
+end function
+========================= GCD ==========================
+create function main return type integer begin
+declare integer first
+declare integer second
+call function print f parameter 
+string enter two positive integers symbol colon end string end function
+call function scan f parameter 
+string symbol percent d symbol percent d end string
+parameter symbol ampersand first 
+parameter symbol ampersand second end function
+while first not equal second begin
+begin if first greater than second then
+first minus equal second
+else second minus equal first 
+end if
+end while
+call function print f parameter string gcd symbol equal symbol percent d end string 
+parameter first end function
+return zero
+end function
+===================== Display English Alphabets from a to z ==========================
+create function main return type integer begin
+declare character c end declare
+for loop condition c equal character a condition c less than equal character z condition plus plus c begin
+call function print f parameter string symbol percent c end string parameter c end function
+end for loop
+return zero
+end function
+===================== Count number of digits in a long number =====================
+declare long number 
+declare integer count equal zero
+call function printf parameter 
+string enter an integer symbol colon space end string end function
+call function scanf parameter 
+string symbol percent l d end string parameter symbol ampersand number end function
+while number not equal 0 begin
+number divide equal ten
+plus plus count
+end while
+call function printf parameter 
+string number of digits symbol colon space symbol percent d end string 
+parameter count end function
+======================= Check prime number ==================================
+declare integer number 
+declare integer i
+declare integer flag equal zero
+call function print f parameter 
+string enter a positive integer symbol colon space end string end function
+call function scan f parameter 
+string symbol percent d end string 
+parameter symbol ampersand number end function
+for loop condition i equal two 
+condition i less than equal number divide two 
+condition plus plus i begin 
+begin if number modulo i equal zero then 
+flag equal one
+break
+end if 
+end for loop
+begin if flag equal zero then 
+call function print f parameter 
+string symbol percent d is a prime number symbol dot end string
+parameter number end function
+else
+call function print f parameter 
+string symbol percent d is not a prime number symbol dot end string
+parameter number end function
+end if
+======================== Check if number is palindrome ====================
+declare integer number
+declare integer reversed number equal zero
+declare integer remainder
+declare integer original number 
+call function printf parameter 
+string enter an integer symbol colon space end string end function
+call function scanf parameter 
+string symbol percent d end string 
+parameter symbol ampersand number end function
+original number equal number
+while number not equal zero begin
+remainder equal number modulo ten
+reversed number equal reversed number times ten plus remainder
+number divide equal ten 
+end while
+begin if original number equal reversed number then 
+call function print f parameter string it is palindrome end string end function
+else
+call function print f parameter string it is not palindrome end string end function
+end if 
+======================= Sum of natural numbers using Recursion ===============
+
+create function add numbers return type integer parameter integer number begin
+begin if number not equal zero then
+return number plus call function add numbers parameter number minus one end function 
+else
+return number
+end if 
+end function
+
+create function main return type integer begin
+declare integer number
+call function printf parameter 
+string enter a positive integer symbol colon space end string end function
+call function scanf parameter 
+string symbol percent d end string 
+parameter symbol ampersand number end function
+call function printf parameter 
+string sum symbol equal space symbol percent d end string
+parameter call function add numbers parameter number end function end function
+return zero
+end function
+===================== Calculate average using arrays ======================
+declare integer number elements
+declare integer i
+declare float array number size one hundred
+declare float summation equal zero
+declare float average
+call function printf parameter 
+string enter the numbers of elements symbol colon space end string end function
+call function scanf parameter
+string symbol percent d end string
+parameter symbol ampersand number elements
+end function
+while number elements greater than one hundred 
+or number elements less than equal zero begin
+call function print f parameter 
+string enter the number again symbol colon space end string
+end function
+call function scanf parameter
+string symbol percent d end string 
+parameter symbol ampersand number elements 
+end function
+end while 
+for loop condition i equal zero
+condition i less than number elements
+condition plus plus i begin
+call function printf parameter 
+string symbol percent d symbol dot
+space enter number symbol colon space 
+end string 
+parameter i plus one end function
+call function scanf parameter
+string symbol percent f end string 
+parameter symbol ampersand number array index i 
+end function
+summation plus equal number array index i
+end for loop
+average equal summation divide number elements
+call function print f parameter
+string average symbol equal space 
+symbol percent symbol dot 2f end string
+parameter average end function
