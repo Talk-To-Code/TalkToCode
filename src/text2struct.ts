@@ -93,7 +93,7 @@ function parse_declare_statement(text, checker) {
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [["Not ready"], var_list, [false, false, false]];
+        return [["Not ready", checker[1]], var_list, [false, false, false]];
     } 
     
     var struct_command = "#create "
@@ -141,7 +141,7 @@ function parse_assign_statement(text, checker) {
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [["Not ready"], var_list, [false, false, false]];
+        return [["Not ready", checker[1]], var_list, [false, false, false]];
     }
     
     var splitted_text = text.split(" ");  
@@ -163,7 +163,7 @@ function parse_if_statement(text, checker) {
 
     if (checker[0] == "Not ready"){
         console.log(checker[1]);
-        return [["Not ready"], var_list, [false, false, false]];
+        return [["Not ready", checker[1]], var_list, [false, false, false]];
     }
     
     var splitted_text = text.split(" ");  

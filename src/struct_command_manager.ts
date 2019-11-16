@@ -1,5 +1,6 @@
 import {get_struct} from './text2struct'
 import { clean } from './clean_text';
+import * as vscode from 'vscode';
 
 
 export class StructCommandManager {
@@ -85,7 +86,7 @@ export class StructCommandManager {
         else {
             var speech = this.curr_speech.join(" ")
             this.struct_command_list.splice(this.curr_index, 1, speech)
-            
+            vscode.window.showInformationMessage(struct_command[0][1]);
             /* No longer extendable. */
             this.extendable = false
         }
