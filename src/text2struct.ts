@@ -5,7 +5,7 @@ var infix_operators = [">", ">=", "<", "<=", "!=", "=="];
 
 /*     
 
-Parameters - list of commands, variable list
+@ Parameters - list of commands, variable list
 
 list of commands
     list of commands the user has spoken. For e.g. ['declare', 'int', 'hello']
@@ -13,7 +13,7 @@ list of commands
 variable list
     list of variable already declared
 
-Returns the struct command in the format [list of struct commands, variable list, conditions list]
+@ Returns the struct command in the format [list of struct commands, variable list, conditions list]
 
 list of struct commands 
     each element is a line of struct command. 

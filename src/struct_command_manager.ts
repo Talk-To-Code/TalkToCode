@@ -5,10 +5,18 @@ import * as vscode from 'vscode';
 
 export class StructCommandManager {
 
+    /* List of structure commands. Used to feed into the AST */
     struct_command_list: string[]
+    /* List of variables declared by the user */
     variable_list: string[]
+    /* current index within the struct_command_list - helpful for:
+        - determining where to splice into the struct command list
+        - for extendable commands */
     curr_index: number
+    /* current command the user is saying. Stored in a list of string. e.g. ["declare", "integer", "hello"]*/
     curr_speech: string[]
+
+    /* If the command is extendable. e.g. "declare integer hello", can be extended with "equals 5" */
     extendable: boolean
 
     constructor() {
@@ -35,10 +43,14 @@ export class StructCommandManager {
         this.updateStructCommandList(struct_command)
     }
 
+    /* Updating the struct command list */
     updateStructCommandList(struct_command: any[] | (boolean | string[])[]) {
 
-        /* Check if go ahead - Basically, the index can be increased and the current speech no longer
-        includes the previous extendable speech. */
+        /* Check if go ahead - Basically, the latest input speech is confirmed to not be related to the
+        previous extendable command. We can go ahead and increase curr_index and remove the previous 
+        extentable command from the curr_speech. 
+        curr_index should point at the chunk of speech that we have confirmed to not be related to prev
+        command. */
         if (struct_command[2][2]) {
             this.curr_index += 1
             this.curr_speech.shift()
@@ -47,17 +59,17 @@ export class StructCommandManager {
         }
 
 
-        /* Add to struct_command_list */
+        /* Command is parseable, add to struct command! */
         if (struct_command[0][0] != "Not ready") {
 
             /* Block statement */
             if (struct_command[0].length > 1) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command[0][0])
                 this.curr_index += 1
-                this.struct_command_list.push("")
+                this.struct_command_list.push("") // Blank line for the curr_index to point at later.
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command[0][1])
-                this.curr_index -= 1 // Point to middle of block statement
+                this.curr_index -= 1 // Make sure curr_index points at the blank line.
 
                 this.curr_speech = [""]
             }
@@ -65,9 +77,10 @@ export class StructCommandManager {
             /* Single line */
             else {
 
+                /* Splice and delete previous unparseable speech / extendable command. */
                 this.struct_command_list.splice(this.curr_index, 1, struct_command[0][0])
 
-                /* If new_line is true, current speech is blank */
+                /* If new_line is true, insert blank line "". Now curr_index points at blank line. */
                 if (struct_command[2][0]) {
                     this.curr_index += 1
                     this.curr_speech = [""]
@@ -87,7 +100,7 @@ export class StructCommandManager {
             var speech = this.curr_speech.join(" ")
             this.struct_command_list.splice(this.curr_index, 1, speech)
             vscode.window.showInformationMessage(struct_command[0][1]);
-            /* No longer extendable. */
+            /* I'm not sure if extendable should be false here. But keep it here for now. */
             this.extendable = false
         }
 
