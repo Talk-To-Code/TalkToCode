@@ -5,6 +5,10 @@ list of struct commands.
 "#c_program SampleProgram", "#include #access stdio h #access_end;;",
 <code>, " #program_end"
 
+
+#c_program SampleProgram #include #access stdio h #access_end;;
+#create int #variable count #value 5 #dec_end;; #program_end
+
 <code> e.g. = "#create int #variable count #value 5 #dec_end;;",
 "#assign #variable count #with #value 5 + #value 6;;"
 
@@ -15,4 +19,15 @@ e.g. int mark[5] = {19, 10, 8, 17, 9}
 assign case:
 
 are you assigning number, string or variable?? This is tricky
+
+Block statements:
+Seems like ast parser requires blocks to be completed. This fucking sucks.
+Seems like i will have to import everything each time. hais oh well.
+
+should port over variable_types from text2struct to clean_text.
+Also should consider if compress name is a clean_text function or not.
+Feels like it should.
+
+As of now, should port over all functionality first before considering it.
+Compress name is a standalone function so it can be easily ported.
 

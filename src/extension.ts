@@ -131,7 +131,11 @@ function display_current_command(text: any, newline: any) {
 		let current_range = editor.document.lineAt(curr_line).range;
 		console.log("length of text: " + text.length);
 
-		if (newline) text = text + "\n";
+		var block_statement = false;
+		if (newline) {
+			if (!text.includes("if")) text = text + "\n";
+			else block_statement = true;
+		}
 
 		editor.edit(editBuilder => {
 			editBuilder.replace(current_range, text);
@@ -141,6 +145,13 @@ function display_current_command(text: any, newline: any) {
 		if (!newline){
 			editor.selection = new vscode.Selection(curr_line, 0, curr_line, text.length);
 		}
+
+		else if (block_statement){
+			let cursor = editor.selection.active;
+			let new_anchor = new vscode.Position(cursor.line, 0);
+			editor.selection = new vscode.Selection(new_anchor, new_anchor);
+		}
+
 		/* Move cursor to new line */
 		else {
 			let cursor = editor.selection.active;

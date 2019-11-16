@@ -1,5 +1,8 @@
+/* Port this over to clean_text. So there is less computing over conversion of var types. */
 var variable_types = ["integer", "long", "float", "double", "boolean", "character", "string", "void"];
 var struct_ver_variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
+
+var infix_operators = [">", ">=", "<", "<=", "!=", "=="];
 
 
 /* Returns ["Not ready"] if current line is not ready to be parsed.
@@ -7,9 +10,11 @@ var struct_ver_variable_types = ["int", "long", "float", "double", "boolean", "c
        struct_command[1] contains the new variables added.
        struct_command[2] contains bool of whether new line is needed.
     */
-function get_struct(text, var_list) {
+export function get_struct(text, var_list) {
 
     text = compress_name(text);
+    text = replace_infix_operators(text);
+
     var starting_command = text.split(" ")[0];
 
     var struct_command = ["", [""], false];
@@ -26,12 +31,15 @@ function get_struct(text, var_list) {
             var checker = check_assign_statement(text);
             struct_command = parse_assign_statement(text, checker);
             break;
+        case "begin":
+                var checker = check_if_statement(text);
+                struct_command = parse_if_statement(text, checker);
+                break;
         default:
             struct_command = ["Not ready", [""], false];
             break;
     }
 
-    console.log(struct_command)
     return struct_command;
 }
 
@@ -77,7 +85,7 @@ function parse_declare_statement(text, checker) {
 
 /* As of now, does not check whether variable is being assigned the correct element.
    Also, it only allows assignment of numbers and variables.
-   It only checks if the variable being assigned has been declared. However, perhaps
+   It does not checks if the variable being assigned has been declared.
    we should also check the variable being used to assign as well.
 */
 function parse_assign_statement(text, checker) {
@@ -99,8 +107,42 @@ function parse_assign_statement(text, checker) {
     else struct_command = struct_command + "#variable " + splitted_text[2] + ";;";
 
     return [struct_command, var_list, new_line];
-      
+}
 
+function parse_if_statement(text, checker) {
+    /* variable list to return to caller */
+    var var_list = [""]
+    var new_line = true;
+
+    if (checker[0] == "Not ready"){
+        console.log(checker[1]);
+        return [checker[0], var_list, false];
+    }
+    
+    var splitted_text = text.split(" ");  
+    var struct_command = "if #condition ";
+
+    var i = 2;
+
+    for (i; i < splitted_text.length; i++) {
+
+        if (infix_operators.includes(splitted_text[i])) {
+            struct_command += splitted_text[i] + " ";
+        }
+
+        else {
+            if (!isNaN(splitted_text[i])) {
+                struct_command += "#value " + splitted_text[i] + " ";
+            }
+            else {
+                struct_command += "#variable " + splitted_text[i] + " ";
+            }
+        }
+    }
+
+    struct_command += " #if_branch_start\n\n#if_branch_end;;"
+
+    return [struct_command.trim(), var_list, new_line];
 }
 
 
@@ -173,7 +215,7 @@ function check_assign_statement(text) {
     var last_word = splitted_text[splitted_text.length-1];
 
     if (splitted_text.includes("equal")) {
-        if (last_word == "equal") return ["Not ready", "equal in last word spoken"];
+        if (last_word == "equal") return ["Not ready", "equal is last word spoken"];
     }
 
     else return ["Not ready", "equal was not mentioned"];
@@ -181,8 +223,51 @@ function check_assign_statement(text) {
     return notes;
 }
 
+/*
+as of now, I do not want the 'then' keyword. We already have the skip keyword to go to new line.
+checking does not accomodate for array indexing. still thinking of how to do that.
+As of now does not allow multiple conditions. Will think of a way soon.
+*/
+function check_if_statement(text) {
+    var notes = ["Ready"]
+
+    var splitted_text = text.split(" ");
+    var last_word = splitted_text[splitted_text.length-1];
+
+    /* Check if 'if' was spoken. */
+    if (splitted_text.includes("if")) {
+        if (last_word == "if") return ["Not ready", "if is last word spoken"];
+        /* Check position of 'if' */
+        if (splitted_text[1] != "if") return ["Not ready", "'if' should be the second word spoken after 'begin'"];
+        /* Find infix operators */
+        var infix_positions = [];  // There can be multiple operators in the condition
+        var i = 2;
+
+        for (i; i < splitted_text.length; i++) {
+            if (infix_operators.includes(splitted_text[i])) {
+                infix_positions.push(i);
+            }
+        }
+
+        if (infix_positions.length == 0) return ["Not ready", "There should be infix operators for conditions"];
+
+        if (infix_positions[0] == splitted_text.length-1) return ["Not ready", "infix operator is last word spoken"];
+
+    }
+    else return ["Not ready", "'if' was not mentioned"];
+
+
+
+
+
+    return notes;
+}
+
 
 /* Compress names into camel case. E.g. 'declare integer number of name' -> declare integer numberOfName */
+/* Should this really be called at the start of struct function? Maybe called during check function. 
+reason being, for if-statements, it makes more sense to call this after finding the infix positions.
+As of now it just determines infix positions, and then redo it again in the check function */
 function compress_name(text) {
     var splitted_text = text.split(" ");
 
@@ -238,6 +323,60 @@ function compress_name(text) {
             splitted_text.splice(2, 0, compressed_name);
             return splitted_text.join(' ');
         }
+    }
+    /* If case */
+    else if (splitted_text[0] == "begin") {
+
+        /* No name long enough to compress. 5 is the minimum. E.g. "begin if hello world equal..."*/
+        if (splitted_text.length < 5) return text;
+
+        var infix_positions = [];  // There can be multiple operators in the condition
+        var my_infix_operators = [];
+        var i = 2;
+
+        for (i; i < splitted_text.length; i++) {
+            if (infix_operators.includes(splitted_text[i])) {
+                infix_positions.push(i);
+                my_infix_operators.push(splitted_text[i]);
+            }
+        }
+        /* For the last variable to be compressed as well. 
+        E.g. 'begin if hello world < bye world'. The positions to compress would be
+        2 to 4 and 5 to <splitted_text.length-1>.
+        */
+        infix_positions.push(splitted_text.length);
+
+        /* There needs to be an infix operator */
+        if (infix_positions.length == 1) return text;
+
+        /* Compress names here */
+        var compressed_name_list = []
+        var i = 0;
+        var start_point = 2;  // To be used when slicing and splicing
+        for (i; i < infix_positions.length; i++) {
+
+            var_name_arr = splitted_text.slice(start_point, infix_positions[i]);
+            /* Convert to camel case*/
+            compressed_name = convert_to_camel_case(var_name_arr);
+            compressed_name_list.push(compressed_name);
+            start_point =  infix_positions[i] + 1;
+
+            if (start_point >= splitted_text.length) break;
+        }
+
+        /* Recreate input speech with compressed names */
+        /* Requires my_infix_operators and compressed_name_list */
+        var new_text = "begin if ";
+        var i = 0;
+
+        for (i; i < my_infix_operators.length; i++) {
+            new_text += compressed_name_list[i] + " " + my_infix_operators[i] + " "
+        }
+
+        if (compressed_name_list.length > my_infix_operators.length) {
+            new_text += compressed_name_list[compressed_name_list.length-1]
+        }
+        return new_text.trim();
     }
 
     /* assign case */
@@ -306,6 +445,19 @@ function check_var_type(var_type, value) {
     }
 }
 
+/* If the input speech is meant to be an if block */
+function replace_infix_operators(text) {
+    if (text.split(' ')[0] == "begin") {
+        text = text.replace('greater than', '>');
+        text = text.replace('greater than equal', '>=');
+        text = text.replace('less than', '<');
+        text = text.replace('less than equal', '<=');
+        text = text.replace('equal', '==');
+        text = text.replace('not equal', '!=');
+    }
+    return text;
+}
+
 if (require.main === module) {
-    get_struct("hello world equal 4", ["helloWorld"]);
+    get_struct("begin if hello world > 5", ["helloWorld"]);
 }
