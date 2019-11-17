@@ -41,7 +41,7 @@ export class StructCommandManager {
         /* Check if it is undo command */
         if (cleaned_speech == "scratch that") {
             /* If curr speech is not empty */
-            if (this.speech_hist[this.curr_index].length > 0) {
+            if (this.curr_speech.length > 0 && this.curr_speech[0] != "") {
                 /* Update speech hist and curr speech, remove latest speech segment. */
                 this.speech_hist[this.curr_index].pop()
                 this.curr_speech = this.speech_hist[this.curr_index]
@@ -51,8 +51,27 @@ export class StructCommandManager {
                 /* extendable will be false, updateSructCommand will regenerate anyway. */
                 this.extendable = false
             }
+            /* If curr speech is empty. e.g. just enterd new line or beginning of code. */
+            else {
+                console.log("im here")
+                /* If it is just the beginning of the code */
+                if (this.speech_hist.length == 0) console.log("Nothing to undo.")
+
+                /* If user has just entered a new line */
+                else {
+                    console.log(this.curr_index)
+                    this.curr_index -= 1
+                    /* Update speech hist and curr speech, remove latest speech segment. */
+                    this.speech_hist[this.curr_index].pop()
+                    this.curr_speech = this.speech_hist[this.curr_index]
+                    /* Remove latest struct command. It will be updated by updateStructCommand later. */
+                    this.struct_command_list.splice(this.curr_index, 1, "")
+                }
+
+            }
         }
 
+        /* Normal process. */
         else {
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
