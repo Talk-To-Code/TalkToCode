@@ -68,13 +68,7 @@ export class StructCommandManager {
         console.log("curr speech:")
         console.log(this.curr_speech)
         var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
-        console.log("made it pass get_struct")
         this.updateStructCommandList(struct_command);
-        console.log("struct command list after update")
-        console.log(this.struct_command_list)
-
-        
-        
     }
 
     /* Updating the struct command list */

@@ -1,3 +1,5 @@
+var assert = require('assert');
+
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 var infix_operators = [">", ">=", "<", "<=", "!=", "=="];
@@ -40,6 +42,9 @@ export function get_struct(text_segment, var_list, is_extendable) {
     for now only checks if next text segment contains equal. By right should check if first word of next
     segment contains equal. */
     if (is_extendable) {
+        
+        if (text_segment.length < 2) console.log("ERROR. Extendable case, but text segment less than length 2.")
+
         /* extendable! */
         if (text_segment[1].includes("equal")) text = text_segment.join(" ");
         /* Not extendable :( */
@@ -50,7 +55,6 @@ export function get_struct(text_segment, var_list, is_extendable) {
     }
     /* Just a normal case. */
     else text = text_segment.join(" ");
-    console.log("get_struct receiving: " + text)
     text = compress_name(text);
     text = replace_infix_operators(text);
 
