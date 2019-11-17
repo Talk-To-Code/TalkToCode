@@ -35,29 +35,48 @@ export class StructCommandManager {
     }
 
     parse_speech(transcribed_word: string) {
-        console.log("#######################NEXT COMMAND#######################");
+        console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
 
         /* Check if it is undo command */
         if (cleaned_speech == "scratch that") {
-            console.log("scratch it good")
+            /* If curr speech is not empty */
+            if (this.speech_hist[this.curr_index].length > 0) {
+                /* Update speech hist and curr speech, remove latest speech segment. */
+                this.speech_hist[this.curr_index].pop()
+                this.curr_speech = this.speech_hist[this.curr_index]
+                console.log("struct command list before scratch that")
+                console.log(this.struct_command_list)
+                console.log("curr index: " + this.curr_index)
+                /* Remove latest struct command. It will be updated by updateStructCommand later. */
+                this.struct_command_list.splice(this.curr_index, 1, "")
+                console.log("struct command list after scratch that")
+                console.log(this.struct_command_list)
+            }
         }
 
         else {
             this.curr_speech.push(cleaned_speech);
-
             /* Remove the "" blanks from the curr speech. */
             this.curr_speech = this.curr_speech.filter(function(value, index, arr){
                 return value != "";
             });
+            /* Update speech hist. */
             this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
-
-            console.log("speech hist: ")
-            console.log(this.speech_hist)
-
-            var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
-            this.updateStructCommandList(struct_command);
         }
+
+        console.log("speech hist: ")
+        console.log(this.speech_hist)
+        console.log("curr speech:")
+        console.log(this.curr_speech)
+        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
+        console.log("made it pass get_struct")
+        this.updateStructCommandList(struct_command);
+        console.log("struct command list after update")
+        console.log(this.struct_command_list)
+
+        
+        
     }
 
     /* Updating the struct command list */

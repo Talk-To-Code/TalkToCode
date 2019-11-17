@@ -25,14 +25,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
-		// listen();
-		var tests = generate_test_cases("declare")
+		listen();
+		// var tests = generate_test_cases("declare")
 		
-		var i
-		for (i = 0; i < tests.length; i++) {
-			manager.parse_speech(tests[i]);
-			console.log(manager.struct_command_list)
-		}
+		// var i
+		// for (i = 0; i < tests.length; i++) {
+		// 	manager.parse_speech(tests[i]);
+		// 	console.log(manager.struct_command_list)
+		// }
 
 	});
 
@@ -58,7 +58,6 @@ function listen() {
 
 			else {
 				manager.parse_speech(transcribed_word)
-				console.log(manager.struct_command_list)
 				displayStructCommands(manager.struct_command_list)
 			}
 		}
@@ -111,7 +110,7 @@ function displayStructCommands(struct_command_list) {
 
 	if (editor) {
 		/* Get range to delete */
-		var lineCount = editor.document.lineCount - 1
+		var lineCount = editor.document.lineCount
 		var start_pos = new vscode.Position(0, 0)
 		var end_pos = new vscode.Position(lineCount, 0)
 		var range = new vscode.Range(start_pos, end_pos)
