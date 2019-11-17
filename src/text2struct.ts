@@ -65,6 +65,20 @@ export function get_struct(text_segment, var_list, is_extendable) {
     /* For the following switch case */
     if (var_list.includes(starting_command)) starting_command = "assign";
 
+    /* Differentiate If and For loop */
+    if (starting_command == "begin") {
+        
+        /* Check number of words */
+        var splitted_text = text.split(" ");
+        if (splitted_text.length == 1) starting_command = "Not ready";
+
+        else {
+            if(splitted_text[1] == "if") starting_command = "if";
+            else if (splitted_text[1] == "loop") starting_command = "loop";
+            else starting_command = "Not ready";
+        }
+    }
+
     switch(starting_command) {
         case "declare":
             var checker = check_declare_statement(text);  
@@ -74,10 +88,14 @@ export function get_struct(text_segment, var_list, is_extendable) {
             var checker = check_assign_statement(text);
             struct_command = parse_assign_statement(text, checker);
             break;
-        case "begin":
-                var checker = check_if_statement(text);
-                struct_command = parse_if_statement(text, checker);
-                break;
+        case "if":
+            var checker = check_if_statement(text);
+            struct_command = parse_if_statement(text, checker);
+            break;
+        // case "loop":
+        //         var checker = check_loop_statement(text);
+        //         struct_command = parse_loop_statement(text, checker);
+        //         break;
         default:
             struct_command = [["Not ready"], [""], [false, false, false]];
             break;
@@ -501,7 +519,7 @@ function check_var_type(var_type, value) {
     }
 }
 
-/* If the input speech is meant to be an if block */
+/* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text) {
     if (text.split(' ')[0] == "begin") {
         text = text.replace('greater than', '>');

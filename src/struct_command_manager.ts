@@ -53,7 +53,6 @@ export class StructCommandManager {
             }
             /* If curr speech is empty. e.g. just enterd new line or beginning of code. */
             else {
-                console.log("im here")
                 /* If it is just the beginning of the code */
                 if (this.speech_hist.length == 0) console.log("Nothing to undo.")
 
@@ -67,7 +66,6 @@ export class StructCommandManager {
                     /* Remove latest struct command. It will be updated by updateStructCommand later. */
                     this.struct_command_list.splice(this.curr_index, 1, "")
                 }
-
             }
         }
 
