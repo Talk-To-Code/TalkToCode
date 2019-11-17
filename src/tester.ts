@@ -12,7 +12,7 @@ export function generate_test_cases(cases: string) {
         test_cases = ["declare integer hello equals 5", "hello equals 2"]
 
     else if (cases == "for loop")
-        test_cases = ["begin loop condition hello world equal 0 condition i less than 5 condition i plus plus"]
+        test_cases = ["begin Loop condition I equal 0 condition I less than 5 condition I plus plus"]
 
     return test_cases
 }

@@ -209,7 +209,6 @@ function compress_for_loop(splitted_text: string[]) {
     */
     /* Condition_blocks should have 3 sets. */
     if (condition_blocks.length < 3) return splitted_text.join(" ");
-
     var wrong_condition = false;
     var infix_positions = [] // Infix positions for first 2 blocks
 
@@ -228,15 +227,18 @@ function compress_for_loop(splitted_text: string[]) {
                 have_infix = true
                 infix_positions.push(j)
                 /* Infix position cannot be in first 2 positions or last of the block */
-                if (j < 2 || j == condition_blocks[i].length-1) wrong_condition = true
+                if (j < 2 || j == condition_blocks[i].length-1){
+                    wrong_condition = true
+                } 
                 break;
             } 
         }
-        if (!have_infix) wrong_condition = true
+        if (!have_infix) {
+            wrong_condition = true
+        }
     }
 
     if (wrong_condition) {
-        console.log("wrong condition")
         return splitted_text.join(" ");
 
     }
@@ -274,7 +276,6 @@ function compress_for_loop(splitted_text: string[]) {
     }
     /* Assume is ++, for now. */
     text += compressed_name_list[compressed_name_list.length-1][0] + " ++"
-    console.log("hi")
     return text;
 }
 

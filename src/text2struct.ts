@@ -56,10 +56,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     /* Just a normal case. */
     else text = text_segment.join(" ");
     text = replace_infix_operators(text);
-    console.log("before compress " + text)
     text = compress_name(text);
-
-    console.log("after compress " + text)
 
     var starting_command = text.split(" ")[0];
 
@@ -77,11 +74,14 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
         else {
             if(splitted_text[1] == "if") starting_command = "if";
-            else if (splitted_text[1] == "loop") starting_command = "loop";
-            else starting_command = "Not ready";
+            else if (splitted_text[1] == "loop" || splitted_text[1] == "Loop") {
+                starting_command = "loop";
+            }
+            else {
+                starting_command = "Not ready";
+            }
         }
     }
-
     switch(starting_command) {
         case "declare":
             var checker = check_declare_statement(text);  
@@ -95,10 +95,10 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
             var checker = check_if_statement(text);
             struct_command = parse_if_statement(text, checker);
             break;
-        // case "loop":
-        //         var checker = check_loop_statement(text);
-        //         struct_command = parse_loop_statement(text, checker);
-        //         break;
+        case "loop":
+                var checker = check_loop_statement(text);
+                struct_command = parse_loop_statement(text, checker);
+                break;
         default:
             struct_command = [["Not ready"], [""], [false, false, false]];
             break;
@@ -111,7 +111,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
 
 /* So far it does not check for end declare */
-function parse_declare_statement(text, checker) {
+function parse_declare_statement(text: string, checker: string[]) {
 
     /* variable list to return to caller */
     var var_list = [""]
@@ -160,7 +160,7 @@ function parse_declare_statement(text, checker) {
    It does not checks if the variable being assigned has been declared.
    we should also check the variable being used to assign as well.
 */
-function parse_assign_statement(text, checker) {
+function parse_assign_statement(text: string, checker: string[]) {
     /* variable list to return to caller */
     var var_list = [""]
     var new_line = true;
@@ -182,7 +182,7 @@ function parse_assign_statement(text, checker) {
     return [[struct_command], var_list, [new_line, extendable, false]];
 }
 
-function parse_if_statement(text, checker) {
+function parse_if_statement(text: string, checker: string[]) {
     /* variable list to return to caller */
     var var_list = [""]
     var new_line = true;
@@ -219,6 +219,34 @@ function parse_if_statement(text, checker) {
     struct_command_list.push(struct_command)
     struct_command_list.push("#if_branch_end;;")
 
+    return [struct_command_list, var_list, [new_line, extendable, false]];
+}
+
+function parse_loop_statement(text: string, checker: string[]) {
+    /* variable list to return to caller */
+    var var_list = [""]
+    var new_line = true;
+    var extendable = false;
+
+    if (checker[0] == "Not ready"){
+        console.log(checker[1]);
+        return [["Not ready", checker[1]], var_list, [false, false, false]];
+    }
+    
+    var splitted_text = text.split(" ");
+    /* First condition block */
+    var struct_command = "for #condition #assign #variable ";
+    struct_command += splitted_text[3] + " with #value " + splitted_text[5]
+
+    /* Second condition block */
+    struct_command += " #condition #variable " + splitted_text[7] + " " + splitted_text[8] + " #variable " + splitted_text[9]
+
+    /* Third condition block */
+    struct_command += " #condition #post #variable " + splitted_text[11] + " " + splitted_text[12] + " #for_start"
+
+    var struct_command_list = []
+    struct_command_list.push(struct_command)
+    struct_command_list.push("#for_end;; ")
     return [struct_command_list, var_list, [new_line, extendable, false]];
 }
 
@@ -336,6 +364,59 @@ function check_if_statement(text: string) {
     return notes;
 }
 
+/* Instead of "for loop", i am going with "begin loop". */
+function check_loop_statement(text: string) {
+    var notes = ["Ready"]
+
+    var splitted_text = text.split(" ");
+
+    /* For loop must have 'condition' key word. */
+    if (!splitted_text.includes("condition")) return ["Not ready", "'condition' was not mentioned"];
+    
+    /* Remove "begin", "loop" from splitted text */
+    splitted_text.splice(0, 2);
+    /* Split the splitted text array into condition blocks */
+    var condition_blocks = [["condition"]]
+    var i
+    for (i = 1; i < splitted_text.length; i++) {
+        if (splitted_text[i] == "condition") condition_blocks.push(["condition"])
+        else condition_blocks[condition_blocks.length-1].push(splitted_text[i])
+    }
+    /* Check if condition blocks are fine. An example of a good condition_blocks:
+    [ [ 'condition', 'i', '==', '0' ],
+    [ 'condition', 'i', '<', 'length' ],
+    [ 'condition', 'i', 'plus plus' ] ]
+    */
+    /* Condition_blocks should have 3 sets. */
+    if (condition_blocks.length < 3) return ["Not ready", "should have 3 condition blocks for for-loop"];
+
+    /* First 2 condition blocks should have minimum of 4, as seen from above e.g. */
+    for (i = 0; i < condition_blocks.length - 1; i++) {
+        if (condition_blocks[i].length < 4) {
+            return ["Not ready", "Problem with first 2 condition blocks."];
+        }
+        
+        /* Check if it includes infix */
+        var have_infix = false
+        var j
+        for (j = 0; j < condition_blocks[i].length; j++) {
+            if (infix_operators.includes(condition_blocks[i][j])) {
+
+                have_infix = true
+                /* Infix position cannot be in first 2 positions or last of the block */
+                if (j < 2 || j == condition_blocks[i].length-1) {
+                    return ["Not ready", "infix operator in wrong position"];
+                } 
+                break;
+            } 
+        }
+        if (!have_infix) {
+            return ["Not ready", "No infix operator detected"];
+        } 
+    }
+    return notes;
+}
+
 /* Check if var type given matches value. E.g. Check if "integer" matches 5.*/
 /* Returns true if it matches. */
 function check_var_type(var_type, value) {
@@ -357,12 +438,12 @@ function check_var_type(var_type, value) {
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string) {
     if (text.split(' ')[0] == "begin") {
-        text = text.replace('greater than', '>');
-        text = text.replace('greater than equal', '>=');
-        text = text.replace('less than', '<');
-        text = text.replace('less than equal', '<=');
-        text = text.replace('equal', '==');
-        text = text.replace('not equal', '!=');
+        text = text.replace(/greater than/g, '>');
+        text = text.replace(/greater than equal/g, '>=');
+        text = text.replace(/less than/g, '<');
+        text = text.replace(/less than equal/g, '<=');
+        text = text.replace(/equal/g, '==');
+        text = text.replace(/not equal/g, '!=');
         text = text.replace("plus plus", "++");
     }
     return text;

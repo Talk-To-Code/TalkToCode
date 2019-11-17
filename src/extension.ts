@@ -25,14 +25,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
-		// listen();
-		var tests = generate_test_cases("for loop")
+		listen();
+		// var tests = generate_test_cases("for loop")
 		
-		var i
-		for (i = 0; i < tests.length; i++) {
-			manager.parse_speech(tests[i]);
-			console.log(manager.struct_command_list)
-		}
+		// var i
+		// for (i = 0; i < tests.length; i++) {
+		// 	manager.parse_speech(tests[i]);
+		// 	console.log(manager.struct_command_list)
+		// }
 
 	});
 
