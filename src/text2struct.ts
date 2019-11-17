@@ -1,4 +1,4 @@
-var assert = require('assert');
+import { compress_name } from './compress_name'
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
@@ -34,7 +34,7 @@ conditions list
     go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
     This flag will tell the manager to go ahead with next command.
     */
-export function get_struct(text_segment, var_list, is_extendable) {
+export function get_struct(text_segment: string[], var_list: string[], is_extendable: boolean) {
 
     var text = ""
     var go_ahead = false
@@ -55,8 +55,8 @@ export function get_struct(text_segment, var_list, is_extendable) {
     }
     /* Just a normal case. */
     else text = text_segment.join(" ");
-    text = compress_name(text);
     text = replace_infix_operators(text);
+    text = compress_name(text);
 
     var starting_command = text.split(" ")[0];
 
@@ -330,175 +330,7 @@ function check_if_statement(text) {
     }
     else return ["Not ready", "'if' was not mentioned"];
 
-
-
-
-
     return notes;
-}
-
-
-/* Compress names into camel case. E.g. 'declare integer number of name' -> declare integer numberOfName */
-/* Should this really be called at the start of struct function? Maybe called during check function. 
-reason being, for if-statements, it makes more sense to call this after finding the infix positions.
-As of now it just determines infix positions, and then redo it again in the check function */
-function compress_name(text) {
-    var splitted_text = text.split(" ");
-
-    if (splitted_text[0] == "declare") {
-        /* If length is < 3, name can't be longer than 1 word, assuming first 2 words
-        are 'declare <var type>' */
-        if (splitted_text.length < 3) return text;
-
-        /* Declaring an array variable */
-        if (splitted_text.includes("array") && splitted_text.includes("size")) {
-
-            var size_idx = splitted_text.indexOf("size");
-            /* 'array' or 'size' in wrong position. */
-            if (splitted_text[2] != "array" || size_idx == 2 || size_idx == splitted_text.length - 1)  {
-                return text;
-            }
-
-            var var_name_arr = splitted_text.slice(3, size_idx);
-            /* Convert to camel case*/
-            compressed_name = convert_to_camel_case(var_name_arr);
-
-            /* Replace old uncompressed name and insert compressed name */
-            /* Eg. declare integer hello world -> declare integer helloWorld */
-            splitted_text.splice(3, var_name_arr.length);
-            splitted_text.splice(3, 0, compressed_name);
-            return splitted_text.join(' ');
-        }
-
-        /* Declaring a variable */
-        else {
-            /* 'array' should not be part of var name*/
-            if (splitted_text.includes("array")) return text;
-
-            var compressed_name = "";
-            if (splitted_text.includes("equal")) {
-                var equal_idx = splitted_text.indexOf("equal");
-
-                /* 'equal' in wrong position. */
-                if (equal_idx == 2 || equal_idx == splitted_text.length - 1) return text;
-
-                var var_name_arr = splitted_text.slice(2, equal_idx);
-                /* Convert to camel case*/
-                compressed_name = convert_to_camel_case(var_name_arr);
-            }
-            else {
-                var var_name_arr = splitted_text.slice(2);
-                /* Convert to camel case*/
-                compressed_name = convert_to_camel_case(var_name_arr);
-            }
-            /* Replace old uncompressed name and insert compressed name */
-            /* Eg. declare integer hello world -> declare integer helloWorld */
-            splitted_text.splice(2, var_name_arr.length);
-            splitted_text.splice(2, 0, compressed_name);
-            return splitted_text.join(' ');
-        }
-    }
-    /* If case */
-    else if (splitted_text[0] == "begin") {
-
-        /* No name long enough to compress. 5 is the minimum. E.g. "begin if hello world equal..."*/
-        if (splitted_text.length < 5) return text;
-
-        var infix_positions = [];  // There can be multiple operators in the condition
-        var my_infix_operators = [];
-        var i = 2;
-
-        for (i; i < splitted_text.length; i++) {
-            if (infix_operators.includes(splitted_text[i])) {
-                infix_positions.push(i);
-                my_infix_operators.push(splitted_text[i]);
-            }
-        }
-        /* For the last variable to be compressed as well. 
-        E.g. 'begin if hello world < bye world'. The positions to compress would be
-        2 to 4 and 5 to <splitted_text.length-1>.
-        */
-        infix_positions.push(splitted_text.length);
-
-        /* There needs to be an infix operator */
-        if (infix_positions.length == 1) return text;
-
-        /* Compress names here */
-        var compressed_name_list = []
-        var i = 0;
-        var start_point = 2;  // To be used when slicing and splicing
-        for (i; i < infix_positions.length; i++) {
-
-            var_name_arr = splitted_text.slice(start_point, infix_positions[i]);
-            /* Convert to camel case*/
-            compressed_name = convert_to_camel_case(var_name_arr);
-            compressed_name_list.push(compressed_name);
-            start_point =  infix_positions[i] + 1;
-
-            if (start_point >= splitted_text.length) break;
-        }
-
-        /* Recreate input speech with compressed names */
-        /* Requires my_infix_operators and compressed_name_list */
-        var new_text = "begin if ";
-        var i = 0;
-
-        for (i; i < my_infix_operators.length; i++) {
-            new_text += compressed_name_list[i] + " " + my_infix_operators[i] + " "
-        }
-
-        if (compressed_name_list.length > my_infix_operators.length) {
-            new_text += compressed_name_list[compressed_name_list.length-1]
-        }
-        return new_text.trim();
-    }
-
-    /* assign case */
-    else if (!splitted_text.includes("declare") && splitted_text.includes("equal")) {
-
-        /* compress var name before the 'equal' keyword. */
-        var equal_idx = splitted_text.indexOf("equal");
-        var var_name_arr = splitted_text.slice(0, equal_idx);
-        /* Convert to camel case*/
-        compressed_name = convert_to_camel_case(var_name_arr);
-        /* Replace old uncompressed name and insert compressed name */
-        /* Eg. hello world equal 5 -> helloWorld equal 5 */
-        splitted_text.splice(0, var_name_arr.length);
-        splitted_text.splice(0, 0, compressed_name);
-        if (splitted_text[splitted_text.length-1] == "equal") return splitted_text.join(" ");
-
-        /* compress var name after the 'equal' keyword. */
-        var equal_idx = splitted_text.indexOf("equal");
-        var var_name_arr = splitted_text.slice(equal_idx+1);
-
-        /* Check if assigning a number or variable name */
-        if (var_name_arr.length == 1 && isNaN(var_name_arr[0])) return splitted_text.join(" ");
-
-        /* Convert to camel case*/
-        compressed_name = convert_to_camel_case(var_name_arr);
-
-        /* Replace old uncompressed name and insert compressed name */
-        /* Eg. hello world equal 5 -> helloWorld equal 5 */
-        splitted_text.splice(equal_idx+1, var_name_arr.length);
-        splitted_text.splice(equal_idx+1, 0, compressed_name);
-
-        return splitted_text.join(" ");
-    }
-
-    /* Worse case it does not return any text. */
-    return text
-}
-
-/* E.g. hello world -> helloWorld */
-function convert_to_camel_case(name_arr) {
-    var var_name = name_arr[0].toLowerCase();
-    var i;
-    for (i = 1; i < name_arr.length; i++) {
-        /* Change first letter to capital */
-        var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
-        var_name = var_name + toAdd;
-    }
-    return var_name;
 }
 
 /* Check if var type given matches value. E.g. Check if "integer" matches 5.*/
