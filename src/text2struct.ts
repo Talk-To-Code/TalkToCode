@@ -50,7 +50,7 @@ export function get_struct(text_segment, var_list, is_extendable) {
     }
     /* Just a normal case. */
     else text = text_segment.join(" ");
-
+    console.log("get_struct receiving: " + text)
     text = compress_name(text);
     text = replace_infix_operators(text);
 

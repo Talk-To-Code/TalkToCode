@@ -45,13 +45,11 @@ export class StructCommandManager {
                 /* Update speech hist and curr speech, remove latest speech segment. */
                 this.speech_hist[this.curr_index].pop()
                 this.curr_speech = this.speech_hist[this.curr_index]
-                console.log("struct command list before scratch that")
-                console.log(this.struct_command_list)
-                console.log("curr index: " + this.curr_index)
                 /* Remove latest struct command. It will be updated by updateStructCommand later. */
                 this.struct_command_list.splice(this.curr_index, 1, "")
-                console.log("struct command list after scratch that")
-                console.log(this.struct_command_list)
+
+                /* extendable will be false, updateSructCommand will regenerate anyway. */
+                this.extendable = false
             }
         }
 
