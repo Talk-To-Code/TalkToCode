@@ -56,7 +56,10 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     /* Just a normal case. */
     else text = text_segment.join(" ");
     text = replace_infix_operators(text);
+    console.log("before compress " + text)
     text = compress_name(text);
+
+    console.log("after compress " + text)
 
     var starting_command = text.split(" ")[0];
 
@@ -229,7 +232,7 @@ function parse_if_statement(text, checker) {
 
    Returns an array notes or ["Not ready"]
 */
-function check_declare_statement(text) {
+function check_declare_statement(text: string) {
     var notes = ["Ready"]
     var splitted_text = text.split(" ");
     var last_word = splitted_text[splitted_text.length-1];
@@ -283,7 +286,7 @@ function check_declare_statement(text) {
    - first equal second -> first = second;
    Returns an array notes or ["Not ready"]
 */
-function check_assign_statement(text) {
+function check_assign_statement(text: string) {
     var notes = ["Ready"]
     var splitted_text = text.split(" ");
     var last_word = splitted_text[splitted_text.length-1];
@@ -302,7 +305,7 @@ as of now, I do not want the 'then' keyword. We already have the skip keyword to
 checking does not accomodate for array indexing. still thinking of how to do that.
 As of now does not allow multiple conditions. Will think of a way soon.
 */
-function check_if_statement(text) {
+function check_if_statement(text: string) {
     var notes = ["Ready"]
 
     var splitted_text = text.split(" ");
@@ -352,7 +355,7 @@ function check_var_type(var_type, value) {
 }
 
 /* If the input speech is meant to be an if/loop block */
-function replace_infix_operators(text) {
+function replace_infix_operators(text: string) {
     if (text.split(' ')[0] == "begin") {
         text = text.replace('greater than', '>');
         text = text.replace('greater than equal', '>=');
@@ -360,10 +363,7 @@ function replace_infix_operators(text) {
         text = text.replace('less than equal', '<=');
         text = text.replace('equal', '==');
         text = text.replace('not equal', '!=');
+        text = text.replace("plus plus", "++");
     }
     return text;
-}
-
-if (require.main === module) {
-    console.log(get_struct("declare int hello", ["hello"], false));
 }

@@ -117,7 +117,7 @@ function compress_for_if(splitted_text: string[]) {
     2 to 4 and 5 to <splitted_text.length-1>.
     */
     infix_positions.push(splitted_text.length);
-    
+
     /* There needs to be an infix operator */
     if (infix_positions.length == 1) return splitted_text.join(" ");
     /* Compress names here */
@@ -138,7 +138,7 @@ function compress_for_if(splitted_text: string[]) {
     console.log("compressed name list " + compressed_name_list)
 
     /* Recreate input speech with compressed names */
-    /* Requires my_infix_operators and compressed_name_list */
+    /* Requires infix_operators and compressed_name_list */
     var new_text = "begin if ";
     var i = 0;
 
@@ -187,7 +187,95 @@ function compress_for_assign(splitted_text: string[]) {
 }
 
 function compress_for_loop(splitted_text: string[]) {
-    
+    /* No name long enough to compress. 6 is the minimum. E.g. "begin loop condition hello world <infix>.."*/
+    if (splitted_text.length < 6) return splitted_text.join(" ");
+
+    /* For loop must have 'condition' key word. */
+    if (!splitted_text.includes("condition")) return splitted_text.join(" ");
+
+    /* Remove "begin", "loop" from splitted text */
+    splitted_text.splice(0, 2);
+    /* Split the splitted text array into condition blocks */
+    var condition_blocks = [["condition"]]
+    var i
+    for (i = 1; i < splitted_text.length; i++) {
+        if (splitted_text[i] == "condition") condition_blocks.push(["condition"])
+        else condition_blocks[condition_blocks.length-1].push(splitted_text[i])
+    }
+    /* Check if condition blocks are fine. An example of a good condition_blocks:
+    [ [ 'condition', 'i', '==', '0' ],
+    [ 'condition', 'i', '<', 'length' ],
+    [ 'condition', 'i', 'plus plus' ] ]
+    */
+    /* Condition_blocks should have 3 sets. */
+    if (condition_blocks.length < 3) return splitted_text.join(" ");
+
+    var wrong_condition = false;
+    var infix_positions = [] // Infix positions for first 2 blocks
+
+    /* First 2 condition blocks should have minimum of 4, as seen from above e.g. */
+    for (i = 0; i < condition_blocks.length - 1; i++) {
+        if (condition_blocks[i].length < 4) {
+            wrong_condition = true
+            break;
+        }
+        
+        /* Check if it includes infix */
+        var have_infix = false
+        var j
+        for (j = 0; j < condition_blocks[i].length; j++) {
+            if (infix_operator_list.includes(condition_blocks[i][j])) {
+                have_infix = true
+                infix_positions.push(j)
+                /* Infix position cannot be in first 2 positions or last of the block */
+                if (j < 2 || j == condition_blocks[i].length-1) wrong_condition = true
+                break;
+            } 
+        }
+        if (!have_infix) wrong_condition = true
+    }
+
+    if (wrong_condition) {
+        console.log("wrong condition")
+        return splitted_text.join(" ");
+
+    }
+
+    var start_point = 1;  // To be used when slicing and splicing
+
+    /* Create list of compressed names. */
+    var compressed_name_list = []
+
+    for (i = 0; i < condition_blocks.length - 1; i++) {
+        
+        var var_name_arr = condition_blocks[i].slice(start_point, infix_positions[i]);
+        /* Convert to camel case*/
+        var compressed_name = convert_to_camel_case(var_name_arr);
+        compressed_name_list.push([compressed_name]);
+
+        var var_name_arr = condition_blocks[i].slice(infix_positions[i] + 1, condition_blocks[i].length);
+        var compressed_name = convert_to_camel_case(var_name_arr);
+        compressed_name_list[i].push(compressed_name);
+    }
+
+    var var_name_arr = condition_blocks[condition_blocks.length-1].slice(1, condition_blocks[i].length-1);
+    var compressed_name = convert_to_camel_case(var_name_arr);
+    compressed_name_list.push([compressed_name]);
+
+    /* Recreate speech! */
+    var text = "begin loop condition ";
+
+    /* Recreate from first 2 condition blocks */
+    for (i = 0; i < compressed_name_list.length - 1; i++) {
+        text += compressed_name_list[i][0] + " "
+        /* Find infix operators through infix positions in the condition block. */
+        text += condition_blocks[i][infix_positions[i]] + " "
+        text += compressed_name_list[i][1] + " condition "
+    }
+    /* Assume is ++, for now. */
+    text += compressed_name_list[compressed_name_list.length-1][0] + " ++"
+    console.log("hi")
+    return text;
 }
 
 
