@@ -51,7 +51,7 @@ if  #condition #variable j == #value 0 or #variable j == #variable l - #value 1
 #function_end;;
 #function_declare main
 #function_start
-#create int #variable a #value "" #dec_end;;
+#create #variable a #value "" #dec_end;;
 #function print(#parameter #value "Enter a number\n");;
 #assign #variable a #with #function input();;
 #function print(#parameter #value "a = " + #variable a + #value "\n");;
