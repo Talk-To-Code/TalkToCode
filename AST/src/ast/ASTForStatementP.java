@@ -37,7 +37,7 @@ public class ASTForStatementP extends ASTForStatement {
 		this.result = "for ";
 		this.result+=this.variable.toSyntax();
 		this.result += " in ";
-		this.result += this.range.toSyntax() +": \n";
+		this.result += this.range.toSyntax() +":\n";
 		for(int i = 0;i<this.statements.size();i++){
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";

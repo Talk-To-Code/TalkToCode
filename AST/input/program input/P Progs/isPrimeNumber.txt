@@ -1,0 +1,31 @@
+#p_program isPrimeNumber
+#include "sys";;
+#function_declare main
+#function_start
+#create #variable n #value 0 #dec_end #variable c #value 2 #dec_end;;
+#function print(#parameter #value "Enter an integer\n");;
+#assign #variable n #with #function input();;
+if #condition #variable n == #value 2
+#if_branch_start
+#function print(#parameter #value "Prime number.\n");;
+#if_branch_end
+#else_branch_start
+for #variable c #function range(#parameter #value 2 #parameter #variable n)
+#for_start
+if #condition #variable n % #variable c == #value 0
+#if_branch_start
+break;;
+#if_branch_end;;
+#for_end;;
+if #condition #variable c != #variable n
+#if_branch_start
+#function print(#parameter #value "Not prime.\n");;
+#if_branch_end
+#else_branch_start
+#function print(#parameter #value "Prime number.\n");;
+#else_branch_end;;
+#else_branch_end;;
+return;;
+#function_end;;
+#program_end
+

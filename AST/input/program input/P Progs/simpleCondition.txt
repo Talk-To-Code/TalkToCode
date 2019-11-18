@@ -1,0 +1,15 @@
+#p_program simpleCondition
+#include "sys";;
+#function_declare main
+#function_start
+#create #variable x #value 1 #dec_end;;
+if #condition #variable x == #value 1
+#if_branch_start
+#function print(#parameter #value "x is equal to one.\n");;
+#if_branch_end
+#else_branch_start
+#function print(#parameter #value "x is not equal to one.\n");;
+#else_branch_end;;
+return;;
+#function_end;;
+#program_end

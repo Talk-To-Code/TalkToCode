@@ -1,0 +1,8 @@
+#p_program arguments
+#include "sys";;
+#function_declare main #parameter argc
+#function_start
+#function print(#parameter #value "Number of command line arguments passed:" + #variable argc + #value "\n");;
+return;;
+#function_end;;
+#program_end

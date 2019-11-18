@@ -14,7 +14,7 @@ public class ASTIfStatementP extends ASTIfStatement {
 	}
 	public String toSyntax(){
 		String result = "";
-		result += ("if("+this.condition.toSyntax()+"): \n");
+		result += ("if("+this.condition.toSyntax()+"):\n");
 		for(int i = 0;i<this.ifBranch.size();i++){
 			for(int j = 0; j < this.indent; j++) result+="\t";
 			result+= ("\t"+this.ifBranch.get(i).toSyntax());
@@ -22,14 +22,14 @@ public class ASTIfStatementP extends ASTIfStatement {
 		result += "\n";
 		if(!this.elseBranch.isEmpty()){
 			for(int i = 0; i < this.indent; i++) result+="\t";
-			result += "else :\n";
+			result += "else:\n";
 			for(int j = 0; j<this.elseBranch.size();j++){
 				for(int i = 0; i < this.indent; i++) result+="\t";
 				result+=("\t"+this.elseBranch.get(j).toSyntax());
 			}
 			result +="\n";
 		}
-		this.result = result;
+		this.result = result + "\n";
 		return this.result;
 	}
 }

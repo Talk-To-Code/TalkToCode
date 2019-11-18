@@ -1,0 +1,11 @@
+#p_program printInt
+#include "sys";;
+#function_declare main
+#function_start
+#create #variable number #value 0 #dec_end;;
+#function print(#parameter #value "Enter an integer\n");;
+#assign #variable number #with #function input();;
+#function print(#parameter #value "Integer entered by you is " + #variable number + #value "\n");;
+return;;
+#function_end;;
+#program_end
