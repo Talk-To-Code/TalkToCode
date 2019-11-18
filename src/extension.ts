@@ -5,8 +5,6 @@ import { StructCommandManager } from './struct_command_manager'
 import { generate_test_cases } from './tester'
 const {spawn} = require('child_process');
 
-var speech_hist = [""]
-
 var manager = new StructCommandManager();
 
 // this method is called when your extension is activated
