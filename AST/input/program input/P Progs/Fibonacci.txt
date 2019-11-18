@@ -1,0 +1,24 @@
+#p_program Fibonacci
+#include "sys";;
+#function_declare main
+#function_start
+#create #variable n #value 0 #dec_end #variable first #value 0 #dec_end #variable second #value 1 #dec_end #variable next #value 0 #dec_end #variable c #value 0 #dec_end;;
+#function print(#parameter #value "Enter the number of terms\n");;
+#assign #variable n #with #function input();;
+#function print(#parameter #value "First " + #variable n + #value " terms of Fibonacci series are :-\n");;
+for #variable c #function range(#parameter #variable n)
+#for_start
+if #condition #variable c <= #value 1
+#if_branch_start
+#assign #variable next #with #variable c;;
+#if_branch_end
+#else_branch_start
+#assign #variable next #with #variable first + #variable second;;
+#assign #variable first #with #variable second;;
+#assign #variable second #with #variable next;;
+#else_branch_end;;
+#function print(#parameter #variable next + #value "\n");;
+#for_end;;
+return;;
+#function_end;;
+#program_end

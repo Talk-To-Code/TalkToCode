@@ -1,0 +1,8 @@
+#p_program HelloWorld
+#include "sys";;
+#function_declare main
+#function_start
+#function print(#parameter #value "Hello World!\n");;
+return;;
+#function_end;;
+#program_end

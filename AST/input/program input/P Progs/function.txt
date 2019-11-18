@@ -1,0 +1,15 @@
+#p_program function
+#include "sys";;
+#function_declare my_function
+#function_start
+#function print(#parameter #value "Welcome to my function. Feel at home.\n");;
+return;;
+#function_end;;
+#function_declare main
+#function_start
+#function print(#parameter #value "Main function.\n");;
+#function my_function();;
+#function print(#parameter #value "Back in function main.\n");;
+return;;
+#function_end;;
+#program_end

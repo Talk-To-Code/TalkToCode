@@ -16,8 +16,8 @@ public class CreateVariableTest {
 	public void testCreateVariable() {
 		try {
 			InputStream in = new FileInputStream(new File("./input/input.txt"));
-			parser = new ASTParser(in);
-			//ASTParser.ReInit(in);
+			//parser = new ASTParser(in);
+			ASTParser.ReInit(in);
 			InputStream out = new FileInputStream(new File("./output/output.txt"));
 			BufferedReader br = new BufferedReader(new InputStreamReader(out));
 			ArrayList<String> expectedOutput = new ArrayList<String>();
