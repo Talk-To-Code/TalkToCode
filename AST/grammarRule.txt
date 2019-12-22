@@ -21,6 +21,7 @@ blockStatement():
 	| if_statement()
 	| whileStatement()
 	| switchStatement()
+	| comment()
 
 simpleStatement():
 	expression() < TERMINATOR >
@@ -81,6 +82,9 @@ functionStatementC() :
 
 structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
+
+comment() :
+	< COMMENT > (statement())* < COMMENT_END > < TERMINATOR >
 
 expression():
 	prefix_expression()
@@ -240,6 +244,8 @@ infixOperators() :
 < DIMENSION : "#dimension" >
 < PARAMETER_A : "#parameter_a" >
 < TREE : "#tree" >
+< COMMENT: "#comment" >
+< COMMENT_END : #comment_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >
