@@ -22,7 +22,7 @@ export class StructCommandManager {
 
     /* Contains 2D list of string. Rows indicate completed struct commands. Columns indicate segments
     of speech that make up the struct command. Uses curr_index as well to splice speech segments.
-    Think of it as a list of prev curr_speech instances. */
+    Think of it as a list of instances of prev curr_speech. */
     speech_hist: string[][]
 
     constructor() {
@@ -82,8 +82,8 @@ export class StructCommandManager {
 
         console.log("speech hist: ")
         console.log(this.speech_hist)
-        console.log("curr speech:")
-        console.log(this.curr_speech)
+        console.log("command struct list:")
+        console.log(this.struct_command_list)
         var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
         this.updateStructCommandList(struct_command);
     }
@@ -113,7 +113,7 @@ export class StructCommandManager {
             if (struct_command[0].length > 1) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command[0][0])
                 this.curr_index += 1
-                this.struct_command_list.push("") // Blank line for the curr_index to point at later.
+                this.struct_command_list.splice(this.curr_index, 0, "")
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command[0][1])
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.

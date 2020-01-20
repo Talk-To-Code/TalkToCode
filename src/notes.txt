@@ -19,3 +19,9 @@ Block statements:
 Seems like ast parser requires blocks to be completed. This fucking sucks.
 Seems like i will have to import everything each time. hais oh well.
 
+#c_program SampleProgram #include "stdio h";; #create int #variable hello #value 5 #dec_end;;
+for #condition #assign #variable I #with #value 0 #condition #variable is < #value 5 #condition #post #variable I ++ #for_start
+#create int #variable first #value 0 #dec_end;;
+#for_end;; 
+#program_end
+

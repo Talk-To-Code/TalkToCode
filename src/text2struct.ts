@@ -133,7 +133,7 @@ function parse_declare_statement(text: string, checker: string[]) {
         var_list.push(splitted_text[3]);
         new_line = true;
         struct_command = struct_command + " #array #variable " + splitted_text[3];
-        struct_command = struct_command + " #value " + splitted_text[5] + " dec_end;;";
+        struct_command = struct_command + " #value " + splitted_text[5] + " #dec_end;;";
     }
 
     /* User declaring variable type */
@@ -143,13 +143,13 @@ function parse_declare_statement(text: string, checker: string[]) {
         /* Assigning value to declared int */
         if (splitted_text.includes("equal")) {
             new_line = true;
-            struct_command = struct_command + splitted_text[2] + " value " + splitted_text[4] + " dec_end;;";
+            struct_command = struct_command + splitted_text[2] + " #value " + splitted_text[4] + " #dec_end;;";
         }
 
         /* No value assigned */
         else {
             extendable = true
-            struct_command = struct_command + splitted_text[2] + " dec_end;;";
+            struct_command = struct_command + splitted_text[2] + " #dec_end;;";
         }
     }
     return [[struct_command], var_list, [new_line, extendable, false]];
@@ -236,10 +236,10 @@ function parse_loop_statement(text: string, checker: string[]) {
     var splitted_text = text.split(" ");
     /* First condition block */
     var struct_command = "for #condition #assign #variable ";
-    struct_command += splitted_text[3] + " with #value " + splitted_text[5]
+    struct_command += splitted_text[3] + " #with #value " + splitted_text[5]
 
     /* Second condition block */
-    struct_command += " #condition #variable " + splitted_text[7] + " " + splitted_text[8] + " #variable " + splitted_text[9]
+    struct_command += " #condition #variable " + splitted_text[7] + " " + splitted_text[8] + " #value " + splitted_text[9]
 
     /* Third condition block */
     struct_command += " #condition #post #variable " + splitted_text[11] + " " + splitted_text[12] + " #for_start"

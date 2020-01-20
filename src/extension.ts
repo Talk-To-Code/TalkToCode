@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { generate_test_cases } from './tester'
+import { write } from 'fs';
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
@@ -53,6 +54,8 @@ function listen() {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 
 			if (transcribed_word == "show me the document") showTextDocument();
+
+			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
 
 			else {
 				manager.parse_speech(transcribed_word)
@@ -120,6 +123,67 @@ function displayStructCommands(struct_command_list) {
 	}
 
 }
+
+function displayCode(struct_command_list) {
+	let editor = vscode.window.activeTextEditor;
+
+	/* Set up commands to insert */
+	let commands = '#c_program SampleProgram #include "stdio h";; '
+	let i
+	for (i=0; i<struct_command_list.length; i++) {
+		commands += struct_command_list[i] + "\n"
+	}
+
+	commands += ' #program_end';
+
+	console.log(commands)
+
+	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
+
+    const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
+	other_child.stdin.setEncoding('utf8');
+	
+
+    other_child.stdin.write(commands);
+    other_child.stdin.end();
+
+    other_child.stdout.setEncoding('utf8');
+    other_child.stdout.on('data', (data)=>{
+		console.log(data)
+
+        if (data.includes("AST construction complete")) {
+            var code = "#include"
+            var data_segments = data.split("#include")
+
+            var idxOfAST = data_segments[1].indexOf("ASTNode")
+
+            data_segments[1] = data_segments[1].slice(0, idxOfAST)
+
+            code += data_segments[1];
+			writeToEditor(code)
+        }
+
+	});
+
+}
+
+function writeToEditor(code: string) {
+	let editor = vscode.window.activeTextEditor;
+	if (editor) {
+		/* Get range to delete */
+		var lineCount = editor.document.lineCount
+		var start_pos = new vscode.Position(0, 0)
+		var end_pos = new vscode.Position(lineCount, 0)
+		var range = new vscode.Range(start_pos, end_pos)
+		console.log("hello there")
+		console.log(code)
+		editor.edit(editBuilder => {
+			editBuilder.delete(range)	
+			editBuilder.insert(start_pos, code)
+		});
+	}
+}
+
 
 
 function showTextDocument() {
