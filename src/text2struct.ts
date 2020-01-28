@@ -32,7 +32,7 @@ conditions list
     extendable: Is true when the command is already parseable and it can still be extended.
         e.g. "declare int hello" is parseable, but can be extended with "equal 5".
     go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
-    This flag will tell the manager to go ahead with next command.
+        This flag will tell the manager to go ahead with next command.
     */
 export function get_struct(text_segment: string[], var_list: string[], is_extendable: boolean) {
 
@@ -119,7 +119,7 @@ function parse_declare_statement(text: string, checker: string[]) {
     var extendable = false;
 
     if (checker[0] == "Not ready"){
-        console.log(checker[1]);
+        console.log("Not ready, " + checker[1]);
         return [["Not ready", checker[1]], var_list, [false, false, false]];
     } 
     
@@ -167,7 +167,7 @@ function parse_assign_statement(text: string, checker: string[]) {
     var extendable = false;
 
     if (checker[0] == "Not ready"){
-        console.log(checker[1]);
+        console.log("Not ready, " + checker[1]);
         return [["Not ready", checker[1]], var_list, [false, false, false]];
     }
     
@@ -189,7 +189,7 @@ function parse_if_statement(text: string, checker: string[]) {
     var extendable = false;
 
     if (checker[0] == "Not ready"){
-        console.log(checker[1]);
+        console.log("Not ready, " + checker[1]);
         return [["Not ready", checker[1]], var_list, [false, false, false]];
     }
     
@@ -229,7 +229,7 @@ function parse_loop_statement(text: string, checker: string[]) {
     var extendable = false;
 
     if (checker[0] == "Not ready"){
-        console.log(checker[1]);
+        console.log("Not ready, " + checker[1]);
         return [["Not ready", checker[1]], var_list, [false, false, false]];
     }
     
@@ -246,7 +246,7 @@ function parse_loop_statement(text: string, checker: string[]) {
 
     var struct_command_list = []
     struct_command_list.push(struct_command)
-    struct_command_list.push("#for_end;; ")
+    struct_command_list.push("#for_end;;")
     return [struct_command_list, var_list, [new_line, extendable, false]];
 }
 

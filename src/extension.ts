@@ -2,8 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
-import { generate_test_cases } from './tester'
-import { write } from 'fs';
+import { runTestCases } from './tester'
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
@@ -24,14 +23,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
-		listen();
-		// var tests = generate_test_cases("for loop")
-		
-		// var i
-		// for (i = 0; i < tests.length; i++) {
-		// 	manager.parse_speech(tests[i]);
-		// 	console.log(manager.struct_command_list)
-		// }
+		// listen();
+		runTestCases();
 
 	});
 
@@ -63,7 +56,6 @@ function listen() {
 			}
 		}
 	});
-
 }
 
 function check_if_delete_line(text: String) { 

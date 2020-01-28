@@ -26,12 +26,21 @@ export class StructCommandManager {
     speech_hist: string[][]
 
     constructor() {
-        this.curr_index = 0
-        this.struct_command_list = [""]
-        this.curr_speech = [""]
-        this.variable_list = [""]
-        this.extendable = false
-        this.speech_hist = [[""]]
+        this.curr_index = 0;
+        this.struct_command_list = [""];
+        this.curr_speech = [""];
+        this.variable_list = [""];
+        this.extendable = false;
+        this.speech_hist = [[""]];
+    }
+
+    reset() {
+        this.curr_index = 0;
+        this.struct_command_list = [""];
+        this.curr_speech = [""];
+        this.variable_list = [""];
+        this.extendable = false;
+        this.speech_hist = [[""]];
     }
 
     parse_speech(transcribed_word: string) {
@@ -80,12 +89,13 @@ export class StructCommandManager {
             this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
         }
 
+        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
+        this.updateStructCommandList(struct_command);
+
         console.log("speech hist: ")
         console.log(this.speech_hist)
         console.log("command struct list:")
         console.log(this.struct_command_list)
-        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
-        this.updateStructCommandList(struct_command);
     }
 
     /* Updating the struct command list */
