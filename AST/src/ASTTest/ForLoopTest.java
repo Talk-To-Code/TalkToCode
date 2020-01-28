@@ -15,13 +15,13 @@ import ast.ASTParser;
 
 import junit.framework.TestCase;
 
-public class CommentPyTest extends TestCase {
+public class ForLoopTest extends TestCase {
 	private static ASTParser parser;
 	@Test
 	public void testComment() {
 		try {
-			InputStream in = new FileInputStream(new File("./input/CommentInput.txt"));
-			InputStream out = new FileInputStream(new File("./output/CommentOutputPy.txt"));
+			InputStream in = new FileInputStream(new File("./input/ForLoopInput.txt"));
+			InputStream out = new FileInputStream(new File("./output/ForLoopOutput.txt"));
 			BufferedReader br = new BufferedReader(new InputStreamReader(out));
 			ArrayList<String> expectedOutput = new ArrayList<String>();
 			String temp;
@@ -29,27 +29,15 @@ public class CommentPyTest extends TestCase {
 			//parser = new ASTParser(in);
 			ASTParser.ReInit(in);
 			String currentTemp = "";
-			if ((temp = br.readLine()) != null) {
+			while((temp=br.readLine())!=null) {
 				currentTemp = currentTemp.concat(temp);
-				expectedOutput.add(currentTemp);
-				count++;
+				currentTemp = currentTemp.concat("\n");
 			}
-			currentTemp = "";
-			for(int i = 0; i < 2; i++) {
-				if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp);
-				if (i < 1) currentTemp = currentTemp.concat("\n");
-			}
-			expectedOutput.add(currentTemp);
-			count++;
-			currentTemp = "";
-			while((temp=br.readLine())!=null) currentTemp = currentTemp.concat(temp + "\n");
-			count++;
-			expectedOutput.add(currentTemp);
 			
 			int testNo = 0;
 			while(testNo!=count){
 				try {
-					assertEquals(testNo+" "+expectedOutput.get(testNo),testNo+" "+parser.statement(new ASTNode(), ASTParser.programType.P, 0).toSyntax());
+					assertEquals(testNo+" "+expectedOutput.get(testNo),testNo+" "+parser.statement(new ASTNode(), ASTParser.programType.C, 0).toSyntax());
 					testNo++;
 				} catch (Exception ex){
 					//ex.printStackTrace();

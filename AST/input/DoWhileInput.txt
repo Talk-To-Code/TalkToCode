@@ -1,0 +1,1 @@
+do #condition #variable i <= #value 3 #while_start #function printf (#parameter #value "i = %d" #parameter #variable i);; #post #variable y ++;; #while_end;;

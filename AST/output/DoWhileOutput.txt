@@ -1,0 +1,6 @@
+do {
+	printf("i = %d",i);
+
+	y++;
+
+} while (i <= 3);

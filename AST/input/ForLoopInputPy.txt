@@ -1,0 +1,1 @@
+for #variable i #function range(#parameter #value 3) #for_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #for_end;;
