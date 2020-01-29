@@ -24,7 +24,9 @@
 | < PY_AND : "and" >| < INCR : "++" >| < DECR : "--" >| < PLUS : "+" >| < MINUS : "-" >| < STAR : "*" >| < SLASH : "/" >| < BIT_AND : "&" >| < BIT_OR : "|" >| < XOR : "^" >| < REM : "%" >| < PLUSASSIGN : "+=" >| < MINUSASSIGN : "-=" >| < STARASSIGN : "*=" >| < SLASHASSIGN : "/=" >| < ANDASSIGN : "&=" >| < ORASSIGN : "|=" >| < XORASSIGN : "^=" >| < REMASSIGN : "%=" >| < SHIFT_LEFT : "<<" >| < SHIFT_RIGHT : ">>" >}/* keywords */TOKEN :{  < ASSIGNMENT : "#assign" >| < CREATE : "#create" >| < TYPE : "#type" >| < VARIABLE : "#variable" >| < VALUE : "#value" >| < FUNCTION : "#function" >| < WITH : "#with" >| < CONDITION : "#condition" >| < EXPRESSIONS : "#expression" >| < IF_BRANCH_START : "#if_branch_start" >| < IF_BRANCH_END : "#if_branch_end" >| < ELSE_BRANCH_START : "#else_branch_start" >| < ELSE_BRANCH_END : "#else_branch_end" >| < PRE : "#pre" >| < POST : "#post" >| < TERMINATOR : ";;" >| < PARAMETER : "#parameter" >| < STRUCT : "#struct" >| < ARRAY : "#array" >| < ACCESS : "#access" >| < ACCESS_END : "#access_end" >| < LABEL : "#label" >| < INDEX : "#indexes" >| < INDEX_END : "#index_end" >| < INCLUDE : "#include" >| < FOR_START : "#for_start" >| < FOR_END : "#for_end" >| < WHILE_START : "#while_start" >| < WHILE_END : "#while_end" >| < SWITCH_START : "#switch_start" >| < SWITCH_END : "#switch_end" >| < CASE_START : "#case_start" >| < CASE_END : "#case_end" >| < FUNCTION_DEC : "#function_declare" >| < FUNCTION_START : "#function_start" >| < FUNCTION_END : "#function_end" >| < STRUCT_DEC : "#struct_declare" >| < STRUCT_START : "#struct_start" >| < STRUCT_END : "#struct_end" >| < PROGRAM_END : "#program_end" >| < PROGRAM_C : "#c_program" >
 | < PROGRAM_P : "#p_program" >| < DECLARE_END : "#dec_end" >| < DIMENSION : "#dimension" >| < PARAMETER_A : "#parameter_a" >| < TREE : "#tree" >
 | < COMMENT : "#comment" >
-| < COMMENT_END : "#comment_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < COMMENT_END : "#comment_end" >
+| < DICTIONARY : "#dictionary" >
+| < KEY : "#key" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -66,7 +68,7 @@
             	((ASTDeclarationStatementP) result).AddAVariable(new ASTExpressionAssignment(new ASTExpressionUnitIdentifier(id), exp, "="));
             	break;
           }          exp = null;        }      }    )  |    (      < ARRAY > < VARIABLE > name = < IDENTIFIER >      {
-        if(pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(name.image);      }      (        < INDEX > exp = expression(pType) < INDEX_END >        {          array.addIndex(exp);        }      )+      < DECLARE_END >    )
+        if(pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(name.image);      }      (        < INDEX > exp = value() < INDEX_END >        {          array.addIndex(exp);        }      )+      < DECLARE_END >    )
     {
       
       ((ASTDeclarationStatementC) result).addVariableWithoutDeclaration(array);
@@ -93,7 +95,36 @@
 	  {
 	    call = new ASTExpressionUnitFunctionCall(ASTExpressionUnitAccess.generateNestedAccess(ids).toSyntax());
 	  }
-	)    < LPAREN >    (      < PARAMETER > parameters = expression(pType)      {        call.addParameter(parameters);      }    )*    < RPAREN >  )  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteralArray arr = new ASTExpressionUnitLiteralArray();  }  (    < PARAMETER > parameters = expression(pType)  )*  {    arr.addValue(parameters);    return arr;  }  < RBRACE >| < ARRAY > var = < IDENTIFIER >  {    ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(var.image);  }  (    < INDEX > parameters = expression(pType) < INDEX_END >  )+  {    array.addIndex(parameters);    return array;  }| < ACCESS > (var = < IDENTIFIER >)  {    ArrayList < String > ids = new ArrayList < String > ();    ids.add(var.image);  }  (var = < IDENTIFIER >  {    ids.add(var.image);  }
+	)    < LPAREN >    (      < PARAMETER > parameters = expression(pType)      {        call.addParameter(parameters);      }    )*    < RPAREN >  )  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
+    ASTExpressionUnitLiteral key;
+    ASTExpression value;  }
+  (    < ARRAY >
+    {
+      arr = new ASTExpressionUnitLiteralArray(pType);
+    }
+    (
+      < PARAMETER > parameters = expression(pType)
+      {
+        ((ASTExpressionUnitLiteralArray) arr).addValue(parameters);
+      }
+    )*
+  | < DICTIONARY >
+  	{
+  	  if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
+  	  arr = new ASTExpressionUnitLiteralDictionary();
+  	}
+  	(  	  < KEY > key = value() < VALUE > value = expression(pType)
+  	  {
+  	    ((ASTExpressionUnitLiteralDictionary) arr).addValue(key, value);
+  	  }
+  	)*  )  < RBRACE >
+  {    return arr;
+  }| < ARRAY > var = < IDENTIFIER >  {    ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(var.image);  }  (    < INDEX > parameters = value() < INDEX_END >
+    {
+      array.addIndex(parameters);
+    }  )+
+  {    return array;
+  }| < ACCESS > (var = < IDENTIFIER >)  {    ArrayList < String > ids = new ArrayList < String > ();    ids.add(var.image);  }  (var = < IDENTIFIER >  {    ids.add(var.image);  }
   )+  < ACCESS_END >  {    return ASTExpressionUnitAccess.generateNestedAccess(ids);  }}ASTExpression term(programType pType) :{  ArrayList < String > operators = new ArrayList < String > ();  ArrayList < ASTExpression > operands = new ArrayList < ASTExpression > ();  String operator = null;  ASTExpression operand1;  ASTExpression operand2 = new ASTExpression();  ASTExpression result;}{  operand1 = fragment(pType)  (    operator = infixOperators()    {
       if (pType == programType.P && (operator == "||" || operator == "&&")) throw new ParseException("Not supported in Python!\n");
       else if (pType != programType.P && (operator == "or" || operator == "and")) throw new ParseException("Not supported in C and Java!\n");      operators.add(operator);    }    operand2 = fragment(pType)    {      operands.add(operand2);    }  )*  {    if (operator == null || operators.isEmpty())    {      result = operand1;      return result;    }    result = new ASTExpression();    while (!operators.isEmpty())    {      result = new ASTExpressionInfixOperation(operators.remove(0), operand1, operands.remove(0));      operand1 = result;    }    return result;  }}ASTExpression infix_expression(programType pType) :{  ASTExpression result;}{  result = term(pType)  {    return result;  }}ASTExpression prefix_expression(programType pType) :{  String operator;  Token op;

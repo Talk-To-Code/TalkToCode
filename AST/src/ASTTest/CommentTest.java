@@ -28,7 +28,6 @@ public class CommentTest extends TestCase {
 			int count = 0;
 			//parser = new ASTParser(in);
 			ASTParser.ReInit(in);
-			count = 0;
 			String currentTemp = "";
 			if ((temp = br.readLine()) != null) {
 				currentTemp = currentTemp.concat(temp);
