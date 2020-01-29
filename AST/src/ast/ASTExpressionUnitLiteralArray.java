@@ -1,6 +1,8 @@
 package ast;
 import java.util.*;
 
+import ast.ASTParser.programType;
+
 /**
  * @author GAO RISHENG A0101891L
  * This class is mainly for construction of AST nodes representing a constant array in C/Java/Python
@@ -10,12 +12,11 @@ import java.util.*;
 public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 	private static final String NODE_TYPE = "Array";
 	private ArrayList<ASTExpression> entries;
-	private int size;
+	private int pType;
 	
-	
-	public ASTExpressionUnitLiteralArray(){
+	public ASTExpressionUnitLiteralArray(programType pTyp){
 		super();
-		initialize();
+		initialize(pTyp);
 	}
 
 	public void addValue(String value){
@@ -27,15 +28,29 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 		this.entries.add(exp);
 		exp.parent = this;
 	}
-	private void initialize() {
+	private void initialize(programType pTyp) {
 		this.entries = new ArrayList<ASTExpression>();
-		this.size = entries.size();
+		switch(pTyp) {
+			case C:
+				this.pType = INDEX_C;
+				break;
+			case P:
+				this.pType = INDEX_PYTHON;
+				break;
+			default:
+				this.pType = 0;
+				break;
+		}
 	}
 	public String typeof(){
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	
-	public String toSyntax(int programmingLanguageSyntax) throws Exception{
+	public String toSyntax() {
+		return toSyntax(this.pType);
+	}
+	
+	public String toSyntax(int programmingLanguageSyntax) {
 		switch(programmingLanguageSyntax){
 		case INDEX_C:
 		case INDEX_JAVA:
@@ -43,7 +58,7 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 			this.result = "";
 			this.result += "{";
 			int index = 0;
-			for(;index<size-1;index++){
+			for(;index<this.entries.size()-1;index++){
 				this.result+= this.entries.get(index).toSyntax();
 				this.result+= ", ";
 			}
@@ -57,17 +72,17 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 			this.result = "";
 			this.result += "[";
 			int index = 0;
-			for(;index<size-1;index++){
+			for(;index<this.entries.size()-1;index++){
 				this.result+= this.entries.get(index).toSyntax();
 				this.result+= ", ";
 			}
-			this.result+= this.entries.get(index).toSyntax();
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
 			this.result += "]";
 			if(this.isQuoted) quote();
 			return this.result;
 		}
 		default:
-			throw new Exception("Not supported Programming Language.");
+			return "";
 		}
 		
 	}

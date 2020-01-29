@@ -53,7 +53,7 @@ gotoStatement() :
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
 	((<VARIABLE><IDENTIFIER>(expression())?<DECLARE_END>)
-	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>expression()<INDEX_END>)+<DECLARE_END>))+
+	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>value()<INDEX_END>)+<DECLARE_END>))+
 	< TERMINATOR >
 
 switchStatement() :
@@ -113,9 +113,9 @@ fragment() :
 	< VALUE >value()
 	| < VARIABLE >< IDENTIFIER >
 	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
-	| < LPAREN > expressionC() < RPAREN >
-	| < LBRACE >(< PARAMETER > expression())*< RBRACE >
-	| < ARRAY > < IDENTIFIER > ( < INDEX > expression())+
+	| < LPAREN > expression() < RPAREN >
+	| < LBRACE > (< ARRAY > (< PARAMETER > value())* | < DICTIONARY > (< KEY > value() < VALUE > value())*) < RBRACE >
+	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 
 types_C():
