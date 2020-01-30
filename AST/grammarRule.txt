@@ -77,8 +77,8 @@ forStatementP() :
 if_statementC() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
-functionStatementC() :
-	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
+functionStatement() :
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?((< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)|(< PARAMETER_A >< DIMENSION >< INTEGER_LITERAL >types_C()< ARRAY ><IDENTIFIER>))*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
 
 structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
@@ -114,7 +114,7 @@ fragment() :
 	| < VARIABLE >< IDENTIFIER >
 	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
 	| < LPAREN > expression() < RPAREN >
-	| < LBRACE > (< ARRAY > (< PARAMETER > value())* | < DICTIONARY > (< KEY > value() < VALUE > value())*) < RBRACE >
+	| < LBRACE > (< ARRAY > (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
 	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 
