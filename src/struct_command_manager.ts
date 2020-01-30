@@ -82,7 +82,7 @@ export class StructCommandManager {
         else {
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
-            this.curr_speech = this.curr_speech.filter(function(value, index, arr){
+            this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
                 return value != "";
             });
             /* Update speech hist. */

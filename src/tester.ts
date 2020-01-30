@@ -40,7 +40,7 @@ function generate_test_cases(cases: string) {
 
         test_cases[1] = ["if #condition #variable hello > #value 5 #if_branch_start",
         "#create int #variable i #value 4 #dec_end;;","#assign #variable i #with #value 6;;",
-        "if #condition #variable i == #value 4  #if_branch_start","declare count equal 6","#if_branch_end;;",
+        "if #condition #variable i == #value 4 #if_branch_start","declare count equal 6","#if_branch_end;;",
         "#if_branch_end;;"];
     }
     else if (cases == "for_loop") {

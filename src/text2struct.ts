@@ -55,33 +55,14 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     }
     /* Just a normal case. */
     else text = text_segment.join(" ");
-    text = replace_infix_operators(text);
-    text = compress_name(text);
-
-    var starting_command = text.split(" ")[0];
 
     var struct_command = [[""], [""], [false, false]];
 
-    /* For the following switch case */
-    if (var_list.includes(starting_command)) starting_command = "assign";
+    text = replace_infix_operators(text);
+    text = compress_name(text);
 
-    /* Differentiate If and For loop */
-    if (starting_command == "begin") {
-        
-        /* Check number of words */
-        var splitted_text = text.split(" ");
-        if (splitted_text.length == 1) starting_command = "Not ready";
+    var starting_command = determine_user_command(text, var_list);
 
-        else {
-            if(splitted_text[1] == "if") starting_command = "if";
-            else if (splitted_text[1] == "loop" || splitted_text[1] == "Loop") {
-                starting_command = "loop";
-            }
-            else {
-                starting_command = "Not ready";
-            }
-        }
-    }
     switch(starting_command) {
         case "declare":
             var checker = check_declare_statement(text);  
@@ -96,9 +77,9 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
             struct_command = parse_if_statement(text, checker);
             break;
         case "loop":
-                var checker = check_loop_statement(text);
-                struct_command = parse_loop_statement(text, checker);
-                break;
+            var checker = check_loop_statement(text);
+            struct_command = parse_loop_statement(text, checker);
+            break;
         default:
             struct_command = [["Not ready"], [""], [false, false, false]];
             break;
@@ -109,6 +90,28 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     return struct_command;
 }
 
+/* To determine what command the user is trying say */
+function determine_user_command(text: string, var_list: string[]) {
+    var starting_command = text.split(" ")[0];
+    /* For the following switch case */
+    if (var_list.includes(starting_command)) starting_command = "assign";
+    /* Differentiate If and For loop */
+    if (starting_command == "begin") {
+        /* Check number of words */
+        var splitted_text = text.split(" ");
+        if (splitted_text.length == 1) starting_command = "Not ready";
+        else {
+            if(splitted_text[1] == "if") starting_command = "if";
+            else if (splitted_text[1] == "loop" || splitted_text[1] == "Loop") {
+                starting_command = "loop";
+            }
+            else {
+                starting_command = "Not ready";
+            }
+        }
+    }
+    return starting_command;
+}
 
 /* So far it does not check for end declare */
 function parse_declare_statement(text: string, checker: string[]) {
@@ -214,7 +217,7 @@ function parse_if_statement(text: string, checker: string[]) {
         }
     }
 
-    struct_command += " #if_branch_start"
+    struct_command += "#if_branch_start"
     var struct_command_list = []
     struct_command_list.push(struct_command)
     struct_command_list.push("#if_branch_end;;")
