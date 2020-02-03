@@ -7,11 +7,14 @@ export function runTestCases() {
     // test_cases = generate_test_cases("declare_assign");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("if_block");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("if_block");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
+
+    test_cases = generate_test_cases("create_function");
+    runTestCase(test_cases[0], test_cases[1]);
 
 }
 
@@ -27,7 +30,6 @@ function generate_test_cases(cases: string) {
         "declare float", "count", "equals hello",
         "declare integer first equals 10"];
 
-        /* Correct output for each element in test_cases. */
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 
         "#create float #variable count #value hello #dec_end;;",
@@ -48,6 +50,11 @@ function generate_test_cases(cases: string) {
         "declare integer hello equals 5"];
         test_cases[1] = ["for #condition #assign #variable I #with #value 0 #condition #variable I < #value 5 #condition #post #variable I ++ #for_start",
         "#create int #variable hello #value 5 #dec_end;;","","#for_end;;"];
+    }
+
+    else if (cases == "create_function") {
+        test_cases[0] = ["create function main with return type integer begin"];
+        test_cases[1] = [""];
     }
     
     return test_cases

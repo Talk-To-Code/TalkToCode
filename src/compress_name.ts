@@ -37,6 +37,8 @@ export function compress_name(text: string) {
             return compress_for_if(splitted_text);
         case "loop":
             return compress_for_loop(splitted_text);
+        case "create":
+            return compress_for_function(splitted_text);
         default:
             return compress_for_assign(splitted_text);
     }
@@ -237,19 +239,13 @@ function compress_for_loop(splitted_text: string[]) {
             wrong_condition = true
         }
     }
-
     if (wrong_condition) {
         return splitted_text.join(" ");
-
     }
-
     var start_point = 1;  // To be used when slicing and splicing
-
     /* Create list of compressed names. */
     var compressed_name_list = []
-
     for (i = 0; i < condition_blocks.length - 1; i++) {
-        
         var var_name_arr = condition_blocks[i].slice(start_point, infix_positions[i]);
         /* Convert to camel case*/
         var compressed_name = convert_to_camel_case(var_name_arr);
@@ -277,6 +273,11 @@ function compress_for_loop(splitted_text: string[]) {
     /* Assume is ++, for now. */
     text += compressed_name_list[compressed_name_list.length-1][0] + " ++"
     return text;
+}
+
+/* Not done yet. */
+function compress_for_function(splitted_text: string[]) {
+    return splitted_text.join(" ");
 }
 
 

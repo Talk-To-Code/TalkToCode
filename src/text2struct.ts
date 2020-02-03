@@ -80,6 +80,10 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
             var checker = check_loop_statement(text);
             struct_command = parse_loop_statement(text, checker);
             break;
+        case "create":
+            var checker = check_function_statement(text);
+            struct_command = parse_function_statement(text, checker);
+            break;
         default:
             struct_command = [["Not ready"], [""], [false, false, false]];
             break;
@@ -253,6 +257,29 @@ function parse_loop_statement(text: string, checker: string[]) {
     return [struct_command_list, var_list, [new_line, extendable, false]];
 }
 
+function parse_function_statement(text: string, checker: string[]) {
+    /* variable list to return to caller */
+    var var_list = [""]
+    var new_line = true;
+    var extendable = false;
+
+    if (checker[0] == "Not ready") {
+        console.log("Not ready, " + checker[1]);
+        return [["Not ready", checker[1]], var_list, [false, false, false]];
+    }
+
+    var splitted_text = text.split(" ");
+
+    var struct_command = "#function_declare " + splitted_text[2] + " " + splitted_text[6];
+    struct_command += " #function_start";
+
+    var struct_command_list = []
+    struct_command_list.push(struct_command)
+    struct_command_list.push("#function_end;;")
+
+    return [struct_command_list, var_list, [new_line, extendable, false]];
+}
+
 
 /* Helps to check if declare statement is parseable. Returns helpful information. */
 /* E.g. statements:
@@ -417,6 +444,28 @@ function check_loop_statement(text: string) {
             return ["Not ready", "No infix operator detected"];
         } 
     }
+    return notes;
+}
+
+function check_function_statement(text: string) {
+    var notes = ["Ready"]
+
+    var splitted_text = text.split(" ");
+
+    /* Create function must have 'function' key word. */
+    if (!splitted_text.includes("function")) return ["Not ready", "'function' was not mentioned"];
+
+    /* Create function must have 'begin' key word. */
+    if (!splitted_text.includes("begin")) return ["Not ready", "'begin' was not mentioned"];
+
+    /* Create function must have 'with return type' key words. */
+    if (!text.includes("with return type")) 
+        return ["Not ready", "'with return type' was not mentioned"];
+
+    /* Element at index 6 must be a variable type. */
+    if (splitted_text.length < 7 && !variable_types.includes(splitted_text[6])) 
+        return ["Not ready", "No acceptable variable type mentioned."];
+
     return notes;
 }
 
