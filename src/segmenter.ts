@@ -23,6 +23,7 @@ export function segment_command(text, var_list) {
         case "assign":
             return segment_assign(splitted_text);
         default:
+            console.log("no matches " + starting_command)
             return ["not ready", "does not match any command."];
     }
 }
@@ -31,7 +32,7 @@ export function segment_command(text, var_list) {
 function determine_user_command(text, var_list) {
 
     text = text.replace("begin if", "begin_if");
-    text = text.replace("begin loop", "begin_loop");
+    text = text.replace("begin Loop", "begin_loop");
     text = text.replace("create function", "create_function");
 
     var splitted_text = text.split(" ");
