@@ -57,16 +57,12 @@ function compress_for_declare(splitted_text: string[]) {
             if (splitted_text[2] != "array" || size_idx == 2 || size_idx == splitted_text.length - 1)  {
                 return splitted_text.join(" ");
             }
-
             var var_name_arr = splitted_text.slice(3, size_idx);
-            /* Convert to camel case*/
             compressed_name = convert_to_camel_case(var_name_arr);
 
             /* Replace old uncompressed name and insert compressed name */
             /* Eg. declare integer hello world -> declare integer helloWorld */
-            splitted_text.splice(3, var_name_arr.length);
-            splitted_text.splice(3, 0, compressed_name);
-            return splitted_text.join(' ');
+            return splitted_text.join(' ').replace(var_name_arr.join(" "), compressed_name);
         }
 
         /* Declaring a variable */
@@ -81,20 +77,16 @@ function compress_for_declare(splitted_text: string[]) {
                 if (equal_idx == 2 || equal_idx == splitted_text.length - 1) return splitted_text.join(" ");
 
                 var var_name_arr = splitted_text.slice(2, equal_idx);
-                /* Convert to camel case*/
                 compressed_name = convert_to_camel_case(var_name_arr);
             }
             else {
                 var var_name_arr = splitted_text.slice(2);
-                /* Convert to camel case*/
                 compressed_name = convert_to_camel_case(var_name_arr);
             }
             /* Replace old uncompressed name and insert compressed name */
             /* Eg. declare integer hello world -> declare integer helloWorld */
-            splitted_text.splice(2, var_name_arr.length);
-            splitted_text.splice(2, 0, compressed_name);
 
-            return splitted_text.join(' ');
+            return splitted_text.join(' ').replace(var_name_arr.join(" "), compressed_name);
         }
 }
 
@@ -116,18 +108,18 @@ function compress_for_if(splitted_text: string[]) {
     
     /* For the last variable to be compressed as well. 
     E.g. 'begin if hello world < bye world'. The positions to compress would be
-    2 to 4 and 5 to <splitted_text.length-1>.
+    2 to 4 and 5 to splitted_text.length.
     */
     infix_positions.push(splitted_text.length);
 
     /* There needs to be an infix operator */
     if (infix_positions.length == 1) return splitted_text.join(" ");
+
     /* Compress names here */
     var compressed_name_list = []
     var i = 0;
     var start_point = 2;  // To be used when slicing and splicing
     for (i; i < infix_positions.length; i++) {
-
         var var_name_arr = splitted_text.slice(start_point, infix_positions[i]);
         /* Convert to camel case*/
         var compressed_name = convert_to_camel_case(var_name_arr);
@@ -137,11 +129,9 @@ function compress_for_if(splitted_text: string[]) {
         if (start_point >= splitted_text.length) break;
     }
 
-    console.log("compressed name list " + compressed_name_list)
-
     /* Recreate input speech with compressed names */
     /* Requires infix_operators and compressed_name_list */
-    var new_text = "begin if ";
+    var new_text = "begin_if ";
     var i = 0;
 
     for (i; i < infix_operators.length; i++) {
@@ -261,7 +251,7 @@ function compress_for_loop(splitted_text: string[]) {
     compressed_name_list.push([compressed_name]);
 
     /* Recreate speech! */
-    var text = "begin loop condition ";
+    var text = "begin_loop condition ";
 
     /* Recreate from first 2 condition blocks */
     for (i = 0; i < compressed_name_list.length - 1; i++) {
