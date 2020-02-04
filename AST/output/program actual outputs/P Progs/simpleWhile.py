@@ -10,5 +10,17 @@ def main():
 
 
 
+	while (value <= 3):
+		print("Value is " + value + "\n")
+
+		value += 1
+
+	else:
+		print("Value is " + value + "\n")
+
+		value += 1
+
+
+
 	return 
 

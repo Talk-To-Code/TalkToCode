@@ -62,8 +62,8 @@ switchStatement() :
 doWhileStatement() :
 	< DO > < CONDITION > exp = expression()< WHILE_START >(statement())*< WHILE_END > < TERMINATOR >
 
-whileStatementC() :
-	< WHILE > < CONDITION >expression()< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
+whileStatement() :
+	< WHILE > < CONDITION >expression()(< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
 
 forStatement() :
 	< FOR > (forStatementC() | forStatementP())
@@ -72,7 +72,7 @@ forStatementC() :
 	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expressionC())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 forStatementP() :
-	< VARIABLE >< IDENTIFIER > fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+	< VARIABLE >(< PARAMETER > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 if_statementC() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >

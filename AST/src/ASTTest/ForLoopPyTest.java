@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 public class ForLoopPyTest extends TestCase {
 	private static ASTParser parser;
 	@Test
-	public void testComment() {
+	public void testForLoop() {
 		try {
 			InputStream in = new FileInputStream(new File("./input/ForLoopInputPy.txt"));
 			InputStream out = new FileInputStream(new File("./output/ForLoopOutputPy.txt"));
@@ -29,10 +29,17 @@ public class ForLoopPyTest extends TestCase {
 			//parser = new ASTParser(in);
 			ASTParser.ReInit(in);
 			String currentTemp = "";
-			while((temp=br.readLine())!=null) {
-				currentTemp = currentTemp.concat(temp);
-				currentTemp = currentTemp.concat("\n");
+			if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");
+			while((temp=br.readLine())!=null){
+				if(temp.length() >= 3 && temp.substring(0, 3).compareTo("for") == 0) {
+					expectedOutput.add(currentTemp);
+					currentTemp = "";
+					count++;
+				}
+				currentTemp = currentTemp.concat(temp + "\n");
 			}
+			count++;
+			expectedOutput.add(currentTemp);
 			
 			int testNo = 0;
 			while(testNo!=count){

@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 public class DoWhileTest extends TestCase {
 	private static ASTParser parser;
 	@Test
-	public void testComment() {
+	public void testDoWhile() {
 		try {
 			InputStream in = new FileInputStream(new File("./input/DoWhileInput.txt"));
 			InputStream out = new FileInputStream(new File("./output/DoWhileOutput.txt"));

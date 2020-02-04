@@ -18,7 +18,7 @@ import junit.framework.TestCase;
 public class ForLoopTest extends TestCase {
 	private static ASTParser parser;
 	@Test
-	public void testComment() {
+	public void testForLoop() {
 		try {
 			InputStream in = new FileInputStream(new File("./input/ForLoopInput.txt"));
 			InputStream out = new FileInputStream(new File("./output/ForLoopOutput.txt"));

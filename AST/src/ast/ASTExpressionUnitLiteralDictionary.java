@@ -35,9 +35,9 @@ public class ASTExpressionUnitLiteralDictionary extends ASTExpressionUnitLiteral
 		for(ASTExpressionUnitLiteral key : this.entries.keySet()){
 			this.result+= key.toSyntax() + " : " + this.entries.get(key).toSyntax();
 			if(index < this.entries.size()-1) this.result+= ", ";
-			else this.result += "}";
 			index++;
 		}
+		this.result += "}";
 		if(this.isQuoted) quote();
 		return this.result;		
 	}

@@ -8,6 +8,15 @@ while #condition #variable value <= #value 3
 #function print(#parameter #value "Value is " + #variable value + #value "\n");;
 #assign #variable value += #value 1;;
 #while_end;;
+while #condition #variable value <= #value 3
+#else_branch_start
+#function print(#parameter #value "Value is " + #variable value + #value "\n");;
+#assign #variable value += #value 1;;
+#else_branch_end
+#while_start
+#function print(#parameter #value "Value is " + #variable value + #value "\n");;
+#assign #variable value += #value 1;;
+#while_end;;
 return;;
 #function_end;;
 #program_end
