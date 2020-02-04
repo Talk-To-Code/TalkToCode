@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { generate_test_cases } from './tester'
 import { write } from 'fs';
+import { strict } from 'assert';
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
@@ -42,16 +43,23 @@ export function activate(context: vscode.ExtensionContext) {
 function listen() {
 
 	// cwd is the current working directory. Make sure you update this.
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\src';
-	// cred is the credential json from google you have to obtain to use their speech engine.
-	let cred = 'C:\\Users\\Lawrence\\Desktop\\fyp\\benchmarking\\test_google_cloud\\My-Project-f25f37c6fac1.json';
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	let cwd = '/Users/Archana/Desktop/TalkToCode/src';
+    // cred is the credential json from google you have to obtain to use their speech engine.
+    let cred = '/Users/Archana/Desktop/TalkToCode-f3a307e35758.json';
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
+
+			check_if_delete_line(transcribed_word);
+			check_if_delete_function(transcribed_word);
+			check_if_comment_line(transcribed_word);
+			check_if_rename_variable(transcribed_word);
+
+			console.log(JSON.stringify(manager.curr_speech))
 
 			if (transcribed_word == "show me the document") showTextDocument();
 
@@ -69,19 +77,100 @@ function listen() {
 function check_if_delete_line(text: String) { 
 	var arr = text.split(" ");
 	if (arr[0] == "delete" && arr[1]=="line") {
-		console.log("deleting line...");
+		console.log("IN HERE to delete line");
 		let editor = vscode.window.activeTextEditor;
 		if (editor) {
 			const document = editor.document;
-			let line_num = parseInt(arr[2])
+			let line_num = parseInt(arr[2])-1
 			let line = document.lineAt(line_num)
 			editor.edit (editBuilder =>{
 				editBuilder.delete(line.range)
+				delete_edit_commands_from_history(line_num);
 			});
 		}
 	}
 }
 
+function delete_edit_commands_from_history(line_num: number){
+	delete manager.struct_command_list[line_num+1];
+	manager.speech_hist.splice(manager.speech_hist.length-1,manager.speech_hist.length);
+}
+
+function check_if_delete_function(text: String) {
+	var arr = text.split(" ");
+	if (arr[0]=="delete" && arr[1]=="function"){
+		console.log("TRYING TO DELETE A FUNCTION");
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const document = editor.document;
+			var functionToDelete = arr[2];
+			var start = -1;
+			var end = -1;
+			var countNestedFunctions = 0;
+			var flag = false;
+			for (var i=0;i<document.lineCount;i++){
+				let structuredText = document.lineAt(i).text;
+				if (structuredText.startsWith("#function_declare")){
+					var temp = structuredText.split(" ");
+					if (temp[1].toLowerCase==functionToDelete.toLowerCase){
+						start = i;
+						flag = true;
+					}
+					else if (flag==true){
+						countNestedFunctions+=1;
+					}
+					
+				}
+				if (structuredText.startsWith("#function_end")){
+					countNestedFunctions--;
+					if (countNestedFunctions==0) end = i;
+				}
+			}
+
+			for (var i=start;i<=end;i++){
+				editor.edit (editBuilder =>{
+					editBuilder.delete(document.lineAt(i).range);
+					delete_edit_commands_from_history(i);
+				});
+			}
+
+		}
+	}
+}
+
+function check_if_rename_variable(text:String) {
+	var arr = text.split(" ");
+	if (arr[0]=="rename" && (arr[1]=="variable" || arr[1]=="variables")){
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const document = editor.document;
+			for (var i=0;i<manager.struct_command_list.length;i++){
+				let line = manager.struct_command_list[i];
+				let documentLine = document.lineAt(i);
+				let nameToReplace = arr[2];
+				let replaceWith = arr[4];
+				console.log("DEBUG 2: "+line);
+				var temp = line.split(" ");
+				var flag = false;
+				for (var j=0;j<temp.length-1;j++){
+					if (temp[j]=="#variable" && (temp[j+1]==nameToReplace|| temp[j+1].startsWith(nameToReplace))){
+						temp[j+1]=replaceWith;
+						flag= true;
+					}
+				}
+				if (flag){
+					manager.struct_command_list[i] = temp.join(" ");
+					console.log("DEBUG 3: "+manager.struct_command_list[i]);
+					editor.edit (editBuilder =>{
+						editBuilder.delete(documentLine.range);
+						editBuilder.insert(documentLine.range.start, temp.join(" "));
+						//editBuilder.replace(documentLine.range,temp.join(" "));
+					});
+				}
+			}
+		}
+	}
+}
 
 function check_if_comment_line(text: String) {
 	var arr = text.split(" ");
@@ -90,9 +179,11 @@ function check_if_comment_line(text: String) {
 		if (editor){
 			const document = editor.document;
 			let line_num = parseInt(arr[2])
-			let line = document.lineAt(line_num)
+			let line = document.lineAt(line_num-1);
 			editor.edit (editBuilder => {
-				editBuilder.insert(line.range.start, "// ")
+				editBuilder.insert(line.range.start, "#comment");
+				editBuilder.insert(line.range.end,"#end_comment");
+				delete_edit_commands_from_history(line_num);
 			});
 		}	
 	}		
@@ -101,12 +192,14 @@ function check_if_comment_line(text: String) {
 
 function displayStructCommands(struct_command_list) {
 	let editor = vscode.window.activeTextEditor;
+	console.log("IN HERE DISPLAYING COMMANDS");
 
 	/* Set up commands to insert */
 	let commands = ""
 	let i
 	for (i=0; i<struct_command_list.length; i++) {
 		commands += struct_command_list[i] + "\r"
+		console.log(struct_command_list[i])
 	}
 
 	if (editor) {
@@ -138,7 +231,7 @@ function displayCode(struct_command_list) {
 
 	console.log(commands)
 
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
+	let cwd = '/Users/Archana/TalkToCode/AST/src';
 
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');

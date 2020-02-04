@@ -18,6 +18,7 @@ const request = {
     encoding: encoding,
     sampleRateHertz: sampleRateHertz,
     languageCode: languageCode,
+    useEnhanced: true,
   },
   interimResults: false, // If you want interim results, set this to true
 };
