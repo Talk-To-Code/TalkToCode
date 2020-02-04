@@ -27,7 +27,7 @@ export class StructCommandManager {
 
     /* Contains 2D list of string. Rows indicate completed struct commands. Columns indicate segments
     of speech that make up the struct command. Uses curr_index as well to splice speech segments.
-    Think of it as a list of instances of prev curr_speech. */
+    Think of it as a list of prev curr_speech instances. */
     speech_hist: string[][]
 
     constructor() {
@@ -134,7 +134,11 @@ export class StructCommandManager {
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
                 this.curr_index += 1
+<<<<<<< HEAD
                 this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
+=======
+                this.struct_command_list.push("") // Blank line for the curr_index to point at later.
+>>>>>>> sem 2 first changes
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.

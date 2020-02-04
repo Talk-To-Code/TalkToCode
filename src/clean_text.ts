@@ -9,13 +9,12 @@ export function clean(input_speech: string) {
     input_speech = fix_common_errors(input_speech);
     input_speech = replace_math_operators(input_speech);
     input_speech = correct_variables(input_speech);
-    input_speech = word_2_num(input_speech);
 
     return input_speech;
 }
 
 /* Perform basic cleaning for common errors */
-function fix_common_errors(text: string) {
+function fix_common_errors(text) {
     text = text.replace('equals', 'equal');
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
@@ -24,7 +23,7 @@ function fix_common_errors(text: string) {
 }
 
 /* Replace all math operators like '+', '-' and '*' with 'plus', 'minus' and 'multiply'.*/
-function replace_math_operators(text: string) {
+function replace_math_operators(text) {
         text = text.replace('+', 'plus');
         text = text.replace('-', 'minus');
         text = text.replace('*', 'multiply');

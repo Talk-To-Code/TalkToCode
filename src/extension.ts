@@ -39,10 +39,10 @@ export function activate(context: vscode.ExtensionContext) {
 function listen() {
 
 	// cwd is the current working directory. Make sure you update this.
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\src';
-	// cred is the credential json from google you have to obtain to use their speech engine.
-	let cred = 'C:\\Users\\Lawrence\\Desktop\\fyp\\benchmarking\\test_google_cloud\\My-Project-f25f37c6fac1.json';
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	let cwd = '/Users/Archana/Desktop/TalkToCode/src';
+    // cred is the credential json from google you have to obtain to use their speech engine.
+    let cred = '/Users/Archana/Desktop/TalkToCode-f3a307e35758.json';
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
@@ -50,9 +50,19 @@ function listen() {
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 
+			console.log(JSON.stringify(manager.curr_speech))
+
 			if (transcribed_word == "show me the document") showTextDocument();
 
 			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
+
+			// else if (check_if_edit_command(transcribed_word)){
+			// 	check_if_delete_line(transcribed_word);
+			// 	check_if_delete_function(transcribed_word);
+			// 	check_if_comment_line(transcribed_word);
+			// 	check_if_rename_variable(transcribed_word);
+			// 	check_if_rename_function(transcribed_word);
+			// }
 
 			else {
 				errorFlag = false;
@@ -68,12 +78,14 @@ function listen() {
 
 function displayStructCommands(struct_command_list: string[]) {
 	let editor = vscode.window.activeTextEditor;
+	console.log("IN HERE DISPLAYING COMMANDS");
 
 	/* Set up commands to insert */
 	let commands = ""
 	let i
 	for (i=0; i<struct_command_list.length; i++) {
 		commands += struct_command_list[i] + "\r"
+		console.log(struct_command_list[i])
 	}
 
 	if (editor) {
@@ -96,7 +108,11 @@ function displayCode(struct_command_list: string[]) {
 	let commands = '#c_program SampleProgram #include "stdio h";; '
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
+
+	console.log(commands)
+
+	let cwd = '/Users/Archana/TalkToCode/AST/src';
+
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');
 
