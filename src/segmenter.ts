@@ -3,7 +3,7 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
 
 /* */
-function segment_command(text, var_list) {
+export function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") return starting_command;
@@ -266,6 +266,8 @@ function segment_function(splitted_text) {
 
     /* Function has parameters. */
     if (with_positions.length > 1) {
+
+        segmented.push(String(with_positions.length-1))
         
         /* Loop through each parameter. */
         var i = 1;
@@ -293,19 +295,23 @@ function segment_function(splitted_text) {
                 return ["not ready", "no variable type was mentioned or in wrong position."];
 
             segmented.push("with");
-            segmented.push("parameter");
-            segmented.push(splitted_text[with_positions[i] + 2]);
-            
+            var var_type_of_param = splitted_text[with_positions[i] + 2];
             /* Parameter is an array type. */
             if (isArray) {
                 if (splitted_text[with_positions[i] + 3] != "array")
                     return ["not ready", "array was not mentioned or in wrong position."];
-                segmented.push("array");
+
+                segmented.push("#parameter_a");
+                segmented.push(var_type_of_param);
                 segmented.push(splitted_text.slice(with_positions[i] + 4, endpos).join(" "));
             }
 
             /* Parameter is none array type. */
-            else segmented.push(splitted_text.slice(with_positions[i] + 3, endpos).join(" "));
+            else {
+                segmented.push("#parameter");
+                segmented.push(var_type_of_param);
+                segmented.push(splitted_text.slice(with_positions[i] + 3, endpos).join(" "));
+            }
         }
 
     }
@@ -315,4 +321,4 @@ function segment_function(splitted_text) {
     return segmented;
 }
 
-console.log(segment_command("create function main with return type int with parameter int gone begin", [""]));
+// console.log(segment_command("create function main with return type int with parameter int hello begin", [""]));

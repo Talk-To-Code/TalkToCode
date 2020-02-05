@@ -30,16 +30,19 @@ function replace_math_operators(text: string) {
         text = text.replace('+', 'plus');
         text = text.replace('-', 'minus');
         text = text.replace('*', 'multiply');
-        text = text.replace('x', 'multiply');
         text = text.replace('/', 'divide');
     return text;
 }
 
 /* Replace all variables with the short form that will be used in text2struct.*/
 function correct_variables(text: string) {
-    text = text.replace('integer', 'int');
-    text = text.replace('chararacter', 'char');
-return text;
+    var splitted_text = text.split(" ");
+    var i = 0;
+    for (i; i < splitted_text.length; i++) {
+        if (splitted_text[i] == "integer") splitted_text[i] = "int";
+        if (splitted_text[i] == "character") splitted_text[i] = "char";
+    }
+    return splitted_text.join(" ");
 }
 
 function word_2_num(text: string) {

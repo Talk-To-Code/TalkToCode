@@ -57,6 +57,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     var struct_command = [[""], [""], [false, false]];
 
     text = replace_infix_operators(text);
+    console.log("text going in: " + text)
     var segmented = segment_command(text, var_list);
 
     console.log("segmented results: " + segmented)
@@ -214,7 +215,29 @@ function parse_function_statement(splitted_text: string[]) {
     var new_line = true;
     var extendable = false;
 
-    var struct_command = "#function_declare " + splitted_text[0] + " " + splitted_text[4];
+    var function_name = splitted_text[0];
+    var return_type = splitted_text[4];
+
+    var struct_command = "#function_declare " + function_name + " " + return_type;
+
+    /* splitted_text[5] is either "begin" or number of parameters present. */
+    if (splitted_text[5] != "begin") {
+        var i = 0;
+        var start_pos = 6;
+        for (i; i < parseInt(splitted_text[5]); i++) {
+            if (splitted_text[start_pos+1] == "#parameter") {
+                struct_command += " " + splitted_text[start_pos+1] + " " + splitted_text[start_pos+2] +
+                " " + splitted_text[start_pos+3];
+            }
+            else {
+                struct_command += " " + splitted_text[start_pos+1] + " #dimension 1 " + 
+                splitted_text[start_pos+2] + " #array " + splitted_text[start_pos+3];
+            }
+            start_pos += 4;
+            
+        }
+    }
+
     struct_command += " #function_start";
 
     var struct_command_list = []
