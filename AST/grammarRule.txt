@@ -22,6 +22,7 @@ blockStatement():
 	| whileStatement()
 	| switchStatement()
 	| comment()
+	| classDeclare()
 
 simpleStatement():
 	expression() < TERMINATOR >
@@ -85,6 +86,9 @@ structDeclareStatement() :
 
 comment() :
 	< COMMENT > (statement())* < COMMENT_END > < TERMINATOR >
+
+classDeclare() :
+	< CLASS > < IDENTIFIER > (< PARENT > < IDENTIFIER >)* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
 
 expression():
 	prefix_expression()
@@ -246,6 +250,9 @@ infixOperators() :
 < TREE : "#tree" >
 < COMMENT: "#comment" >
 < COMMENT_END : #comment_end" >
+< PARENT : "#parent" >
+< CLASS_START : "#class_start" >
+< CLASS_END : "#class_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >
