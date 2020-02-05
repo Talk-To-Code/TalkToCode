@@ -1,11 +1,7 @@
-import { compress_name } from './compress_name'
 import { segment_command } from './segmenter'
 import { join_names } from './join_names'
 
-var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
-
 var infix_operators = [">", ">=", "<", "<=", "!=", "=="];
-
 
 /*     
 
