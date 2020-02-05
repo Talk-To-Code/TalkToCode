@@ -12,13 +12,18 @@ const client = new speech.SpeechClient();
 const encoding = 'LINEAR16';
 const sampleRateHertz = 16000;
 const languageCode = 'en-US';
+const model = 'default';
 
 const request = {
-  config: {
-    encoding: encoding,
-    sampleRateHertz: sampleRateHertz,
-    languageCode: languageCode,
-    useEnhanced: true,
+  "config": {
+    "encoding": encoding,
+    "sampleRateHertz": sampleRateHertz,
+    "languageCode": languageCode,
+    "model":model,
+    "speechContexts": [{
+      "phrases": ["equal 1","equal 2","equal 3","equal 4","equal 5","equal 6","equal 7","equal 8","equal 9",
+    "line 1","line 2","line 3","line 4","line 5","line 6"]
+    }]
   },
   interimResults: false, // If you want interim results, set this to true
 };
