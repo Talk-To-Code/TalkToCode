@@ -3,7 +3,7 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
 
 /* */
-export function segment_command(text, var_list) {
+function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") return starting_command;
@@ -68,7 +68,7 @@ function segment_assign(splitted_text) {
     return segmented;
 }
 
-/* splitted_text e.g: ['int', 'first', 'equal', '5'] */
+/* splitted_text e.g: ['int', 'first', 'equal', '5'], or ['int', 'array', 'hello', 'size', '100'] */
 function segment_declare(splitted_text) {
     var segmented = ["ready", "declare"];
 
@@ -226,20 +226,93 @@ function segment_for_loop(splitted_text) {
     return segmented;
 
 }
-/* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] */
+/* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
+['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
+'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
 function segment_function(splitted_text) {
     var segmented = ["ready", "create"];
+    var with_positions = [];  // There can be multiple 'with' commands.
+    var i = 0;
+    /* Find all idx of "with" keywords. */
+    for (i; i < splitted_text.length; i++) {
+        if (splitted_text[i] == "with") with_positions.push(i);
+    }
 
-    var with_idx = splitted_text.indexOf("with");
-    segmented.push(splitted_text.slice(0, with_idx).join(" "));
-    segmented.push(splitted_text[with_idx]); // "with"
-    segmented.push(splitted_text[with_idx + 1]); // "return"
-    segmented.push(splitted_text[with_idx + 2]); // "type"
-    segmented.push(splitted_text[with_idx + 3]); // <variable type>
+    if (with_positions.length == 0) return ["not ready", "with was not mentioned."];
+    if (splitted_text[splitted_text.length-1] != "begin") return ["not ready", "begin is not the last word."];
+
+    /* Get function name. */
+    segmented.push(splitted_text.slice(0, with_positions[0]).join(" "));
+    segmented.push(splitted_text[with_positions[0]]); // "with"
+
+    var min_dist = 4; // The min number of words btw "with" and endpos.
+    /* endpos = pos of "begin" or "with". */
+    var endpos = splitted_text.length - 1;
+    if (with_positions.length > 1) endpos = with_positions[1];
+    /* between with_position and next keyword ("with" or "begin"), 
+    should have min of 4 idx pos - "return, type, var_type, begin/with"
+    If endpos is lesser than (with_position + min_dist), there is not enough words. */
+    if (with_positions[0] + min_dist > endpos)
+        return ["not ready", "\"variable type\", \"return\" or \"type\" might be missing."]
+
+    if (splitted_text[with_positions[0]+1] != "return") return ["not ready", "return was not mentioned."];
+    if (splitted_text[with_positions[0]+2] != "type") return ["not ready", "type was not mentioned."];
+    if (!variable_types.includes(splitted_text[with_positions[0]+3]))
+        return ["not ready", "variable type is wrong."]
+    
+    segmented.push(splitted_text[with_positions[0]+1]); // "return"
+    segmented.push(splitted_text[with_positions[0]+2]); // "type"
+    segmented.push(splitted_text[with_positions[0]+3]); // variable of return type
+
+    /* Function has parameters. */
+    if (with_positions.length > 1) {
+        
+        /* Loop through each parameter. */
+        var i = 1;
+        for (i; i < with_positions.length; i++) {
+            /* "with parameter <var type> <var name> <"begin" or "with">" or
+            "with parameter <var type> array <var name> <"begin" or "with">".
+            */
+
+            /* Assigning endpos with either next with_pos or idx of "begin". */
+            if (i != with_positions.length-1) endpos = with_positions[i+1];
+            else endpos = splitted_text.length-1;
+            min_dist = 4;
+            var isArray = false;
+            if (splitted_text.slice(with_positions[i], endpos).includes("array")) {
+                min_dist = 5;
+                isArray = true;
+            }
+            if (with_positions[i] + min_dist > endpos)
+                return ["not ready", "\"variable type\", \"parameter\" or \"variable name\" might be missing."];
+
+            if (splitted_text[with_positions[i] + 1] != "parameter") // Make sure next word is parameter.
+                return ["not ready", "parameter was not mentioned or in wrong position."];
+            /* Check if a variable type was mentioned. */
+            if (!variable_types.includes(splitted_text[with_positions[i] + 2]))
+                return ["not ready", "no variable type was mentioned or in wrong position."];
+
+            segmented.push("with");
+            segmented.push("parameter");
+            segmented.push(splitted_text[with_positions[i] + 2]);
+            
+            /* Parameter is an array type. */
+            if (isArray) {
+                if (splitted_text[with_positions[i] + 3] != "array")
+                    return ["not ready", "array was not mentioned or in wrong position."];
+                segmented.push("array");
+                segmented.push(splitted_text.slice(with_positions[i] + 4, endpos).join(" "));
+            }
+
+            /* Parameter is none array type. */
+            else segmented.push(splitted_text.slice(with_positions[i] + 3, endpos).join(" "));
+        }
+
+    }
 
     segmented.push("begin");
 
     return segmented;
 }
 
-// console.log(segment("create function main main with return type integer begin", [""]));
+console.log(segment_command("create function main with return type int with parameter int gone begin", [""]));
