@@ -13,7 +13,10 @@ export function runTestCases() {
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("create_function");
+    // test_cases = generate_test_cases("create_function");
+    // runTestCase(test_cases[0], test_cases[1]);
+    
+    test_cases = generate_test_cases("while_loop");
     runTestCase(test_cases[0], test_cases[1]);
 
 }
@@ -55,6 +58,11 @@ function generate_test_cases(cases: string) {
     else if (cases == "create_function") {
         test_cases[0] = ["create function find maximum with return type integer with parameter integer array numbers with parameter integer length begin"];
         test_cases[1] = ["#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter int length #function_start", "", "#function_end;;"];
+    }
+
+    else if (cases == "while_loop") {
+        test_cases[0] = ["while first not equal second"];
+        test_cases[1] = ["while #condition #variable first != #variable second #while_start","","#while_end;;"];
     }
     
     return test_cases

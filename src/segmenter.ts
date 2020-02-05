@@ -22,6 +22,8 @@ export function segment_command(text, var_list) {
             return segment_function(splitted_text);
         case "assign":
             return segment_assign(splitted_text);
+        case "while":
+            return segment_while(splitted_text);
         default:
             console.log("no matches " + starting_command)
             return ["not ready", "does not match any command."];
@@ -43,7 +45,7 @@ function determine_user_command(text, var_list) {
 
     /* super hacky but works for now. in future use varlist and undo the variable camel case and check*/
     if (starting_command != "declare" && starting_command != "begin_if" && starting_command != "begin_loop" &&
-    starting_command != "create_function" && splitted_text.includes("equal")) {
+    starting_command != "create_function" && starting_command != "while" && splitted_text.includes("equal")) {
         starting_command = "assign";
 
         return [starting_command, "assign " + splitted_text.join(" ")];
@@ -116,9 +118,6 @@ function segment_declare(splitted_text) {
 
 /* splitted_text e.g: ['hello', '<', '5'] */
 function segment_if(splitted_text) {
-
-    console.log("if block splitted text " + splitted_text)
-
     var segmented = ["ready", "if"];
 
     var infix_positions = [];  // There can be multiple operators in the condition
@@ -161,7 +160,6 @@ function segment_if(splitted_text) {
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
-    console.log(splitted_text)
     var segmented = ["ready", "loop"];
 
     /* For loop must have 'condition' key word. */
@@ -313,12 +311,55 @@ function segment_function(splitted_text) {
                 segmented.push(splitted_text.slice(with_positions[i] + 3, endpos).join(" "));
             }
         }
-
     }
-
     segmented.push("begin");
 
     return segmented;
 }
+/* [ 'while', 'first hello', '==', 'second' ] 
+I used the exact same code as If block. Will be much more different when If block allows for Else if. */
+function segment_while(splitted_text) {
+    var segmented = ["ready", "while"];
 
-// console.log(segment_command("create function main with return type int with parameter int hello begin", [""]));
+    var infix_positions = [];  // There can be multiple operators in the condition
+    var infix_operators = [];
+    var i = 0;
+
+    for (i; i < splitted_text.length; i++) {
+        if (infix_operator_list.includes(splitted_text[i])) {
+            infix_positions.push(i);
+            infix_operators.push(splitted_text[i]);
+        }
+    }
+
+    /* For the last variable to be compressed as well. 
+    E.g. 'while hello world < bye world'. The positions to compress would be
+    2 to 4 and 5 to splitted_text.length.
+    */
+    infix_positions.push(splitted_text.length);
+
+    /* There needs to be an infix operator */
+    if (infix_positions.length == 1) return ["not ready", "No infix operator was used. i.e. >, <=, == etc."];
+
+    /* Check if infix operator is the last word mentioned */
+    if (infix_positions[infix_positions.length-2] + 1 == splitted_text.length)
+        return ["not ready", "infix operator was the last word mentioned."];
+    
+    
+    var i = 0;
+    var start_point = 0;  // To be used when slicing and splicing
+    for (i; i < infix_positions.length; i++) {
+        segmented.push(splitted_text.slice(start_point, infix_positions[i]).join(" "));
+        start_point =  infix_positions[i] + 1;
+        if (start_point >= splitted_text.length) break;
+
+        /* Push the infix operator into the segment. */
+        segmented.push(splitted_text[infix_positions[i]]);
+    }
+
+    console.log("doneee")
+
+    return segmented;
+}
+
+console.log(segment_command("while first hello == second", [""]));

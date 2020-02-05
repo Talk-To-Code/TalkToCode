@@ -83,6 +83,9 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
         case "create":
             struct_command = parse_function_statement(splitted_text);
             break;
+        case "while":
+            struct_command = parse_while_statement(splitted_text);
+            break;
         default:
             struct_command = [["Not ready"], [""], [false, false, false]];
             break;
@@ -187,6 +190,40 @@ function parse_if_statement(splitted_text: string[]) {
     return [struct_command_list, var_list, [new_line, extendable, false]];
 }
 
+function parse_while_statement(splitted_text: string[]) {
+    /* variable list to return to caller */
+    var var_list = [""]
+    var new_line = true;
+    var extendable = false;
+ 
+    var struct_command = "while #condition ";
+
+    var i = 0;
+
+    for (i; i < splitted_text.length; i++) {
+
+        if (infix_operators.includes(splitted_text[i])) {
+            struct_command += splitted_text[i] + " ";
+        }
+
+        else {
+            if (!isNaN(splitted_text[i])) {
+                struct_command += "#value " + splitted_text[i] + " ";
+            }
+            else {
+                struct_command += "#variable " + splitted_text[i] + " ";
+            }
+        }
+    }
+
+    struct_command += "#while_start"
+    var struct_command_list = []
+    struct_command_list.push(struct_command)
+    struct_command_list.push("#while_end;;")
+
+    return [struct_command_list, var_list, [new_line, extendable, false]];
+}
+
 function parse_loop_statement(splitted_text: string[]) {
     /* variable list to return to caller */
     var var_list = [""]
@@ -267,13 +304,13 @@ function check_var_type(var_type, value) {
 
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string) {
-    if (text.includes("begin")) {
+    if (text.includes("begin") || text.includes("while")) {
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
         text = text.replace(/less than/g, '<');
         text = text.replace(/less than equal/g, '<=');
-        text = text.replace(/equal/g, '==');
         text = text.replace(/not equal/g, '!=');
+        text = text.replace(/equal/g, '==');
         text = text.replace("plus plus", "++");
     }
     return text;
