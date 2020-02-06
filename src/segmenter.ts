@@ -22,6 +22,8 @@ export function segment_command(text, var_list) {
             return segment_function(splitted_text);
         case "assign":
             return segment_assign(splitted_text);
+        case "while":
+            return segment_while(splitted_text);
         default:
             console.log("no matches " + starting_command)
             return ["not ready", "does not match any command."];
@@ -43,7 +45,7 @@ function determine_user_command(text, var_list) {
 
     /* super hacky but works for now. in future use varlist and undo the variable camel case and check*/
     if (starting_command != "declare" && starting_command != "begin_if" && starting_command != "begin_loop" &&
-    starting_command != "create_function" && splitted_text.includes("equal")) {
+    starting_command != "create_function" && starting_command != "while" && splitted_text.includes("equal")) {
         starting_command = "assign";
 
         return [starting_command, "assign " + splitted_text.join(" ")];
@@ -68,7 +70,7 @@ function segment_assign(splitted_text) {
     return segmented;
 }
 
-/* splitted_text e.g: ['int', 'first', 'equal', '5'] */
+/* splitted_text e.g: ['int', 'first', 'equal', '5'], or ['int', 'array', 'hello', 'size', '100'] */
 function segment_declare(splitted_text) {
     var segmented = ["ready", "declare"];
 
@@ -116,9 +118,6 @@ function segment_declare(splitted_text) {
 
 /* splitted_text e.g: ['hello', '<', '5'] */
 function segment_if(splitted_text) {
-
-    console.log("if block splitted text " + splitted_text)
-
     var segmented = ["ready", "if"];
 
     var infix_positions = [];  // There can be multiple operators in the condition
@@ -161,7 +160,6 @@ function segment_if(splitted_text) {
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
-    console.log(splitted_text)
     var segmented = ["ready", "loop"];
 
     /* For loop must have 'condition' key word. */
@@ -226,20 +224,142 @@ function segment_for_loop(splitted_text) {
     return segmented;
 
 }
-/* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] */
+/* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
+['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
+'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
 function segment_function(splitted_text) {
     var segmented = ["ready", "create"];
+    var with_positions = [];  // There can be multiple 'with' commands.
+    var i = 0;
+    /* Find all idx of "with" keywords. */
+    for (i; i < splitted_text.length; i++) {
+        if (splitted_text[i] == "with") with_positions.push(i);
+    }
 
-    var with_idx = splitted_text.indexOf("with");
-    segmented.push(splitted_text.slice(0, with_idx).join(" "));
-    segmented.push(splitted_text[with_idx]); // "with"
-    segmented.push(splitted_text[with_idx + 1]); // "return"
-    segmented.push(splitted_text[with_idx + 2]); // "type"
-    segmented.push(splitted_text[with_idx + 3]); // <variable type>
+    if (with_positions.length == 0) return ["not ready", "with was not mentioned."];
+    if (splitted_text[splitted_text.length-1] != "begin") return ["not ready", "begin is not the last word."];
 
+    /* Get function name. */
+    segmented.push(splitted_text.slice(0, with_positions[0]).join(" "));
+    segmented.push(splitted_text[with_positions[0]]); // "with"
+
+    var min_dist = 4; // The min number of words btw "with" and endpos.
+    /* endpos = pos of "begin" or "with". */
+    var endpos = splitted_text.length - 1;
+    if (with_positions.length > 1) endpos = with_positions[1];
+    /* between with_position and next keyword ("with" or "begin"), 
+    should have min of 4 idx pos - "return, type, var_type, begin/with"
+    If endpos is lesser than (with_position + min_dist), there is not enough words. */
+    if (with_positions[0] + min_dist > endpos)
+        return ["not ready", "\"variable type\", \"return\" or \"type\" might be missing."]
+
+    if (splitted_text[with_positions[0]+1] != "return") return ["not ready", "return was not mentioned."];
+    if (splitted_text[with_positions[0]+2] != "type") return ["not ready", "type was not mentioned."];
+    if (!variable_types.includes(splitted_text[with_positions[0]+3]))
+        return ["not ready", "variable type is wrong."]
+    
+    segmented.push(splitted_text[with_positions[0]+1]); // "return"
+    segmented.push(splitted_text[with_positions[0]+2]); // "type"
+    segmented.push(splitted_text[with_positions[0]+3]); // variable of return type
+
+    /* Function has parameters. */
+    if (with_positions.length > 1) {
+
+        segmented.push(String(with_positions.length-1))
+        
+        /* Loop through each parameter. */
+        var i = 1;
+        for (i; i < with_positions.length; i++) {
+            /* "with parameter <var type> <var name> <"begin" or "with">" or
+            "with parameter <var type> array <var name> <"begin" or "with">".
+            */
+
+            /* Assigning endpos with either next with_pos or idx of "begin". */
+            if (i != with_positions.length-1) endpos = with_positions[i+1];
+            else endpos = splitted_text.length-1;
+            min_dist = 4;
+            var isArray = false;
+            if (splitted_text.slice(with_positions[i], endpos).includes("array")) {
+                min_dist = 5;
+                isArray = true;
+            }
+            if (with_positions[i] + min_dist > endpos)
+                return ["not ready", "\"variable type\", \"parameter\" or \"variable name\" might be missing."];
+
+            if (splitted_text[with_positions[i] + 1] != "parameter") // Make sure next word is parameter.
+                return ["not ready", "parameter was not mentioned or in wrong position."];
+            /* Check if a variable type was mentioned. */
+            if (!variable_types.includes(splitted_text[with_positions[i] + 2]))
+                return ["not ready", "no variable type was mentioned or in wrong position."];
+
+            segmented.push("with");
+            var var_type_of_param = splitted_text[with_positions[i] + 2];
+            /* Parameter is an array type. */
+            if (isArray) {
+                if (splitted_text[with_positions[i] + 3] != "array")
+                    return ["not ready", "array was not mentioned or in wrong position."];
+
+                segmented.push("#parameter_a");
+                segmented.push(var_type_of_param);
+                segmented.push(splitted_text.slice(with_positions[i] + 4, endpos).join(" "));
+            }
+
+            /* Parameter is none array type. */
+            else {
+                segmented.push("#parameter");
+                segmented.push(var_type_of_param);
+                segmented.push(splitted_text.slice(with_positions[i] + 3, endpos).join(" "));
+            }
+        }
+    }
     segmented.push("begin");
 
     return segmented;
 }
+/* [ 'while', 'first hello', '==', 'second' ] 
+I used the exact same code as If block. Will be much more different when If block allows for Else if. */
+function segment_while(splitted_text) {
+    var segmented = ["ready", "while"];
 
-// console.log(segment("create function main main with return type integer begin", [""]));
+    var infix_positions = [];  // There can be multiple operators in the condition
+    var infix_operators = [];
+    var i = 0;
+
+    for (i; i < splitted_text.length; i++) {
+        if (infix_operator_list.includes(splitted_text[i])) {
+            infix_positions.push(i);
+            infix_operators.push(splitted_text[i]);
+        }
+    }
+
+    /* For the last variable to be compressed as well. 
+    E.g. 'while hello world < bye world'. The positions to compress would be
+    2 to 4 and 5 to splitted_text.length.
+    */
+    infix_positions.push(splitted_text.length);
+
+    /* There needs to be an infix operator */
+    if (infix_positions.length == 1) return ["not ready", "No infix operator was used. i.e. >, <=, == etc."];
+
+    /* Check if infix operator is the last word mentioned */
+    if (infix_positions[infix_positions.length-2] + 1 == splitted_text.length)
+        return ["not ready", "infix operator was the last word mentioned."];
+    
+    
+    var i = 0;
+    var start_point = 0;  // To be used when slicing and splicing
+    for (i; i < infix_positions.length; i++) {
+        segmented.push(splitted_text.slice(start_point, infix_positions[i]).join(" "));
+        start_point =  infix_positions[i] + 1;
+        if (start_point >= splitted_text.length) break;
+
+        /* Push the infix operator into the segment. */
+        segmented.push(splitted_text[infix_positions[i]]);
+    }
+
+    console.log("doneee")
+
+    return segmented;
+}
+
+console.log(segment_command("while first hello == second", [""]));
