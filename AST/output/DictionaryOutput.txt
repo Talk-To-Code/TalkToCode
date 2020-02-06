@@ -1,0 +1,3 @@
+{}
+{1 : "Egg", "tom" : False, 'a' : 2.3, 2.2 : 'e', True : 2}
+{"each" : {"see" : True, 4.3 : 's'}, 32 : [4, "Hello"]}

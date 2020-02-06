@@ -2,3 +2,24 @@ for i in range(3):
 	print(i)
 
 	y += 1
+
+for i in range(3):
+	print(i)
+
+	y += 1
+
+else:
+	print(i)
+
+	y += 1
+
+for i in list:
+	print(i)
+
+	y += 1
+
+for j, i in dict.items():
+	print(i)
+
+	y += 1
+

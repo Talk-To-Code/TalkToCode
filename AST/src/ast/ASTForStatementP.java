@@ -9,20 +9,21 @@ import java.util.ArrayList;
  */
 public class ASTForStatementP extends ASTForStatement {
 	private ArrayList<ASTStatement> elseBranch;
-	private ASTExpressionUnitIdentifier variable;
-	private ASTExpressionUnit range;
+	private ArrayList<ASTExpressionUnitIdentifier> variable;
+	private ASTExpressionUnit exp;
 	public ASTForStatementP() {
 		super();
 		this.statements = new ArrayList<ASTStatement>();
 		this.elseBranch = new ArrayList<ASTStatement>();
+		this.variable = new ArrayList<ASTExpressionUnitIdentifier>();
 	}
 	public void addVariable(ASTExpressionUnitIdentifier variable){
-		this.variable =variable;
+		this.variable.add(variable);
 		variable.addParent(this);
 	}
-	public void addRange(ASTExpressionUnit range){
-		this.range = range;
-		range.addParent(this);
+	public void addExp(ASTExpressionUnit exp){
+		this.exp = exp;
+		exp.addParent(this);
 	}
 	public void addStatement(ASTStatement s){
 		this.statements.add(s);
@@ -35,9 +36,13 @@ public class ASTForStatementP extends ASTForStatement {
 	//actual code generation
 	public String toSyntax(){
 		this.result = "for ";
-		this.result+=this.variable.toSyntax();
+		for(int i = 0; i < this.variable.size()-1; i++) {
+			this.result += this.variable.get(i).toSyntax();
+			this.result += ", ";
+		}
+		this.result+=this.variable.get(this.variable.size()-1).toSyntax();
 		this.result += " in ";
-		this.result += this.range.toSyntax() +":\n";
+		this.result += this.exp.toSyntax() +":\n";
 		for(int i = 0;i<this.statements.size();i++){
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";

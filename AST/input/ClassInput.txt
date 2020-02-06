@@ -1,0 +1,3 @@
+class bye #class_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #class_end;;
+class hi #parent bye #class_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #class_end;;
+class bb #parent hi #parent bye #class_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #class_end;;

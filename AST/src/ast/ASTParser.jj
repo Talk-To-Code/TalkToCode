@@ -26,7 +26,10 @@
 | < COMMENT : "#comment" >
 | < COMMENT_END : "#comment_end" >
 | < DICTIONARY : "#dictionary" >
-| < KEY : "#key" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < KEY : "#key" >
+| < PARENT : "#parent" >
+| < CLASS_START : "#class_start" >
+| < CLASS_END : "#class_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -34,10 +37,11 @@
 | n = < PY_AND >
   {
     return n.image;
-  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value() :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
+  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value(programType pType) :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
     return valueNode;  }| n = < FLOATING_POINT_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
     return valueNode;  }| n = < CHARACTER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
-    return valueNode;  }| n = < STRING_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    return valueNode;  }| n = < TRUE >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    return valueNode;  }| n = < FALSE >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    return valueNode;  }}String primitive_typesJ() :{  Token n;}{  (    n = < BYTE >    {      return n.image;    }  | n = < INT >    {      return n.image;    }  | n = < CHAR >    {      return n.image;    }  | n = < DOUBLE >    {      return n.image;    }  | n = < FLOAT >    {      return n.image;    }  | n = < BOOLEAN >    {      return n.image;    }  )}String primitive_typesC() :{  Token n;  Token second;  Token third;}{  (    n = < INT >    {      return n.image;    }  | n = < CHAR >    {      return n.image;    }  | n = < LONG >    {      return n.image;    }  | n = < SHORT >    {      return n.image;    }  | n = < DOUBLE >    {      return n.image;    }  | n = < FLOAT >    {      return n.image;    }  | n = < C_TYPES_MODIFIERS_SIGNED >    {      return n.image;    }  )}String types_C() :{  String token;  String result = "";  Token n;}{  (< STRUCT >)? n = < IDENTIFIER >  {    return n.image + " ";  }|  (    token = primitive_typesC()    {      result += token + " ";    }  )+  {    return result;  }}String typesJ() :{  String type;  Token n;}{  n = < IDENTIFIER >  {    return n.image;  }| type = primitive_typesJ()  {    return type;  }}ASTDeclarationStatement create_variable(programType pType) :{  String type_token = "";  Token name;  String id;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
+    return valueNode;  }| n = < STRING_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    return valueNode;  }| n = < TRUE >  {
+    valueNode = (pType == programType.P) ? new ASTExpressionUnitLiteral("True") : new ASTExpressionUnitLiteral(n.image);    return valueNode;  }| n = < FALSE >  {    valueNode = (pType == programType.P) ? new ASTExpressionUnitLiteral("False") : new ASTExpressionUnitLiteral(n.image);    return valueNode;  }}String primitive_typesJ() :{  Token n;}{  (    n = < BYTE >    {      return n.image;    }  | n = < INT >    {      return n.image;    }  | n = < CHAR >    {      return n.image;    }  | n = < DOUBLE >    {      return n.image;    }  | n = < FLOAT >    {      return n.image;    }  | n = < BOOLEAN >    {      return n.image;    }  )}String primitive_typesC() :{  Token n;  Token second;  Token third;}{  (    n = < INT >    {      return n.image;    }  | n = < CHAR >    {      return n.image;    }  | n = < LONG >    {      return n.image;    }  | n = < SHORT >    {      return n.image;    }  | n = < DOUBLE >    {      return n.image;    }  | n = < FLOAT >    {      return n.image;    }  | n = < C_TYPES_MODIFIERS_SIGNED >    {      return n.image;    }  )}String types_C() :{  String token;  String result = "";  Token n;}{  (< STRUCT >)? n = < IDENTIFIER >  {    return n.image + " ";  }|  (    token = primitive_typesC()    {      result += token + " ";    }  )+  {    return result;  }}String typesJ() :{  String type;  Token n;}{  n = < IDENTIFIER >  {    return n.image;  }| type = primitive_typesJ()  {    return type;  }}ASTDeclarationStatement create_variable(programType pType) :{  String type_token = "";  Token name;  String id;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
   (    type_token = types_C()
   )?  {
     switch (pType) {
@@ -68,13 +72,13 @@
             	((ASTDeclarationStatementP) result).AddAVariable(new ASTExpressionAssignment(new ASTExpressionUnitIdentifier(id), exp, "="));
             	break;
           }          exp = null;        }      }    )  |    (      < ARRAY > < VARIABLE > name = < IDENTIFIER >      {
-        if(pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(name.image);      }      (        < INDEX > exp = value() < INDEX_END >        {          array.addIndex(exp);        }      )+      < DECLARE_END >    )
+        if(pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(name.image);      }      (        < INDEX > exp = value(pType) < INDEX_END >        {          array.addIndex(exp);        }      )+      < DECLARE_END >    )
     {
       
       ((ASTDeclarationStatementC) result).addVariableWithoutDeclaration(array);
     }  )+  < TERMINATOR >  {    return result;  }}ASTExpression fragment(programType pType) :{  Token var = new Token();  String id;  Token check = new Token();  ASTExpressionUnitLiteral v = new ASTExpressionUnitLiteral();  ASTExpression parameters = new ASTExpression();  ASTExpression result = new ASTExpression();
   Token identifier = new Token();
-  ASTExpressionUnitFunctionCall call;}{  (    < VALUE > v = value()  )  {    //System.out.println(v.toSyntax());
+  ASTExpressionUnitFunctionCall call;}{  (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
     return v;  }| id = variable()  {    return new ASTExpressionUnitIdentifier(id);  }|  (    < FUNCTION >
     (      var = < IDENTIFIER >
       {
@@ -113,13 +117,13 @@
   	  if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
   	  arr = new ASTExpressionUnitLiteralDictionary();
   	}
-  	(  	  < KEY > key = value() < VALUE > value = expression(pType)
+  	(  	  < KEY > key = value(pType) < VALUE > value = expression(pType)
   	  {
   	    ((ASTExpressionUnitLiteralDictionary) arr).addValue(key, value);
   	  }
   	)*  )  < RBRACE >
   {    return arr;
-  }| < ARRAY > var = < IDENTIFIER >  {    ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(var.image);  }  (    < INDEX > parameters = value() < INDEX_END >
+  }| < ARRAY > var = < IDENTIFIER >  {    ASTExpressionUnitIdentifierArrayObject array = new ASTExpressionUnitIdentifierArrayObject(var.image);  }  (    < INDEX > parameters = value(pType) < INDEX_END >
     {
       array.addIndex(parameters);
     }  )+
@@ -217,21 +221,22 @@
 ASTForStatementP forStatementP(programType pType, int indent) :
 {
   String variable;
-  ASTExpression range;
+  ASTExpression exp;
   ASTStatement temp;
   ASTForStatementP result = new ASTForStatementP();
 }
 {
-  variable = variable()
-  {
-    if (pType != programType.P) throw new ParseException("Not Supported in C or Java!\n");
-    result.addVariable(new ASTExpressionUnitIdentifier(variable));
-  	//System.out.println(init.toSyntax());
-  }
+  (    < PARAMETER > variable = variable()
+    {
+      if (pType != programType.P) throw new ParseException("Not Supported in C or Java!\n");
+      result.addVariable(new ASTExpressionUnitIdentifier(variable));
+      //System.out.println(init.toSyntax());
+    }
+  )+
   
-  range = fragment(pType)
+  exp = fragment(pType)
   {
-  	if (range instanceof ASTExpressionUnit) result.addRange((ASTExpressionUnit) range);
+  	if (exp instanceof ASTExpressionUnit) result.addExp((ASTExpressionUnit) exp);
     else throw new ParseException("Not Supported in Python!\n");
   	//System.out.println(end.toSyntax());
   }
@@ -269,7 +274,18 @@ ASTForStatementP forStatementP(programType pType, int indent) :
       	result = new ASTWhileStatement(exp);
       	break;
     }    result.addParent(parent);
-    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
+    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }
+  (
+    < ELSE_BRANCH_START >
+	(
+	  temp = statement(result, pType, indent+1)
+	  {
+	    if (pType != programType.P) throw new ParseException("Not Supported in C or Java!\n");
+	    ((ASTWhileStatementP) result).addElseBranch(temp);
+	  }
+	)*
+	< ELSE_BRANCH_END >
+  )?  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
   {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
   }
@@ -309,7 +325,50 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
   {
     return result;
   }
-}/*SimpleStatement*/ASTBreakStatement breakStatement(programType pType) :{  Token n;  ASTBreakStatement result;}{  < BREAK >  {
+}
+ASTClass classDeclare(ASTNode parent, programType pType, int indent) :
+{
+  ASTStatement temp;
+  ASTClass result;
+  Token name;
+  Token parentClass;
+}
+{
+  < CLASS > name = < IDENTIFIER >
+  {
+    switch (pType) {
+      case C:
+      	throw new ParseException("Not Supported in C!\n");
+      	break;
+      case P:
+      	result = new ASTClassP(name.image);
+      	break;
+      default:
+      	result = new ASTClass(name.image);
+      	break;
+    }
+    result.addParent(parent);
+    result.setIndent(indent);
+  }
+  (    < PARENT > parentClass = < IDENTIFIER >
+    {
+      ((ASTClassP) result).addInheritance(new ASTExpressionUnitIdentifier(parentClass.image));
+    }
+  )*
+  < CLASS_START >
+  (
+    temp = statement(parent, pType, indent)
+    { 
+      result.addStatement(temp);
+    }
+  )*
+  < CLASS_END >
+  <TERMINATOR >
+  {
+    return result;
+  }
+}
+/*SimpleStatement*/ASTBreakStatement breakStatement(programType pType) :{  Token n;  ASTBreakStatement result;}{  < BREAK >  {
     switch (pType) {
       case C:
       	result = new ASTBreakStatementC();
@@ -452,9 +511,13 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
   }
 }
 ASTBlockStatement blockStatement(ASTNode parent, programType pType, int indent) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;
-  ASTComment comment;}{  structDeclare = structDeclareStatement(parent, pType, indent)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType, indent)  {    return doWhile;  }| forStatement = forStatement(parent, pType, indent)  {    return forStatement;  }| functionDeclare = functionStatement(parent, pType, indent)  {    return functionDeclare;  }| ifStatement = if_statement(parent, pType, indent)  {    return ifStatement;  }| whileStatement = whileStatement(parent, pType, indent)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType, indent)  {    return switchStatement;  }
+  ASTComment comment;
+  ASTClass classDeclare;}{  structDeclare = structDeclareStatement(parent, pType, indent)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType, indent)  {    return doWhile;  }| forStatement = forStatement(parent, pType, indent)  {    return forStatement;  }| functionDeclare = functionStatement(parent, pType, indent)  {    return functionDeclare;  }| ifStatement = if_statement(parent, pType, indent)  {    return ifStatement;  }| whileStatement = whileStatement(parent, pType, indent)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType, indent)  {    return switchStatement;  }
 | comment = comment(parent, pType, indent)
   {	return comment;
+  }
+| classDeclare = classDeclare(parent, pType, indent)
+  {    return classDeclare;
   }}ASTStatement query() :{}{  "?"  (    < STRUCT >    {      getStructure(current);      return new ASTStatement();    }  | < TREE >    {      getTree(current);      return new ASTStatement();    }  )}
 ASTStatement statement(ASTNode parent, programType pType, int indent) :
 {

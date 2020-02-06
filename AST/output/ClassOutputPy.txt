@@ -1,0 +1,15 @@
+class bye():
+	print(i)
+
+	y += 1
+
+class hi(bye):
+	print(i)
+
+	y += 1
+
+class bb(hi, bye):
+	print(i)
+
+	y += 1
+
