@@ -263,7 +263,7 @@ function parse_function_statement(splitted_text: string[]) {
         var start_pos = 6;
         for (i; i < parseInt(splitted_text[5]); i++) {
             if (splitted_text[start_pos+1] == "#parameter") {
-                struct_command += " " + splitted_text[start_pos+1] + " " + splitted_text[start_pos+2] +
+                struct_command += " " + splitted_text[start_pos+1] + " #type " + splitted_text[start_pos+2] +
                 " " + splitted_text[start_pos+3];
             }
             else {

@@ -2,7 +2,8 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 
 var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
 
-/* */
+/* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
+Should look seperating functionality of block statements and simple statements. */
 export function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
