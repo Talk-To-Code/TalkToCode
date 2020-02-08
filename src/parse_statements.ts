@@ -47,7 +47,8 @@ fragment() :
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
-var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
+var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
+var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
 
 /* E.g. hello world -> helloWorld */
 function convert2Camel(name_arr) {
@@ -66,7 +67,7 @@ function convert2Camel(name_arr) {
 
 module.exports = {
     /* Purpose of this function is to parse any potential statement into the structured command. */
-    parse_statement: function(text) {
+    parse_statement: function(text, isCondition) {
         console.log(text);
         var statementType = determine_type(text);
 
@@ -75,8 +76,10 @@ module.exports = {
                 return parse_declare(text);
             case "assign":
                 return parse_assignment(text);
+            case "infix":
+                return parse_infix(text);
             default:
-                return ["not ready"];
+                return "no match. default case of parse_statements";
         }
 
     }
@@ -85,7 +88,9 @@ module.exports = {
 function determine_type(text) {
     var splitted_text = text.split(" ");
     if (splitted_text[0] == "declare") return "declare";
-    else return "assign";
+    else if (splitted_text.includes("equal")) return "assign";
+    else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
+    else return "no match";
 }
 
 /* */
@@ -129,6 +134,51 @@ function parse_assignment(text) {
 
 }
 
+/* splitted_text e.g: ['hello', '<', '5'] or ['hello', '<', '5', '&&', 'g' '==', '5']*/
+function parse_infix(text) {
+    var parsed_results = "";
+    var splitted_text = text.split(" ");
+    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) return "incomplete. infix operator missing."
+    var i = 0;
+    var start = 0;
+    var end = 0;
+    /* <frag_1> <comparison> <frag_2> <segment> <frag_1> <comparison> <frag_2> 
+    <comparison> e.g. "==", "<=" etc. 
+    <segment>    e.g. "&&", "||" etc.
+    <frag>       e.g. "hello". */
+
+    var awaiting_frag1 = false;
+    var awaiting_frag2 = false;
+    var awaiting_segment = false;
+    for (i; i < splitted_text.length; i++) {
+        end++;
+        if (infix_comparison_operator.includes(splitted_text[i])) {
+            if (end - start <= 1 || awaiting_segment) return "incomplete.";
+            awaiting_frag1 = false;
+            awaiting_frag2 = true;
+            awaiting_segment = true;
+            parsed_results += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            start = i + 1;
+        }
+        else if (infix_segmenting_operator.includes(splitted_text[i])) {
+            if (end - start <= 1) return "incomplete.";
+            awaiting_frag1 = true;
+            awaiting_frag2 = false;
+            awaiting_segment = false;
+            parsed_results += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            start = i + 1;
+            end++;
+        }
+        /* Last element */
+        else if (i == splitted_text.length - 1) {
+            awaiting_frag2 = false;
+            parsed_results += " " + parse_fragment(splitted_text.slice(start));
+        }
+    }
+    if (awaiting_frag1 || awaiting_frag2) return "incomplete.";
+    return parsed_results.trim();
+}
+
 /* Parse array when doing daclaration.
 E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
 */
@@ -156,3 +206,4 @@ function parse_fragment(splitted_text) {
 
 // console.log(parse_statement("declare int array hello world size 5"));
 // console.log(parse_statement("hello world equal bye bye"));
+console.log(parse_infix("hello < 5 || hello != 5"))

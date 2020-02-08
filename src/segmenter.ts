@@ -48,62 +48,15 @@ function determine_user_command(text, var_list) {
     return [starting_command, splitted_text.splice(1).join(" ")];
 }
 
-/* Segment functions return list of segmented commands or list of errors (string[]). */
-
-function segment_statements(splitted_text) {
-    var segmented = ["assign"];
-
-    if (!splitted_text.includes("equal")) return ["not ready", "'Equal' is missing."];
-
-    var equal_idx = splitted_text.indexOf("equal");
-    if (equal_idx == splitted_text.length-1) return ["not ready", "Equal is the last word."];
-    segmented.push(splitted_text.slice(0, equal_idx).join(" "));
-    segmented.push("equal");
-    segmented.push(splitted_text.slice(equal_idx+1).join(" "));
-
-    return segmented;
-}
-
 /* splitted_text e.g: ['hello', '<', '5'] */
 function segment_if(splitted_text) {
-    var segmented = ["if"];
+    var parsed_results = "if #condition"
 
-    var infix_positions = [];  // There can be multiple operators in the condition
-    var infix_operators = [];
-    var i = 0;
+    var infix_exp = parsy.parse_statement(splitted_text.join(" "));
 
-    for (i; i < splitted_text.length; i++) {
-        if (infix_operator_list.includes(splitted_text[i])) {
-            infix_positions.push(i);
-            infix_operators.push(splitted_text[i]);
-        }
-    }
+    if (infix_exp.split(" ")[0] == "incomplete.") return ["not ready", "incomplete condition."];
 
-    /* For the last variable to be compressed as well. 
-    E.g. 'begin if hello world < bye world'. The positions to compress would be
-    2 to 4 and 5 to splitted_text.length.
-    */
-    infix_positions.push(splitted_text.length);
-
-    /* There needs to be an infix operator */
-    if (infix_positions.length == 1) return ["not ready", "No infix operator was used. i.e. >, <=, == etc."];
-
-    /* Check if infix operator is the last word mentioned */
-    if (infix_positions[infix_positions.length-2] + 1 == splitted_text.length)
-        return ["not ready", "infix operator was the last word mentioned."];
-    
-    
-    var i = 0;
-    var start_point = 0;  // To be used when slicing and splicing
-    for (i; i < infix_positions.length; i++) {
-        segmented.push(splitted_text.slice(start_point, infix_positions[i]).join(" "));
-        start_point =  infix_positions[i] + 1;
-        if (start_point >= splitted_text.length) break;
-
-        /* Push the infix operator into the segment. */
-        segmented.push(splitted_text[infix_positions[i]]);
-    }
-    return segmented;
+    return parsed_results + " " + infix_exp;
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
@@ -310,4 +263,4 @@ function segment_while(splitted_text) {
     return segmented;
 }
 
-console.log(segment_command("declare array hello size 5", [""]));
+console.log(segment_command("begin if hello > 5", [""]));
