@@ -36,13 +36,9 @@ function replace_math_operators(text: string) {
 
 /* Replace all variables with the short form that will be used in text2struct.*/
 function correct_variables(text: string) {
-    var splitted_text = text.split(" ");
-    var i = 0;
-    for (i; i < splitted_text.length; i++) {
-        if (splitted_text[i] == "integer") splitted_text[i] = "int";
-        if (splitted_text[i] == "character") splitted_text[i] = "char";
-    }
-    return splitted_text.join(" ");
+    text = text.replace(/integer/g, "int");
+    text = text.replace(/character/g, "int");
+    return text;
 }
 
 function word_2_num(text: string) {
