@@ -2,6 +2,9 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 
 var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
 
+var parsy = require("./parse_statements.ts");
+// import { parse_statement } from './parse_statements'
+
 /* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
 Should look into seperating functionality of block statements and simple statements. */
 function segment_command(text, var_list) {
@@ -12,30 +15,28 @@ function segment_command(text, var_list) {
     var splitted_text = starting_command[1].split(" ");
 
     switch(starting_command[0]) {
-        case "declare":
-            return segment_declare(splitted_text);
-        case "begin_if":
+        case "if":
             return segment_if(splitted_text);
-        case "begin_loop":
+        case "loop":
             return segment_for_loop(splitted_text);
-        case "create_function":
+        case "function":
             return segment_function(splitted_text);
-        case "statements":
-            return segment_statements(splitted_text);
         case "while":
             return segment_while(splitted_text);
         default:
-            console.log("no matches " + starting_command)
-            return ["not ready", "does not match any command."];
+            var statements = parsy.parse_statement(text);
+            console.log(statements);
+            var statementType = statements.split(" ")[0];
+            if (statementType != "#create" || statementType != "#assign") return ["no matches."];
     }
 }
 
 /* To determine what command the user is trying say */
 function determine_user_command(text, var_list) {
 
-    text = text.replace("begin if", "begin_if");
-    text = text.replace("begin Loop", "begin_loop");
-    text = text.replace("create function", "create_function");
+    text = text.replace("begin if", "if");
+    text = text.replace("begin Loop", "loop");
+    text = text.replace("create function", "function");
 
     var splitted_text = text.split(" ");
 
@@ -43,13 +44,6 @@ function determine_user_command(text, var_list) {
 
     var starting_command = splitted_text[0];
 
-    /* super hacky but works for now. in future use varlist and undo the variable camel case and check*/
-    if (starting_command != "declare" && starting_command != "begin_if" && starting_command != "begin_loop" &&
-    starting_command != "create_function" && starting_command != "while" && splitted_text.includes("equal")) {
-        starting_command = "statements";
-
-        return [starting_command, splitted_text.join(" ")];
-    }
     /* Remove starting command from the text. */
     return [starting_command, splitted_text.splice(1).join(" ")];
 }
@@ -66,53 +60,6 @@ function segment_statements(splitted_text) {
     segmented.push(splitted_text.slice(0, equal_idx).join(" "));
     segmented.push("equal");
     segmented.push(splitted_text.slice(equal_idx+1).join(" "));
-
-    return segmented;
-}
-
-/* splitted_text e.g: ['int', 'first', 'equal', '5'], or ['int', 'array', 'hello', 'size', '100'] */
-function segment_declare(splitted_text) {
-    var segmented = ["declare"];
-    /* Check if var type mentioned. */
-    if (!variable_types.includes(splitted_text[0])) return ["not ready", "var type is not mentioned."];
-    /* Check if var type is the last word mentioned. */
-    if (variable_types.includes(splitted_text[splitted_text.length-1])) 
-        return ["not ready", "var type is the last word mentioned."];
-    
-    else segmented.push(splitted_text[0]); // Add var_tpye. E.g. segmented -> ['declare', 'int' ]
-
-    segmented.push("#statement_begin");
-    segmented.push(splitted_text.splice(1).join(" "));
-    segmented.push("#statement_end");
-
-    // /* Check for array declaration. */
-    // if (splitted_text.includes("array")) {
-    //     if (!splitted_text.includes("size")) return ["not ready", "Size was not mentioned."];
-
-    //     segmented.push("array");
-
-    //     var size_idx = splitted_text.indexOf("size");
-    //     if (size_idx == splitted_text.length-1) return ["not ready", "Size is the last word."];
-    //     segmented.push(splitted_text.slice(2, size_idx).join(" "));
-    //     segmented.push("size");
-    //     segmented.push(splitted_text.slice(size_idx+1).join(" "));
-    // }
-
-    // /* Non array declaration. */
-    // else {
-    //     /* Check if Equal is mentioned. */
-    //     if (splitted_text.includes("equal")) {
-    //         var equal_idx = splitted_text.indexOf("equal");
-    //         if (equal_idx == splitted_text.length-1) return ["not ready", "Equal is the last word."];
-    //         segmented.push(splitted_text.slice(1, equal_idx).join(" "));
-    //         segmented.push("equal");
-    //         segmented.push(splitted_text.slice(equal_idx+1).join(" "));
-    //     } 
-    
-    //     /* If Equal is not mentioned. Just append everything behind as a segment.
-    //     E.g. "declare int hello world" -> [ 'ready', 'declare', 'int', 'hello world' ] */
-    //     else segmented.push(splitted_text.slice(1).join(" "));
-    // }
 
     return segmented;
 }
@@ -363,4 +310,4 @@ function segment_while(splitted_text) {
     return segmented;
 }
 
-console.log(segment_command("declare int hello", [""]));
+console.log(segment_command("declare array hello size 5", [""]));
