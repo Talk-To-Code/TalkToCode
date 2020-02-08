@@ -10,14 +10,14 @@ export function runTestCases() {
     // test_cases = generate_test_cases("if_block");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("for_loop");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("for_loop");
+    runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("create_function");
     // runTestCase(test_cases[0], test_cases[1]);
     
-    test_cases = generate_test_cases("while_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("while_loop");
+    // runTestCase(test_cases[0], test_cases[1]);
 
 }
 

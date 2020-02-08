@@ -58,15 +58,16 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
     text = replace_infix_operators(text);
     console.log("text going in: " + text)
+
+    /* E.g. ['declare', 'int', 'first', 'equal', '10'] */
     var segmented = segment_command(text, var_list);
+
+    var starting_command = segmented[0];
 
     console.log("segmented results: " + segmented)
 
-    if (segmented[0] == "not ready") return [["Not ready"], [""], [false, false, false]];
-
-    var splitted_text = join_names(segmented.slice(2));
-    var starting_command = segmented[1];
-
+    var splitted_text = join_names(segmented.slice(1)); // slice(1) to omit the starting_command
+    
     switch(starting_command) {
         case "declare":
             struct_command = parse_declare_statement(splitted_text);
@@ -87,8 +88,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
             struct_command = parse_while_statement(splitted_text);
             break;
         default:
-            struct_command = [["Not ready"], [""], [false, false, false]];
-            break;
+            return struct_command = [["Not ready"], [""], [false, false, false]];
     }
 
     struct_command[2][2] = go_ahead;
@@ -207,12 +207,8 @@ function parse_while_statement(splitted_text: string[]) {
         }
 
         else {
-            if (!isNaN(splitted_text[i])) {
-                struct_command += "#value " + splitted_text[i] + " ";
-            }
-            else {
-                struct_command += "#variable " + splitted_text[i] + " ";
-            }
+            if (!isNaN(splitted_text[i])) struct_command += "#value " + splitted_text[i] + " ";
+            else struct_command += "#variable " + splitted_text[i] + " ";
         }
     }
 

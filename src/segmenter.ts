@@ -9,8 +9,7 @@ export function segment_command(text, var_list) {
 
     if (starting_command[0] == "not ready") return starting_command;
 
-    /* Remove starting command from the text. */
-    var splitted_text = starting_command[1].split(" ").splice(1);
+    var splitted_text = starting_command[1].split(" ");
 
     switch(starting_command[0]) {
         case "declare":
@@ -21,8 +20,8 @@ export function segment_command(text, var_list) {
             return segment_for_loop(splitted_text);
         case "create_function":
             return segment_function(splitted_text);
-        case "assign":
-            return segment_assign(splitted_text);
+        case "statements":
+            return segment_statements(splitted_text);
         case "while":
             return segment_while(splitted_text);
         default:
@@ -47,18 +46,18 @@ function determine_user_command(text, var_list) {
     /* super hacky but works for now. in future use varlist and undo the variable camel case and check*/
     if (starting_command != "declare" && starting_command != "begin_if" && starting_command != "begin_loop" &&
     starting_command != "create_function" && starting_command != "while" && splitted_text.includes("equal")) {
-        starting_command = "assign";
+        starting_command = "statements";
 
-        return [starting_command, "assign " + splitted_text.join(" ")];
+        return [starting_command, splitted_text.join(" ")];
     }
-
-    return [starting_command, splitted_text.join(" ")];
+    /* Remove starting command from the text. */
+    return [starting_command, splitted_text.splice(1).join(" ")];
 }
 
 /* Segment functions return list of segmented commands or list of errors (string[]). */
 
-function segment_assign(splitted_text) {
-    var segmented = ["ready", "assign"];
+function segment_statements(splitted_text) {
+    var segmented = ["assign"];
 
     if (!splitted_text.includes("equal")) return ["not ready", "'Equal' is missing."];
 
@@ -73,8 +72,7 @@ function segment_assign(splitted_text) {
 
 /* splitted_text e.g: ['int', 'first', 'equal', '5'], or ['int', 'array', 'hello', 'size', '100'] */
 function segment_declare(splitted_text) {
-    var segmented = ["ready", "declare"];
-
+    var segmented = ["declare"];
     /* Check if var type mentioned. */
     if (!variable_types.includes(splitted_text[0])) return ["not ready", "var type is not mentioned."];
 
@@ -119,7 +117,7 @@ function segment_declare(splitted_text) {
 
 /* splitted_text e.g: ['hello', '<', '5'] */
 function segment_if(splitted_text) {
-    var segmented = ["ready", "if"];
+    var segmented = ["if"];
 
     var infix_positions = [];  // There can be multiple operators in the condition
     var infix_operators = [];
@@ -161,7 +159,7 @@ function segment_if(splitted_text) {
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
-    var segmented = ["ready", "loop"];
+    var segmented = ["loop"];
 
     /* For loop must have 'condition' key word. */
     if (!splitted_text.includes("condition")) return ["not ready", "Condition was not mentioned."];
@@ -229,7 +227,7 @@ function segment_for_loop(splitted_text) {
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
 function segment_function(splitted_text) {
-    var segmented = ["ready", "create"];
+    var segmented = ["create"];
     var with_positions = [];  // There can be multiple 'with' commands.
     var i = 0;
     /* Find all idx of "with" keywords. */
@@ -320,7 +318,7 @@ function segment_function(splitted_text) {
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
 function segment_while(splitted_text) {
-    var segmented = ["ready", "while"];
+    var segmented = ["while"];
 
     var infix_positions = [];  // There can be multiple operators in the condition
     var infix_operators = [];
