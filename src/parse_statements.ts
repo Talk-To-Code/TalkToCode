@@ -49,6 +49,7 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 
 var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
 var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
+var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
 function convert2Camel(name_arr) {
@@ -67,7 +68,7 @@ function convert2Camel(name_arr) {
 
 module.exports = {
     /* Purpose of this function is to parse any potential statement into the structured command. */
-    parse_statement: function(text, isCondition) {
+    parse_statement: function(text) {
         console.log(text);
         var statementType = determine_type(text);
 
@@ -78,8 +79,10 @@ module.exports = {
                 return parse_assignment(text);
             case "infix":
                 return parse_infix(text);
+            case "postfix": // For now just postfix man.
+                return parse_postfix(text);
             default:
-                return "no match. default case of parse_statements";
+                return "not ready. default case of parse_statements";
         }
 
     }
@@ -90,7 +93,8 @@ function determine_type(text) {
     if (splitted_text[0] == "declare") return "declare";
     else if (splitted_text.includes("equal")) return "assign";
     else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
-    else return "no match";
+    else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
+    else return "not ready.";
 }
 
 /* */
@@ -99,24 +103,24 @@ function parse_declare(text) {
     var parsed_results = "#create"
     var splitted_text = text.split(" ");
     /* Check if var type mentioned. */
-    if (!variable_types.includes(splitted_text[1])) return "var type is not mentioned.";
+    if (!variable_types.includes(splitted_text[1])) return "not ready. var type is not mentioned.";
     /* Check if var type is the last word mentioned. */
     if (variable_types.includes(splitted_text[splitted_text.length-1])) 
-        return "var type is the last word mentioned.";
+        return "not ready. var type is the last word mentioned.";
     
     else parsed_results += " " + splitted_text[1]; // Add var_tpye. 
 
     /* Check for array declaration. */
     if (splitted_text.includes("array")) {
-        if (!splitted_text.includes("size")) return "Size was not mentioned.";
-        if (splitted_text.indexOf("size") == splitted_text.length-1) return "Size is the last word.";
+        if (!splitted_text.includes("size")) return "not ready. Size was not mentioned.";
+        if (splitted_text.indexOf("size") == splitted_text.length-1) return "not ready. Size is the last word.";
         parsed_results += " " + parse_array_d(splitted_text.slice(3).join(" "));
     }
     else {
         /* Check if Equal is mentioned. */
         if (splitted_text.includes("equal")) {
             var equal_idx = splitted_text.indexOf("equal");
-            if (equal_idx == splitted_text.length-1) return "Equal is the last word.";
+            if (equal_idx == splitted_text.length-1) return "not ready. Equal is the last word.";
             parsed_results += " " + parse_fragment(splitted_text.slice(2, equal_idx));
             parsed_results += " " + parse_fragment(splitted_text.slice(equal_idx + 1));
         }
@@ -138,7 +142,7 @@ function parse_assignment(text) {
 function parse_infix(text) {
     var parsed_results = "";
     var splitted_text = text.split(" ");
-    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) return "incomplete. infix operator missing."
+    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) return "not ready. infix operator missing."
     var i = 0;
     var start = 0;
     var end = 0;
@@ -153,7 +157,7 @@ function parse_infix(text) {
     for (i; i < splitted_text.length; i++) {
         end++;
         if (infix_comparison_operator.includes(splitted_text[i])) {
-            if (end - start <= 1 || awaiting_segment) return "incomplete.";
+            if (end - start <= 1 || awaiting_segment) return "not ready. incomplete.";
             awaiting_frag1 = false;
             awaiting_frag2 = true;
             awaiting_segment = true;
@@ -161,7 +165,7 @@ function parse_infix(text) {
             start = i + 1;
         }
         else if (infix_segmenting_operator.includes(splitted_text[i])) {
-            if (end - start <= 1) return "incomplete.";
+            if (end - start <= 1) return "not ready. incomplete.";
             awaiting_frag1 = true;
             awaiting_frag2 = false;
             awaiting_segment = false;
@@ -175,8 +179,14 @@ function parse_infix(text) {
             parsed_results += " " + parse_fragment(splitted_text.slice(start));
         }
     }
-    if (awaiting_frag1 || awaiting_frag2) return "incomplete.";
+    if (awaiting_frag1 || awaiting_frag2) return "not ready. incomplete.";
     return parsed_results.trim();
+}
+
+function parse_postfix(test) {
+    var splitted_text = test.split(" ");
+    var parsed_results = "#variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
+    return parsed_results;
 }
 
 /* Parse array when doing daclaration.
@@ -206,4 +216,4 @@ function parse_fragment(splitted_text) {
 
 // console.log(parse_statement("declare int array hello world size 5"));
 // console.log(parse_statement("hello world equal bye bye"));
-console.log(parse_infix("hello < 5 || hello != 5"))
+// console.log(parse_infix("hello < 5 || hello != 5"))
