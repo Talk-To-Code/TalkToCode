@@ -3,8 +3,8 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
 
 /* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
-Should look seperating functionality of block statements and simple statements. */
-export function segment_command(text, var_list) {
+Should look into seperating functionality of block statements and simple statements. */
+function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") return starting_command;
@@ -75,42 +75,44 @@ function segment_declare(splitted_text) {
     var segmented = ["declare"];
     /* Check if var type mentioned. */
     if (!variable_types.includes(splitted_text[0])) return ["not ready", "var type is not mentioned."];
-
     /* Check if var type is the last word mentioned. */
     if (variable_types.includes(splitted_text[splitted_text.length-1])) 
         return ["not ready", "var type is the last word mentioned."];
     
-    /* Simply add the var type as a segment. E.g. segmented -> [ 'ready', 'declare', 'int' ] */
-    else segmented.push(splitted_text[0]);
+    else segmented.push(splitted_text[0]); // Add var_tpye. E.g. segmented -> ['declare', 'int' ]
 
-    /* Check for array declaration. */
-    if (splitted_text.includes("array")) {
-        if (!splitted_text.includes("size")) return ["not ready", "Size was not mentioned."];
+    segmented.push("#statement_begin");
+    segmented.push(splitted_text.splice(1).join(" "));
+    segmented.push("#statement_end");
 
-        segmented.push("array");
+    // /* Check for array declaration. */
+    // if (splitted_text.includes("array")) {
+    //     if (!splitted_text.includes("size")) return ["not ready", "Size was not mentioned."];
 
-        var size_idx = splitted_text.indexOf("size");
-        if (size_idx == splitted_text.length-1) return ["not ready", "Size is the last word."];
-        segmented.push(splitted_text.slice(2, size_idx).join(" "));
-        segmented.push("size");
-        segmented.push(splitted_text.slice(size_idx+1).join(" "));
-    }
+    //     segmented.push("array");
 
-    /* Non array declaration. */
-    else {
-        /* Check if Equal is mentioned. */
-        if (splitted_text.includes("equal")) {
-            var equal_idx = splitted_text.indexOf("equal");
-            if (equal_idx == splitted_text.length-1) return ["not ready", "Equal is the last word."];
-            segmented.push(splitted_text.slice(1, equal_idx).join(" "));
-            segmented.push("equal");
-            segmented.push(splitted_text.slice(equal_idx+1).join(" "));
-        } 
+    //     var size_idx = splitted_text.indexOf("size");
+    //     if (size_idx == splitted_text.length-1) return ["not ready", "Size is the last word."];
+    //     segmented.push(splitted_text.slice(2, size_idx).join(" "));
+    //     segmented.push("size");
+    //     segmented.push(splitted_text.slice(size_idx+1).join(" "));
+    // }
+
+    // /* Non array declaration. */
+    // else {
+    //     /* Check if Equal is mentioned. */
+    //     if (splitted_text.includes("equal")) {
+    //         var equal_idx = splitted_text.indexOf("equal");
+    //         if (equal_idx == splitted_text.length-1) return ["not ready", "Equal is the last word."];
+    //         segmented.push(splitted_text.slice(1, equal_idx).join(" "));
+    //         segmented.push("equal");
+    //         segmented.push(splitted_text.slice(equal_idx+1).join(" "));
+    //     } 
     
-        /* If Equal is not mentioned. Just append everything behind as a segment.
-        E.g. "declare int hello world" -> [ 'ready', 'declare', 'int', 'hello world' ] */
-        else segmented.push(splitted_text.slice(1).join(" "));
-    }
+    //     /* If Equal is not mentioned. Just append everything behind as a segment.
+    //     E.g. "declare int hello world" -> [ 'ready', 'declare', 'int', 'hello world' ] */
+    //     else segmented.push(splitted_text.slice(1).join(" "));
+    // }
 
     return segmented;
 }
@@ -361,4 +363,4 @@ function segment_while(splitted_text) {
     return segmented;
 }
 
-console.log(segment_command("while first hello == second", [""]));
+console.log(segment_command("declare int hello", [""]));
