@@ -85,6 +85,21 @@ module.exports = {
                 return "not ready. default case of parse_statements";
         }
 
+    },
+
+    /* E.g. hello world -> helloWorld */
+    convert2Camel: function(name_arr) {
+
+        if (name_arr.length == 1) return name_arr.join(" ");
+
+        var var_name = name_arr[0].toLowerCase();
+        var i;
+        for (i = 1; i < name_arr.length; i++) {
+            /* Change first letter to capital */
+            var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
+            var_name = var_name + toAdd;
+        }
+        return var_name;
     }
 }
 
