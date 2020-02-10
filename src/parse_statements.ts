@@ -45,6 +45,8 @@ fragment() :
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 */
 
+import { simpleStatement } from './struct_command'
+
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
@@ -52,7 +54,7 @@ var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
-function convert2Camel(name_arr) {
+export function convert2Camel(name_arr) {
 
     if (name_arr.length == 1) return name_arr.join(" ");
 
@@ -66,40 +68,25 @@ function convert2Camel(name_arr) {
     return var_name;
 }
 
-module.exports = {
-    /* Purpose of this function is to parse any potential statement into the structured command. */
-    parse_statement: function(text) {
-        console.log(text);
-        var statementType = determine_type(text);
+/* Purpose of this function is to parse any potential statement into the structured command. */
+/* Returns class statement. */
+export function parse_statement(text) {
+    console.log(text);
+    var statementType = determine_type(text);
 
-        switch(statementType) {
-            case "declare":
-                return parse_declare(text);
-            case "assign":
-                return parse_assignment(text);
-            case "infix":
-                return parse_infix(text);
-            case "postfix": // For now just postfix man.
-                return parse_postfix(text);
-            default:
-                return "not ready. default case of parse_statements";
-        }
-
-    },
-
-    /* E.g. hello world -> helloWorld */
-    convert2Camel: function(name_arr) {
-
-        if (name_arr.length == 1) return name_arr.join(" ");
-
-        var var_name = name_arr[0].toLowerCase();
-        var i;
-        for (i = 1; i < name_arr.length; i++) {
-            /* Change first letter to capital */
-            var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
-            var_name = var_name + toAdd;
-        }
-        return var_name;
+    switch(statementType) {
+        case "declare":
+            return parse_declare(text);
+        case "assign":
+            return parse_assignment(text);
+        case "infix":
+            return parse_infix(text);
+        case "postfix": // For now just postfix man.
+            return parse_postfix(text);
+        default:
+            var statement = new simpleStatement();
+            statement.logError("default case of parse_statements");
+            return statement;
     }
 }
 
@@ -114,50 +101,82 @@ function determine_type(text) {
 
 /* */
 function parse_declare(text) {
+    var statement = new simpleStatement();
+    statement.isDeclare = true;
+    var parsed_results = "#create";
 
-    var parsed_results = "#create"
     var splitted_text = text.split(" ");
     /* Check if var type mentioned. */
-    if (!variable_types.includes(splitted_text[1])) return "not ready. var type is not mentioned.";
+    if (!variable_types.includes(splitted_text[1])){
+        statement.logError("var type is not mentioned.");
+        return statement;
+    } 
     /* Check if var type is the last word mentioned. */
-    if (variable_types.includes(splitted_text[splitted_text.length-1])) 
-        return "not ready. var type is the last word mentioned.";
+    if (variable_types.includes(splitted_text[splitted_text.length-1])) {
+        statement.logError("var type is the last word mentioned.");
+        return statement;
+    }
     
     else parsed_results += " " + splitted_text[1]; // Add var_tpye. 
 
     /* Check for array declaration. */
     if (splitted_text.includes("array")) {
-        if (!splitted_text.includes("size")) return "not ready. Size was not mentioned.";
-        if (splitted_text.indexOf("size") == splitted_text.length-1) return "not ready. Size is the last word.";
+        if (!splitted_text.includes("size")) {
+            statement.logError("Size was not mentioned.");
+            return statement;
+        }
+        if (splitted_text.indexOf("size") == splitted_text.length-1) {
+            statement.logError("ize is the last word.");
+            return statement;
+        }
         parsed_results += " " + parse_array_d(splitted_text.slice(3).join(" "));
+        statement.newline = true;
     }
     else {
         /* Check if Equal is mentioned. */
         if (splitted_text.includes("equal")) {
             var equal_idx = splitted_text.indexOf("equal");
-            if (equal_idx == splitted_text.length-1) return "not ready. Equal is the last word.";
+            if (equal_idx == splitted_text.length-1) {
+                statement.logError("equal was last word mentioned.");
+                return statement;
+            }
             parsed_results += " " + parse_fragment(splitted_text.slice(2, equal_idx));
             parsed_results += " " + parse_fragment(splitted_text.slice(equal_idx + 1));
+            statement.newline = true;
         }
-        else parsed_results += " " + parse_fragment(splitted_text.slice(2));
+        else {
+            parsed_results += " " + parse_fragment(splitted_text.slice(2));
+            statement.extendable = true;
+        }
     }
-    return parsed_results + ";;";
+
+    statement.parsedStatement = parsed_results+ ";;";
+    return statement;
 }
 
 function parse_assignment(text) {
+    var statement = new simpleStatement();
+    statement.isAssign = true;
     var splitted_text = text.split(" ");
     var equal_idx = splitted_text.indexOf("equal");
     var parsed_results = "#assign " + parse_fragment(splitted_text.slice(0, equal_idx)) + " #with " + 
-    parse_fragment(splitted_text.slice(equal_idx + 1));
-    return  parsed_results + ";;";
+    parse_fragment(splitted_text.slice(equal_idx + 1)) + ";;";
 
+    statement.parsedStatement = parsed_results;
+    statement.newline = true;
+    return statement;
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] or ['hello', '<', '5', '&&', 'g' '==', '5']*/
 function parse_infix(text) {
+    var statement = new simpleStatement();
+    statement.isInfix = true;
     var parsed_results = "";
     var splitted_text = text.split(" ");
-    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) return "not ready. infix operator missing."
+    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) {
+        statement.logError("not ready. infix operator missing.");
+        return statement;
+    }
     var i = 0;
     var start = 0;
     var end = 0;
@@ -172,7 +191,10 @@ function parse_infix(text) {
     for (i; i < splitted_text.length; i++) {
         end++;
         if (infix_comparison_operator.includes(splitted_text[i])) {
-            if (end - start <= 1 || awaiting_segment) return "not ready. incomplete.";
+            if (end - start <= 1 || awaiting_segment) {
+                statement.logError("Incomplete");
+                return statement;
+            }
             awaiting_frag1 = false;
             awaiting_frag2 = true;
             awaiting_segment = true;
@@ -180,7 +202,10 @@ function parse_infix(text) {
             start = i + 1;
         }
         else if (infix_segmenting_operator.includes(splitted_text[i])) {
-            if (end - start <= 1) return "not ready. incomplete.";
+            if (end - start <= 1) {
+                statement.logError("Incomplete");
+                return statement;
+            }
             awaiting_frag1 = true;
             awaiting_frag2 = false;
             awaiting_segment = false;
@@ -194,14 +219,20 @@ function parse_infix(text) {
             parsed_results += " " + parse_fragment(splitted_text.slice(start));
         }
     }
-    if (awaiting_frag1 || awaiting_frag2) return "not ready. incomplete.";
-    return parsed_results.trim();
+    if (awaiting_frag1 || awaiting_frag2) {
+        statement.logError("Incomplete.");
+        return statement;
+    }
+    statement.parsedStatement = parsed_results.trim();
+    return statement;
 }
 
 function parse_postfix(test) {
+    var statement = new simpleStatement();
+    statement.isPostfix = true;
     var splitted_text = test.split(" ");
-    var parsed_results = "#variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
-    return parsed_results;
+    statement.parsedStatement = "#variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
+    return statement;
 }
 
 /* Parse array when doing daclaration.
@@ -218,7 +249,6 @@ function parse_array_d(text) {
 }
 
 function parse_fragment(splitted_text) {
-
     if (splitted_text.length == 1) {
         /* Is a number! (Not Not a number) */
         if (!isNaN(splitted_text[0])) return "#value " + splitted_text[0];

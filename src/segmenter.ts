@@ -1,9 +1,8 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
-var infix_operator_list = [">", ">=", "<", "<=", "!=", "=="];
-
-var parsy = require("./parse_statements.ts");
-// import { parse_statement } from './parse_statements'
+// var parsy = require("./parse_statements.ts");
+import { parse_statement, convert2Camel } from './parse_statements'
+import { structCommand } from './struct_command'
 
 
 /* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
@@ -13,13 +12,32 @@ Should look into seperating functionality of block statements and simple stateme
 text - command spoken by the user.
 var_list - list of variables already declared. 
 
-@returns:
-If command is wrong, returns an array, [not ready, error message.]
-Else, returns the parsed command, [parsed command.] */
-function segment_command(text, var_list) {
+@ Returns the struct command in the format [list of struct commands, variable list, conditions list]
+list of struct commands 
+    each element is a line of struct command. 
+    For e.g. [#create int #variable first #value 1 #dec_end;;]
+    If the struct command contains multiple lines, i.e. is a block statement, then
+    the list of struct commands will contain:
+    ['if #condition #variable helloWorld > #value 5  #if_branch_start', '#if_branch_end;;' ]
+
+variable list
+    list of new variables declared by the user. This is only updated when a declare command is given
+
+conditions list
+    next_line: Is true when the command ends and the user can proceed to new line.
+    extendable: Is true when the command is already parseable and it can still be extended.
+        e.g. "declare int hello" is parseable, but can be extended with "equal 5".
+    go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
+        This flag will tell the manager to go ahead with next command. */
+
+export function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
-    if (starting_command[0] == "not ready") return starting_command;
+    if (starting_command[0] == "not ready") {
+        var command = new structCommand("non-block");
+        command.logError(starting_command[1]);
+        return command;
+    }
 
     /* Splitted_text is the user's command without the leading starting command.
     Starting command refers to "begin if", "begin loop" etc. */
@@ -35,11 +53,14 @@ function segment_command(text, var_list) {
         case "while":
             return segment_while(splitted_text);
         default:
-            var statements = parsy.parse_statement(text);
-            console.log(statements);
-            var statementType = statements.split(" ")[0];
-            if (statementType != "#create" || statementType != "#assign") return ["no matches."];
-            else return [statements];
+            var statement = parse_statement(text);
+            if (!statement.isDeclare && !statement.isAssign) {
+                var command = new structCommand("non-block");
+                command.logError("no matches");
+                return command;
+            }
+            else 
+                return statement.convert2StructCommand();
     }
 }
 
@@ -52,7 +73,8 @@ function determine_user_command(text, var_list) {
 
     var splitted_text = text.split(" ");
 
-    if (splitted_text.length == 1) return ["not ready", "one word is not sufficient to do any parsing."];
+    if (splitted_text.length == 1)
+        return ["Not ready", "one word is not sufficient to do any parsing."]
 
     var starting_command = splitted_text[0];
 
@@ -62,93 +84,155 @@ function determine_user_command(text, var_list) {
 
 /* splitted_text e.g: ['hello', '<', '5'] */
 function segment_if(splitted_text) {
-    var parsed_results = "if #condition"
+    var command = new structCommand("block");
+    command.parsedCommand = "if #condition";
 
-    var infix_exp = parsy.parse_statement(splitted_text.join(" "));
-
-    if (infix_exp.includes("not ready.")) return ["not ready", "incomplete condition."];
-
-    return [parsed_results + " " + infix_exp + " #if_branch_start"];
+    var statement = parse_statement(splitted_text.join(" "));
+    if (statement.hasError) {
+        command.logError("incomplete condition");
+        return command;
+    }
+    if (!statement.isInfix) {
+        command.logError("infix is required.");
+        return command;
+    }
+    command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
+    command.endCommand = "#if_branch_end";
+    return command;
 }
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
 function segment_while(splitted_text) {
-    var parsed_results = "while #condition"
-
-    var infix_exp = parsy.parse_statement(splitted_text.join(" "));
-
-    if (infix_exp.includes("not ready.")) return ["not ready", "incomplete condition."];
-
-    return [parsed_results + " " + infix_exp + " #while_start"];
+    var command = new structCommand("block");
+    command.parsedCommand = "while #condition"
+    var statement = parse_statement(splitted_text.join(" "));
+    if (statement.hasError) {
+        command.logError("incomplete condition");
+        return command;
+    }
+    if (!statement.isInfix) {
+        command.logError("infix is required.");
+        return command;
+    }
+    command.parsedCommand += " " + statement.parsedStatement + " #while_start";
+    command.endCommand = "#while_end";
+    return command;
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
-    var parsed_results = "for";
+    var command = new structCommand("block");
+    command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
-    if (!splitted_text.includes("condition")) return ["not ready", "Condition was not mentioned."];
+    if (!splitted_text.includes("condition")) {
+        command.logError("Condition was not mentioned.");
+        return command;
+    }
     /* Split the splitted text array into condition blocks. Omit the first "condition" (using .slice(1))
      for the .split("condition") to work. Lastly, trim each string of the condition block (using .map()).
     E.g. of condition_blocks = [ 'i = 0', 'i < 5', 'i ++' ] */
     var condition_blocks = splitted_text.slice(1).join(" ").split("condition").map(x=>x.trim());
     /* Condition_blocks should have 3 sets. */
-    if (condition_blocks.length != 3) return ["not ready", "need to have 3 conditions."];
+    if (condition_blocks.length != 3) {
+        command.logError("need to have 3 conditions.");
+        return command;
+    }
 
     var i = 0;
     for (i; i < condition_blocks.length; i++) {
-        var statement = parsy.parse_statement(condition_blocks[i]);
-        if (statement.includes("not ready")) return ["not ready", "something wrong with for-loop condition."];
-        /* Remove terminator. */
-        statement = statement.replace(";;", "");
-        parsed_results += " #condition " + statement;
+        var statement = parse_statement(condition_blocks[i]);
+        if (statement.hasError) {
+            command.logError("something wrong with for-loop condition.");
+            return command;
+        }
+        if (!statement.isInfix) {
+            command.logError("infix is required.");
+            return command;
+        }
+        statement.removeTerminator();
+        command.parsedCommand += " #condition " + statement.parsedStatement;
     }
-    return [parsed_results];
+    command.endCommand = "#for_end";
+    return command;
 }
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
 function segment_function(splitted_text) {
-    var parsed_results = "#function_declare";
-    if (!splitted_text.includes("with")) return ["not ready", "with was not mentioned."];
-    if (splitted_text[splitted_text.length-1] != "begin") return ["not ready", "begin is not the last word."];
+    var command = new structCommand("block");
+    command.parsedCommand = "#function_declare";
+    if (!splitted_text.includes("with")) {
+        command.logError("with was not mentioned.");
+        return command;
+    }
+    if (splitted_text[splitted_text.length-1] != "begin") {
+        command.logError("begin is not the last word.");
+        return command;
+    } 
 
     /* Remove "begin" from the last with_block element. Not necessary. */
     var text = splitted_text.join(" ").replace("begin", "");
 
     var with_blocks = text.split("with");
     with_blocks = with_blocks.map(x=>x.trim());
-
     
-    if (with_blocks[0].length == 0) return ["not ready", "function name was not mentioned."];
-    if (with_blocks[1].substring(0, 11) != "return type") return ["not ready", "return type was not mentioned."];
-    if (!with_blocks[1].split(" ").some(x=>variable_types.includes(x))) return ["not ready", "variable type was not mentioned."];
+    if (with_blocks[0].length == 0) {
+        command.logError("function name was not mentioned.");
+        return command;
+    }
+    if (with_blocks[1].substring(0, 11) != "return type") {
+        command.logError("return type was not mentioned.");
+        return command;
+    }
+    if (!with_blocks[1].split(" ").some(x=>variable_types.includes(x))) {
+        command.logError("variable type was not mentioned.");
+        return command;
+    }
 
-    parsed_results += " " + parsy.convert2Camel(with_blocks[0].split(" ")); /* Add function name. */    
-    parsed_results += " " +  with_blocks[1].slice(12); /* Add var type. */
+    command.parsedCommand += " " + convert2Camel(with_blocks[0].split(" ")); /* Add function name. */    
+    command.parsedCommand += " " +  with_blocks[1].slice(12); /* Add var type. */
 
-    if (with_blocks.length == 2) return parsed_results += " #function_start";
+    if (with_blocks.length == 2) {
+        command.endCommand = "#function_end";
+        command.parsedCommand += " #function_start";
+        return command;
+    }
     
     var i = 2;
     for (i; i < with_blocks.length; i++) {
 
         var splitted_param = with_blocks[i].split(" ");
 
-        if (splitted_param.length < 3) return ["not ready", "parameter not complete."];
-        if (splitted_param[0] != "parameter") return ["not ready", "parameter was not mentioned."];
-        if (!variable_types.includes(splitted_param[1])) return ["not ready", "variable type was not mentioned."];
+        if (splitted_param.length < 3) {
+            command.logError("parameter not complete.");
+            return command;
+        }
+        if (splitted_param[0] != "parameter") {
+            command.logError("parameter not mentioned.");
+            return command;
+        }
+        if (!variable_types.includes(splitted_param[1])) {
+            command.logError("variable type was not mentioned.");
+            return command;
+        }
 
         if (splitted_param[2] == "array") { // If parameter of function is an array.
-            if (splitted_param.length < 4) return ["not ready", "parameter not complete."];
-            parsed_results += " #parameter_a #dimension 1 " + splitted_param[1];
-            parsed_results += " #array " + splitted_param.slice(3);
+            if (splitted_param.length < 4) {
+                command.logError("parameter not complete");
+                return command;
+            }
+            command.parsedCommand += " #parameter_a #dimension 1 " + splitted_param[1];
+            command.parsedCommand += " #array " + splitted_param.slice(3);
         }
         else { // If parameter of function is not an array.
-            parsed_results += " #parameter #type " + splitted_param[1]; // Add variable type
-            parsed_results += " " + splitted_param.slice(2);
+            command.parsedCommand += " #parameter #type " + splitted_param[1]; // Add variable type
+            command.parsedCommand += " " + splitted_param.slice(2);
         }
     }
-    return [parsed_results += " #function_start"];
+    command.parsedCommand += " #function_start";
+    command.endCommand += "#function_end";
+    return command;
 }
 
-console.log(segment_command("create function find maximum with return type int with parameter int array numbers with parameter int length begin", [""]));
+// console.log(segment_command("create function find maximum with return type int with parameter int array numbers with parameter int length begin", [""]));
