@@ -7,12 +7,22 @@ var parsy = require("./parse_statements.ts");
 
 
 /* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
-Should look into seperating functionality of block statements and simple statements. */
+Should look into seperating functionality of block statements and simple statements.
+
+@params:
+text - command spoken by the user.
+var_list - list of variables already declared. 
+
+@returns:
+If command is wrong, returns an array, [not ready, error message.]
+Else, returns the parsed command, [parsed command.] */
 function segment_command(text, var_list) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") return starting_command;
 
+    /* Splitted_text is the user's command without the leading starting command.
+    Starting command refers to "begin if", "begin loop" etc. */
     var splitted_text = starting_command[1].split(" ");
 
     switch(starting_command[0]) {
@@ -78,8 +88,8 @@ function segment_for_loop(splitted_text) {
     var parsed_results = "for";
     /* For loop must have 'condition' key word. */
     if (!splitted_text.includes("condition")) return ["not ready", "Condition was not mentioned."];
-    /* Split the splitted text array into condition blocks. Omit the first "condition" for the split by 
-    "condition" to work. Lastly, trim each string of the condition block.
+    /* Split the splitted text array into condition blocks. Omit the first "condition" (using .slice(1))
+     for the .split("condition") to work. Lastly, trim each string of the condition block (using .map()).
     E.g. of condition_blocks = [ 'i = 0', 'i < 5', 'i ++' ] */
     var condition_blocks = splitted_text.slice(1).join(" ").split("condition").map(x=>x.trim());
     /* Condition_blocks should have 3 sets. */
@@ -93,18 +103,13 @@ function segment_for_loop(splitted_text) {
         statement = statement.replace(";;", "");
         parsed_results += " #condition " + statement;
     }
-
     return [parsed_results];
-
 }
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
 function segment_function(splitted_text) {
-
     var parsed_results = "#function_declare";
-    var i = 0;
-
     if (!splitted_text.includes("with")) return ["not ready", "with was not mentioned."];
     if (splitted_text[splitted_text.length-1] != "begin") return ["not ready", "begin is not the last word."];
 
@@ -114,15 +119,13 @@ function segment_function(splitted_text) {
     var with_blocks = text.split("with");
     with_blocks = with_blocks.map(x=>x.trim());
 
-    /* Add function name. */
+    
     if (with_blocks[0].length == 0) return ["not ready", "function name was not mentioned."];
-    parsed_results += " " + parsy.convert2Camel(with_blocks[0].split(" "));
-
     if (with_blocks[1].substring(0, 11) != "return type") return ["not ready", "return type was not mentioned."];
     if (!with_blocks[1].split(" ").some(x=>variable_types.includes(x))) return ["not ready", "variable type was not mentioned."];
-    
-    /* Add var type. */
-    parsed_results += " " +  with_blocks[1].slice(12);
+
+    parsed_results += " " + parsy.convert2Camel(with_blocks[0].split(" ")); /* Add function name. */    
+    parsed_results += " " +  with_blocks[1].slice(12); /* Add var type. */
 
     if (with_blocks.length == 2) return parsed_results += " #function_start";
     
@@ -135,17 +138,17 @@ function segment_function(splitted_text) {
         if (splitted_param[0] != "parameter") return ["not ready", "parameter was not mentioned."];
         if (!variable_types.includes(splitted_param[1])) return ["not ready", "variable type was not mentioned."];
 
-        if (splitted_param[2] == "array") {
+        if (splitted_param[2] == "array") { // If parameter of function is an array.
             if (splitted_param.length < 4) return ["not ready", "parameter not complete."];
             parsed_results += " #parameter_a #dimension 1 " + splitted_param[1];
             parsed_results += " #array " + splitted_param.slice(3);
         }
-        else {
+        else { // If parameter of function is not an array.
             parsed_results += " #parameter #type " + splitted_param[1]; // Add variable type
             parsed_results += " " + splitted_param.slice(2);
         }
     }
-    return parsed_results += " #function_start";
+    return [parsed_results += " #function_start"];
 }
 
 console.log(segment_command("create function find maximum with return type int with parameter int array numbers with parameter int length begin", [""]));
