@@ -127,7 +127,7 @@ function displayCode(struct_command_list) {
 		commands += struct_command_list[i] + "\n"
 	}
 
-	commands += ' #program_end';
+	commands += ' #program_end;;';
 
 	console.log(commands)
 

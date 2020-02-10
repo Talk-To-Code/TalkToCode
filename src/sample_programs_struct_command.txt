@@ -5,7 +5,7 @@
 #assign #variable first #with #variable second;;
 #assign #variable second #with #variable temporary;;
 ======================= Find max integer from array ================
-#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter int length #function_start 
+#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter #type int length #function_start 
 #create int #variable max #array numbers #indexes #value 0 #index_end #dec_end;; 
 #create int #variable i #dec_end;; 
 for #condition #assign #variable i #with #value 1 #condition #variable i < #variable length #condition #post #variable i ++ #for_start 
