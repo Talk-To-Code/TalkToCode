@@ -4,8 +4,8 @@ export function runTestCases() {
 
     var test_cases = [[""], [""]];
 
-    test_cases = generate_test_cases("declare_assign");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("declare_assign");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("if_block");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -18,6 +18,9 @@ export function runTestCases() {
     
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
+
+    test_cases = generate_test_cases("switch_case");
+    runTestCase(test_cases[0], test_cases[1]);
 
 }
 
@@ -65,6 +68,11 @@ function generate_test_cases(cases: string) {
         test_cases[1] = ["while #condition #variable first != #variable second #while_start","","#while_end;;"];
     }
     
+    else if (cases == "switch_case") {
+        test_cases[0] = ["begin switch hello", "case 2 hello equal 5"];
+        test_cases[1] = ["switch #condition #variable hello case #value 2 #case_start #assign #variable hello #with #value 5;; #case_end;;"];
+    }
+
     return test_cases
 }
 

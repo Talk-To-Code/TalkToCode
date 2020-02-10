@@ -52,6 +52,8 @@ export function segment_command(text, var_list) {
             return segment_function(splitted_text);
         case "while":
             return segment_while(splitted_text);
+        case "switch":
+            return segment_switch(splitted_text);
         default:
             var statement = parse_statement(text);
             if (!statement.isDeclare && !statement.isAssign) {
@@ -69,6 +71,7 @@ function determine_user_command(text, var_list) {
 
     text = text.replace("begin if", "if");
     text = text.replace("begin Loop", "loop");
+    text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
 
     var splitted_text = text.split(" ");
@@ -170,7 +173,6 @@ function segment_function(splitted_text) {
         command.logError("begin is not the last word.");
         return command;
     } 
-
     /* Remove "begin" from the last with_block element. Not necessary. */
     var text = splitted_text.join(" ").replace("begin", "");
 
@@ -235,4 +237,48 @@ function segment_function(splitted_text) {
     return command;
 }
 
-// console.log(segment_command("create function find maximum with return type int with parameter int array numbers with parameter int length begin", [""]));
+function segment_switch(splitted_text) {
+    /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
+    var command = new structCommand("non-block");
+    command.extendable = true; // command is always extendable (adding new cases, new statements in each cases..)
+    if (splitted_text.length == 0) {
+        command.logError("no term mentioned");
+        return command;
+    }
+    if (!splitted_text.includes("case")) {
+        command.parsedCommand = "switch " + splitted_text.join(" ") + ";;";
+        return command;
+    }
+    var case_blocks = splitted_text.join(" ").split("case");
+    case_blocks = case_blocks.map(x=>x.trim());
+    command.parsedCommand = "switch #condition #variable " + convert2Camel(case_blocks[0].split(" "));
+    var i = 1;
+    for (i; i < case_blocks.length; i++) {
+        var segmented_case = spot_literal(case_blocks[i]);
+        if (segmented_case[0] == "not ready") {
+            command.logError(segmented_case[1]);
+            return command;
+        }
+        command.parsedCommand += " case #value " + segmented_case[0];
+        var statement = parse_statement(segmented_case[1]);
+        if (statement.hasError) {
+            command.logError("statements are incorrect!");
+            return command;
+        }
+        command.parsedCommand += " #case_start " + statement.parsedStatement + " #case_end;;";
+    }
+
+    return command;
+}
+
+function spot_literal(text) {
+    var splitted_text = text.split(" ");
+
+    if (splitted_text.length == 0) return ["not ready", "no literal"];
+    if (splitted_text.length == 1) return ["not ready", "no statement"];
+
+    if (!isNaN(splitted_text[0])) return [splitted_text[0], splitted_text.slice(1).join(" ")];
+    else return ["not ready", "no matches"];
+    // if (splitted_text[0] == "string") not implemented yet!
+
+}
