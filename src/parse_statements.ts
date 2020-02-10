@@ -150,7 +150,7 @@ function parse_declare(text) {
         }
     }
 
-    statement.parsedStatement = parsed_results+ ";;";
+    statement.parsedStatement = parsed_results+ " #dec_end;;";
     return statement;
 }
 

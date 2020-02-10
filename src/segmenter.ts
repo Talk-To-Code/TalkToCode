@@ -97,7 +97,7 @@ function segment_if(splitted_text) {
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
-    command.endCommand = "#if_branch_end";
+    command.endCommand = "#if_branch_end;;";
     return command;
 }
 
@@ -116,7 +116,7 @@ function segment_while(splitted_text) {
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #while_start";
-    command.endCommand = "#while_end";
+    command.endCommand = "#while_end;;";
     return command;
 }
 
@@ -153,7 +153,7 @@ function segment_for_loop(splitted_text) {
         statement.removeTerminator();
         command.parsedCommand += " #condition " + statement.parsedStatement;
     }
-    command.endCommand = "#for_end";
+    command.endCommand = "#for_end;;";
     return command;
 }
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
@@ -194,7 +194,7 @@ function segment_function(splitted_text) {
     command.parsedCommand += " " +  with_blocks[1].slice(12); /* Add var type. */
 
     if (with_blocks.length == 2) {
-        command.endCommand = "#function_end";
+        command.endCommand = "#function_end;;";
         command.parsedCommand += " #function_start";
         return command;
     }
@@ -231,7 +231,7 @@ function segment_function(splitted_text) {
         }
     }
     command.parsedCommand += " #function_start";
-    command.endCommand += "#function_end";
+    command.endCommand += "#function_end;;";
     return command;
 }
 

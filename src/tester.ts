@@ -35,7 +35,7 @@ function generate_test_cases(cases: string) {
 
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 
-        "#create float #variable count #value hello #dec_end;;",
+        "#create float #variable count #variable hello #dec_end;;",
         "#create int #variable first #value 10 #dec_end;;", ""];
     }
 
