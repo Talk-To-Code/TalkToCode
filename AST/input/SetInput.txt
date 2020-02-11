@@ -1,0 +1,3 @@
+{#array};;
+{#array #parameter #value 1 #parameter #value 'e' #parameter #value "ea" #parameter #value 3.3 #parameter #value true #parameter #value false};;
+{#array #parameter {#list #parameter #value 1 #parameter #value 3} #parameter {#array #parameter #value 3.3 #parameter #value 4.45} #parameter {#tuple #parameter #value "hi" #parameter #value "bye"} #parameter {#dictionary #key "melon" #value #value 5 #key "tomato" #value #value 10}};;

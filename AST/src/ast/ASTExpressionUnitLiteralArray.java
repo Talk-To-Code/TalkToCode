@@ -1,22 +1,23 @@
 package ast;
 import java.util.*;
 
-import ast.ASTParser.programType;
-
 /**
  * @author GAO RISHENG A0101891L
- * This class is mainly for construction of AST nodes representing a constant array in C/Java/Python
+ * This class is mainly for construction of AST nodes representing a constant array in C/Java
+ * or a list/set/tuple in Python
  * Program and its respective syntax generation
  *
  */
 public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
+	public enum bracketType { CURLY, SQUARE, ROUND };
+	
 	private static final String NODE_TYPE = "Array";
 	private ArrayList<ASTExpression> entries;
-	private int pType;
+	private bracketType bType;
 	
-	public ASTExpressionUnitLiteralArray(programType pTyp){
+	public ASTExpressionUnitLiteralArray(bracketType bTyp){
 		super();
-		initialize(pTyp);
+		initialize(bTyp);
 	}
 
 	public void addValue(String value){
@@ -28,32 +29,21 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 		this.entries.add(exp);
 		exp.parent = this;
 	}
-	private void initialize(programType pTyp) {
+	private void initialize(bracketType bTyp) {
 		this.entries = new ArrayList<ASTExpression>();
-		switch(pTyp) {
-			case C:
-				this.pType = INDEX_C;
-				break;
-			case P:
-				this.pType = INDEX_PYTHON;
-				break;
-			default:
-				this.pType = 0;
-				break;
-		}
+		this.bType = bTyp;
 	}
 	public String typeof(){
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	
 	public String toSyntax() {
-		return toSyntax(this.pType);
+		return toSyntax(this.bType);
 	}
 	
-	public String toSyntax(int programmingLanguageSyntax) {
-		switch(programmingLanguageSyntax){
-		case INDEX_C:
-		case INDEX_JAVA:
+	public String toSyntax(bracketType bTyp) {
+		switch(bType){
+		case CURLY:
 		{
 			this.result = "";
 			this.result += "{";
@@ -62,12 +52,12 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 				this.result+= this.entries.get(index).toSyntax();
 				this.result+= ", ";
 			}
-			this.result+= this.entries.get(index).toSyntax();
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
 			this.result += "}";
 			if(this.isQuoted) quote();
 			return this.result;
 		}
-		case INDEX_PYTHON:
+		case SQUARE:
 		{
 			this.result = "";
 			this.result += "[";
@@ -78,6 +68,20 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 			}
 			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
 			this.result += "]";
+			if(this.isQuoted) quote();
+			return this.result;
+		}
+		case ROUND:
+		{
+			this.result = "";
+			this.result += "(";
+			int index = 0;
+			for(;index<this.entries.size()-1;index++){
+				this.result+= this.entries.get(index).toSyntax();
+				this.result+= ", ";
+			}
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
+			this.result += ")";
 			if(this.isQuoted) quote();
 			return this.result;
 		}

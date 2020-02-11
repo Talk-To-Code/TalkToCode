@@ -25,6 +25,8 @@
 | < PROGRAM_P : "#p_program" >| < DECLARE_END : "#dec_end" >| < DIMENSION : "#dimension" >| < PARAMETER_A : "#parameter_a" >| < TREE : "#tree" >
 | < COMMENT : "#comment" >
 | < COMMENT_END : "#comment_end" >
+| < LIST : "#list" >
+| < TUPLE : "#tuple" >
 | < DICTIONARY : "#dictionary" >
 | < KEY : "#key" >
 | < PARENT : "#parent" >
@@ -102,10 +104,22 @@
 	)    < LPAREN >    (      < PARAMETER > parameters = expression(pType)      {        call.addParameter(parameters);      }    )*    < RPAREN >  )  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
     ASTExpressionUnitLiteral key;
     ASTExpression value;  }
-  (    < ARRAY >
-    {
-      arr = new ASTExpressionUnitLiteralArray(pType);
-    }
+  (
+    (      < ARRAY >
+      {
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.CURLY);
+      }
+    | < LIST >
+      {
+        if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.SQUARE); 
+      }
+    | < TUPLE >
+      {
+        if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.ROUND); 
+      }
+    )
     (
       < PARAMETER > parameters = expression(pType)
       {

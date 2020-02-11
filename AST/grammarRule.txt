@@ -118,7 +118,7 @@ fragment() :
 	| < VARIABLE >< IDENTIFIER >
 	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
 	| < LPAREN > expression() < RPAREN >
-	| < LBRACE > (< ARRAY > (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
+	| < LBRACE > ((< ARRAY > | < LIST > | < TUPLE >) (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
 	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 
