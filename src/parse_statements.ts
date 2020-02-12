@@ -82,6 +82,12 @@ export function parse_statement(text) {
             return parse_infix(text);
         case "postfix": // For now just postfix man.
             return parse_postfix(text);
+        case "return":
+            return parse_return(text);
+        case "break":
+            return parse_break();
+        case "continue":
+            return parse_continue();
         default:
             var statement = new simpleStatement();
             statement.logError("default case of parse_statements");
@@ -92,10 +98,21 @@ export function parse_statement(text) {
 function determine_type(text) {
     var splitted_text = text.split(" ");
     if (splitted_text[0] == "declare") return "declare";
+    else if (splitted_text[0] == "return") return "return";
+    else if (splitted_text[0] == "continue") return "continue";
+    else if (splitted_text[0] == "break") return "break";
     else if (splitted_text.includes("equal")) return "assign";
     else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
     else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
     else return "not ready.";
+}
+
+function parse_continue() {
+    return "continue;;";
+}
+
+function parse_break() {
+    return "break;;";
 }
 
 function parse_declare(text) {
@@ -150,11 +167,36 @@ function parse_declare(text) {
     return statement;
 }
 
+function parse_return(text) {
+    var statement = new simpleStatement();
+    statement.isReturn = true;
+    statement.parsedStatement = "return #paramater";
+    var splitted_text = text.split(" ");
+    /* Return has an assign statement */
+    if (splitted_text.includes("equal")) {
+        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "));
+        if (assign_statement.hasError) return assign_statement;
+        else statement.parsedStatement += " " + assign_statement.parsedStatement; // assign statement alr has its own ";;"
+    }
+    /* returning a variable or literal */
+    else {
+        statement.parsedStatement += " " + parse_fragment(splitted_text.slice(1).join(" ")) + ";;";
+    }
+    statement.newline = true;
+    return statement;
+}
+
 function parse_assignment(text) {
     var statement = new simpleStatement();
     statement.isAssign = true;
     var splitted_text = text.split(" ");
     var equal_idx = splitted_text.indexOf("equal");
+
+    if (equal_idx == splitted_text.length-1) {
+        statement.logError("equal was last word mentioned.");
+        return statement;
+    }
+
     statement.parsedStatement = "#assign " + parse_fragment(splitted_text.slice(0, equal_idx)) + " #with " + 
     parse_fragment(splitted_text.slice(equal_idx + 1)) + ";;";
     statement.newline = true;
@@ -241,7 +283,7 @@ function parse_array_d(text) {
     return parsed_results;  
 }
 
-function parse_fragment(splitted_text) {
+export function parse_fragment(splitted_text) {
     if (splitted_text.length == 1) {
         /* Is a number! (Not Not a number) */
         if (!isNaN(splitted_text[0])) return "#value " + splitted_text[0];

@@ -19,11 +19,14 @@ export function runTestCases() {
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("do_while_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("do_while_loop");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("switch_case");
     // runTestCase(test_cases[0], test_cases[1]);
+
+    test_cases = generate_test_cases("jump_statements");
+    runTestCase(test_cases[0], test_cases[1]);
 
 }
 
@@ -43,6 +46,12 @@ function generate_test_cases(cases: string) {
         "#assign #variable helloWorld #with #value 4;;", 
         "#create float #variable count #variable hello #dec_end;;",
         "#create int #variable first #value 10 #dec_end;;", ""];
+    }
+
+    else if (cases == "jump_statements") {
+        test_cases[0] = ["return i equal 2"];
+
+        test_cases[1] = ["return #paramater #assign #variable i #with #value 2;;",""];
     }
 
     else if (cases == "if_block") {

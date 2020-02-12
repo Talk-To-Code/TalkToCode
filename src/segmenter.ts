@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel } from './parse_statements'
+import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -58,13 +58,7 @@ export function segment_command(text, var_list) {
             return segment_do(splitted_text);
         default:
             var statement = parse_statement(text);
-            if (!statement.isDeclare && !statement.isAssign) {
-                var command = new structCommand("non-block");
-                command.logError("no matches");
-                return command;
-            }
-            else 
-                return statement.convert2StructCommand();
+            return statement.convert2StructCommand();
     }
 }
 
@@ -78,9 +72,6 @@ function determine_user_command(text, var_list) {
     text = text.replace("do while", "do");
 
     var splitted_text = text.split(" ");
-
-    if (splitted_text.length == 1)
-        return ["Not ready", "one word is not sufficient to do any parsing."]
 
     var starting_command = splitted_text[0];
 
@@ -274,12 +265,12 @@ function segment_switch(splitted_text) {
     command.parsedCommand = "switch #condition #variable " + convert2Camel(case_blocks[0].split(" "));
     var i = 1;
     for (i; i < case_blocks.length; i++) {
-        var segmented_case = spot_literal(case_blocks[i]);
+        var segmented_case = splitLiteralAndStatement(case_blocks[i]);
         if (segmented_case[0] == "not ready") {
             command.logError(segmented_case[1]);
             return command;
         }
-        command.parsedCommand += " case #value " + segmented_case[0];
+        command.parsedCommand += " case " + parse_fragment(segmented_case[0]);
         var statement = parse_statement(segmented_case[1]);
         if (statement.hasError) {
             command.logError("statements are incorrect!");
@@ -291,7 +282,8 @@ function segment_switch(splitted_text) {
     return command;
 }
 
-function spot_literal(text) {
+/* Assuming a literal is mentioned first, followed by a statement, segment the 2. */
+function splitLiteralAndStatement(text) {
     var splitted_text = text.split(" ");
 
     if (splitted_text.length == 0) return ["not ready", "no literal"];
