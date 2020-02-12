@@ -71,7 +71,6 @@ export function convert2Camel(name_arr) {
 /* Purpose of this function is to parse any potential statement into the structured command. */
 /* Returns class statement. */
 export function parse_statement(text) {
-    console.log(text);
     var statementType = determine_type(text);
 
     switch(statementType) {
@@ -83,6 +82,12 @@ export function parse_statement(text) {
             return parse_infix(text);
         case "postfix": // For now just postfix man.
             return parse_postfix(text);
+        case "return":
+            return parse_return(text);
+        case "break":
+            return parse_break();
+        case "continue":
+            return parse_continue();
         default:
             var statement = new simpleStatement();
             statement.logError("default case of parse_statements");
@@ -93,17 +98,27 @@ export function parse_statement(text) {
 function determine_type(text) {
     var splitted_text = text.split(" ");
     if (splitted_text[0] == "declare") return "declare";
+    else if (splitted_text[0] == "return") return "return";
+    else if (splitted_text[0] == "continue") return "continue";
+    else if (splitted_text[0] == "break") return "break";
     else if (splitted_text.includes("equal")) return "assign";
     else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
     else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
     else return "not ready.";
 }
 
-/* */
+function parse_continue() {
+    return "continue;;";
+}
+
+function parse_break() {
+    return "break;;";
+}
+
 function parse_declare(text) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
-    var parsed_results = "#create";
+    statement.parsedStatement = "#create";
 
     var splitted_text = text.split(" ");
     /* Check if var type mentioned. */
@@ -117,8 +132,7 @@ function parse_declare(text) {
         return statement;
     }
     
-    else parsed_results += " " + splitted_text[1]; // Add var_tpye. 
-
+    else statement.parsedStatement += " " + splitted_text[1]; // Add var_tpye. 
     /* Check for array declaration. */
     if (splitted_text.includes("array")) {
         if (!splitted_text.includes("size")) {
@@ -126,10 +140,10 @@ function parse_declare(text) {
             return statement;
         }
         if (splitted_text.indexOf("size") == splitted_text.length-1) {
-            statement.logError("ize is the last word.");
+            statement.logError("size is the last word.");
             return statement;
         }
-        parsed_results += " " + parse_array_d(splitted_text.slice(3).join(" "));
+        statement.parsedStatement += " " + parse_array_d(splitted_text.slice(3).join(" "));
         statement.newline = true;
     }
     else {
@@ -140,17 +154,35 @@ function parse_declare(text) {
                 statement.logError("equal was last word mentioned.");
                 return statement;
             }
-            parsed_results += " " + parse_fragment(splitted_text.slice(2, equal_idx));
-            parsed_results += " " + parse_fragment(splitted_text.slice(equal_idx + 1));
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(2, equal_idx));
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(equal_idx + 1));
             statement.newline = true;
         }
         else {
-            parsed_results += " " + parse_fragment(splitted_text.slice(2));
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(2));
             statement.extendable = true;
         }
     }
+    statement.parsedStatement +=  " #dec_end;;";
+    return statement;
+}
 
-    statement.parsedStatement = parsed_results+ " #dec_end;;";
+function parse_return(text) {
+    var statement = new simpleStatement();
+    statement.isReturn = true;
+    statement.parsedStatement = "return #paramater";
+    var splitted_text = text.split(" ");
+    /* Return has an assign statement */
+    if (splitted_text.includes("equal")) {
+        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "));
+        if (assign_statement.hasError) return assign_statement;
+        else statement.parsedStatement += " " + assign_statement.parsedStatement; // assign statement alr has its own ";;"
+    }
+    /* returning a variable or literal */
+    else {
+        statement.parsedStatement += " " + parse_fragment(splitted_text.slice(1).join(" ")) + ";;";
+    }
+    statement.newline = true;
     return statement;
 }
 
@@ -159,10 +191,14 @@ function parse_assignment(text) {
     statement.isAssign = true;
     var splitted_text = text.split(" ");
     var equal_idx = splitted_text.indexOf("equal");
-    var parsed_results = "#assign " + parse_fragment(splitted_text.slice(0, equal_idx)) + " #with " + 
-    parse_fragment(splitted_text.slice(equal_idx + 1)) + ";;";
 
-    statement.parsedStatement = parsed_results;
+    if (equal_idx == splitted_text.length-1) {
+        statement.logError("equal was last word mentioned.");
+        return statement;
+    }
+
+    statement.parsedStatement = "#assign " + parse_fragment(splitted_text.slice(0, equal_idx)) + " #with " + 
+    parse_fragment(splitted_text.slice(equal_idx + 1)) + ";;";
     statement.newline = true;
     return statement;
 }
@@ -171,7 +207,6 @@ function parse_assignment(text) {
 function parse_infix(text) {
     var statement = new simpleStatement();
     statement.isInfix = true;
-    var parsed_results = "";
     var splitted_text = text.split(" ");
     if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) {
         statement.logError("not ready. infix operator missing.");
@@ -198,7 +233,7 @@ function parse_infix(text) {
             awaiting_frag1 = false;
             awaiting_frag2 = true;
             awaiting_segment = true;
-            parsed_results += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
             start = i + 1;
         }
         else if (infix_segmenting_operator.includes(splitted_text[i])) {
@@ -209,21 +244,21 @@ function parse_infix(text) {
             awaiting_frag1 = true;
             awaiting_frag2 = false;
             awaiting_segment = false;
-            parsed_results += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
             start = i + 1;
             end++;
         }
         /* Last element */
         else if (i == splitted_text.length - 1) {
             awaiting_frag2 = false;
-            parsed_results += " " + parse_fragment(splitted_text.slice(start));
+            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start));
         }
     }
     if (awaiting_frag1 || awaiting_frag2) {
         statement.logError("Incomplete.");
         return statement;
     }
-    statement.parsedStatement = parsed_results.trim();
+    statement.parsedStatement = statement.parsedStatement.trim();
     return statement;
 }
 
@@ -248,7 +283,7 @@ function parse_array_d(text) {
     return parsed_results;  
 }
 
-function parse_fragment(splitted_text) {
+export function parse_fragment(splitted_text) {
     if (splitted_text.length == 1) {
         /* Is a number! (Not Not a number) */
         if (!isNaN(splitted_text[0])) return "#value " + splitted_text[0];

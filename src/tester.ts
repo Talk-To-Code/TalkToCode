@@ -4,8 +4,8 @@ export function runTestCases() {
 
     var test_cases = [[""], [""]];
 
-    test_cases = generate_test_cases("declare_assign");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("declare_assign");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("if_block");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -18,6 +18,15 @@ export function runTestCases() {
     
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
+
+    // test_cases = generate_test_cases("do_while_loop");
+    // runTestCase(test_cases[0], test_cases[1]);
+
+    // test_cases = generate_test_cases("switch_case");
+    // runTestCase(test_cases[0], test_cases[1]);
+
+    test_cases = generate_test_cases("jump_statements");
+    runTestCase(test_cases[0], test_cases[1]);
 
 }
 
@@ -37,6 +46,12 @@ function generate_test_cases(cases: string) {
         "#assign #variable helloWorld #with #value 4;;", 
         "#create float #variable count #variable hello #dec_end;;",
         "#create int #variable first #value 10 #dec_end;;", ""];
+    }
+
+    else if (cases == "jump_statements") {
+        test_cases[0] = ["return i equal 2"];
+
+        test_cases[1] = ["return #paramater #assign #variable i #with #value 2;;",""];
     }
 
     else if (cases == "if_block") {
@@ -64,7 +79,18 @@ function generate_test_cases(cases: string) {
         test_cases[0] = ["while first not equal second"];
         test_cases[1] = ["while #condition #variable first != #variable second #while_start","","#while_end;;"];
     }
+
+    else if (cases == "do_while_loop") {
+        test_cases[0] = ["do while first not equal second", "hello equal 5"];
+        test_cases[1] = ["do #condition #variable first != #variable second #while_start", "#assign #variable hello #with #value 5;;", 
+        "","#while_end;;"];
+    }
     
+    else if (cases == "switch_case") {
+        test_cases[0] = ["begin switch hello", "case 2 hello equal 5"];
+        test_cases[1] = ["switch #condition #variable hello case #value 2 #case_start #assign #variable hello #with #value 5;; #case_end;;"];
+    }
+
     return test_cases
 }
 

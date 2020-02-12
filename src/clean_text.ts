@@ -3,9 +3,6 @@
  * Performs automatic corrections to prepare text for easy parsing to struct commands
 */
 
-var variable_types = ["integer", "long", "float", "double", "boolean", "character", "string", "void"]
-var struct_variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
-
 // export function correct_words
 export function clean(input_speech: string) {
     input_speech = fix_common_errors(input_speech);

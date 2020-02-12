@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel } from './parse_statements'
+import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -52,15 +52,13 @@ export function segment_command(text, var_list) {
             return segment_function(splitted_text);
         case "while":
             return segment_while(splitted_text);
+        case "switch":
+            return segment_switch(splitted_text);
+        case "do":
+            return segment_do(splitted_text);
         default:
             var statement = parse_statement(text);
-            if (!statement.isDeclare && !statement.isAssign) {
-                var command = new structCommand("non-block");
-                command.logError("no matches");
-                return command;
-            }
-            else 
-                return statement.convert2StructCommand();
+            return statement.convert2StructCommand();
     }
 }
 
@@ -69,12 +67,11 @@ function determine_user_command(text, var_list) {
 
     text = text.replace("begin if", "if");
     text = text.replace("begin Loop", "loop");
+    text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
+    text = text.replace("do while", "do");
 
     var splitted_text = text.split(" ");
-
-    if (splitted_text.length == 1)
-        return ["Not ready", "one word is not sufficient to do any parsing."]
 
     var starting_command = splitted_text[0];
 
@@ -120,6 +117,23 @@ function segment_while(splitted_text) {
     return command;
 }
 
+function segment_do(splitted_text) {
+    var command = new structCommand("block");
+    command.parsedCommand = "do #condition"
+    var statement = parse_statement(splitted_text.join(" "));
+    if (statement.hasError) {
+        command.logError("incomplete condition");
+        return command;
+    }
+    if (!statement.isInfix) {
+        command.logError("infix is required.");
+        return command;
+    }
+    command.parsedCommand += " " + statement.parsedStatement + " #while_start";
+    command.endCommand = "#while_end;;";
+    return command;
+}
+
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
     var command = new structCommand("block");
@@ -143,7 +157,7 @@ function segment_for_loop(splitted_text) {
     for (i; i < condition_blocks.length; i++) {
         var statement = parse_statement(condition_blocks[i]);
         if (statement.hasError) {
-            command.logError("something wrong with for-loop condition.");
+            command.logError("something wrong with for-loop infix condition.");
             return command;
         }
         if (!statement.isInfix) {
@@ -170,8 +184,7 @@ function segment_function(splitted_text) {
         command.logError("begin is not the last word.");
         return command;
     } 
-
-    /* Remove "begin" from the last with_block element. Not necessary. */
+    /* Remove "begin". Not necessary. */
     var text = splitted_text.join(" ").replace("begin", "");
 
     var with_blocks = text.split("with");
@@ -235,4 +248,49 @@ function segment_function(splitted_text) {
     return command;
 }
 
-// console.log(segment_command("create function find maximum with return type int with parameter int array numbers with parameter int length begin", [""]));
+function segment_switch(splitted_text) {
+    /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
+    var command = new structCommand("non-block");
+    command.extendable = true; // command is always extendable (adding new cases, new statements in each cases..)
+    if (splitted_text.length == 0) {
+        command.logError("no term mentioned");
+        return command;
+    }
+    if (!splitted_text.includes("case")) {
+        command.parsedCommand = "switch " + splitted_text.join(" ") + ";;";
+        return command;
+    }
+    var case_blocks = splitted_text.join(" ").split("case");
+    case_blocks = case_blocks.map(x=>x.trim());
+    command.parsedCommand = "switch #condition #variable " + convert2Camel(case_blocks[0].split(" "));
+    var i = 1;
+    for (i; i < case_blocks.length; i++) {
+        var segmented_case = splitLiteralAndStatement(case_blocks[i]);
+        if (segmented_case[0] == "not ready") {
+            command.logError(segmented_case[1]);
+            return command;
+        }
+        command.parsedCommand += " case " + parse_fragment(segmented_case[0]);
+        var statement = parse_statement(segmented_case[1]);
+        if (statement.hasError) {
+            command.logError("statements are incorrect!");
+            return command;
+        }
+        command.parsedCommand += " #case_start " + statement.parsedStatement + " #case_end;;";
+    }
+
+    return command;
+}
+
+/* Assuming a literal is mentioned first, followed by a statement, segment the 2. */
+function splitLiteralAndStatement(text) {
+    var splitted_text = text.split(" ");
+
+    if (splitted_text.length == 0) return ["not ready", "no literal"];
+    if (splitted_text.length == 1) return ["not ready", "no statement"];
+
+    if (!isNaN(splitted_text[0])) return [splitted_text[0], splitted_text.slice(1).join(" ")];
+    else return ["not ready", "no matches"];
+    // if (splitted_text[0] == "string") not implemented yet!
+
+}
