@@ -54,6 +54,8 @@ export function segment_command(text, var_list) {
             return segment_while(splitted_text);
         case "switch":
             return segment_switch(splitted_text);
+        case "do":
+            return segment_do(splitted_text);
         default:
             var statement = parse_statement(text);
             if (!statement.isDeclare && !statement.isAssign) {
@@ -73,6 +75,7 @@ function determine_user_command(text, var_list) {
     text = text.replace("begin Loop", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
+    text = text.replace("do while", "do");
 
     var splitted_text = text.split(" ");
 
@@ -123,6 +126,23 @@ function segment_while(splitted_text) {
     return command;
 }
 
+function segment_do(splitted_text) {
+    var command = new structCommand("block");
+    command.parsedCommand = "do #condition"
+    var statement = parse_statement(splitted_text.join(" "));
+    if (statement.hasError) {
+        command.logError("incomplete condition");
+        return command;
+    }
+    if (!statement.isInfix) {
+        command.logError("infix is required.");
+        return command;
+    }
+    command.parsedCommand += " " + statement.parsedStatement + " #while_start";
+    command.endCommand = "#while_end;;";
+    return command;
+}
+
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
 function segment_for_loop(splitted_text) {
     var command = new structCommand("block");
@@ -146,7 +166,7 @@ function segment_for_loop(splitted_text) {
     for (i; i < condition_blocks.length; i++) {
         var statement = parse_statement(condition_blocks[i]);
         if (statement.hasError) {
-            command.logError("something wrong with for-loop condition.");
+            command.logError("something wrong with for-loop infix condition.");
             return command;
         }
         if (!statement.isInfix) {
@@ -173,7 +193,7 @@ function segment_function(splitted_text) {
         command.logError("begin is not the last word.");
         return command;
     } 
-    /* Remove "begin" from the last with_block element. Not necessary. */
+    /* Remove "begin". Not necessary. */
     var text = splitted_text.join(" ").replace("begin", "");
 
     var with_blocks = text.split("with");
