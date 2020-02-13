@@ -54,16 +54,19 @@ function listen() {
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 
-			check_if_delete_line(transcribed_word);
-			check_if_delete_function(transcribed_word);
-			check_if_comment_line(transcribed_word);
-			check_if_rename_variable(transcribed_word);
-
 			console.log(JSON.stringify(manager.curr_speech))
 
 			if (transcribed_word == "show me the document") showTextDocument();
 
 			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
+
+			else if (check_if_edit_command(transcribed_word)){
+				check_if_delete_line(transcribed_word);
+				check_if_delete_function(transcribed_word);
+				check_if_comment_line(transcribed_word);
+				check_if_rename_variable(transcribed_word);
+				check_if_rename_function(transcribed_word);
+			}
 
 			else {
 				manager.parse_speech(transcribed_word)
@@ -72,6 +75,14 @@ function listen() {
 		}
 	});
 
+}
+
+function check_if_edit_command(text: String){
+	var arr = text.split(" ");
+	if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment"){
+		return true;
+	}
+	return false;
 }
 
 function check_if_delete_line(text: String) { 
@@ -84,15 +95,15 @@ function check_if_delete_line(text: String) {
 			let line_num = parseInt(arr[2])-1
 			let line = document.lineAt(line_num)
 			editor.edit (editBuilder =>{
-				editBuilder.delete(line.range)
-				delete_edit_commands_from_history(line_num);
+				editBuilder.delete(line.range);
 			});
 		}
+		delete_edit_commands_from_history();
 	}
 }
 
-function delete_edit_commands_from_history(line_num: number){
-	delete manager.struct_command_list[line_num+1];
+function delete_edit_commands_from_history(){
+	//manager.struct_command_list.splice(manager.struct_command_list.length-1,manager.struct_command_list.length);
 	manager.speech_hist.splice(manager.speech_hist.length-1,manager.speech_hist.length);
 }
 
@@ -130,12 +141,37 @@ function check_if_delete_function(text: String) {
 			for (var i=start;i<=end;i++){
 				editor.edit (editBuilder =>{
 					editBuilder.delete(document.lineAt(i).range);
-					delete_edit_commands_from_history(i);
 				});
 			}
 
 		}
+		
 	}
+
+}
+
+function check_if_rename_function(text: String) {
+	var arr = text.split(" ");
+	if (arr[0]=="rename" && arr[1]=="function") {
+		let editor = vscode.window.activeTextEditor;
+		if (editor) {
+			const document = editor.document;
+			var functionToReplace = arr[2];
+			var replaceWith = arr[4];
+			for (var i=0;i<document.lineCount;i++){
+				let line = document.lineAt(i).text;
+				let text = line.split(" ");
+				for (var j=1;j<text.length;j++){
+					if (text[i]==functionToReplace && text[i-1]=="#function_declare"){
+						text[i] = replaceWith;
+						editor.edit (editBuilder =>{
+							editBuilder.replace(document.lineAt(i).range,text.join(" "));
+					});
+				}
+			}
+		}
+	}
+}
 }
 
 function check_if_rename_variable(text:String) {
@@ -149,7 +185,6 @@ function check_if_rename_variable(text:String) {
 				let documentLine = document.lineAt(i);
 				let nameToReplace = arr[2];
 				let replaceWith = arr[4];
-				console.log("DEBUG 2: "+line);
 				var temp = line.split(" ");
 				var flag = false;
 				for (var j=0;j<temp.length-1;j++){
@@ -160,11 +195,9 @@ function check_if_rename_variable(text:String) {
 				}
 				if (flag){
 					manager.struct_command_list[i] = temp.join(" ");
-					console.log("DEBUG 3: "+manager.struct_command_list[i]);
 					editor.edit (editBuilder =>{
 						editBuilder.delete(documentLine.range);
 						editBuilder.insert(documentLine.range.start, temp.join(" "));
-						//editBuilder.replace(documentLine.range,temp.join(" "));
 					});
 				}
 			}
@@ -183,10 +216,13 @@ function check_if_comment_line(text: String) {
 			editor.edit (editBuilder => {
 				editBuilder.insert(line.range.start, "#comment");
 				editBuilder.insert(line.range.end,"#end_comment");
-				delete_edit_commands_from_history(line_num);
+				manager.speech_hist[line_num-1]="#comment"+manager.speech_hist[line_num-1]+"#end_comment";
+                manager.struct_command_list[line_num-1] = "#comment"+manager.struct_command_list[line_num-1]+"#end_comment";
 			});
 		}	
-	}		
+		
+	}
+			
 }
 
 
