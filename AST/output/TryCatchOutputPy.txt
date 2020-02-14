@@ -1,0 +1,75 @@
+try:
+	print(i)
+
+	y += 1
+
+except:
+	print(i)
+
+	y += 1
+
+try:
+	print(i)
+
+	y += 1
+
+except(NameError):
+	print(i)
+
+	y += 1
+
+except(OutOfBoundsError, NotAnIntegerError) as ex:
+	print(i)
+
+	y += 1
+
+try:
+	print(i)
+
+	y += 1
+
+except:
+	print(i)
+
+	y += 1
+
+else:
+	print(i)
+
+	y += 1
+
+try:
+	print(i)
+
+	y += 1
+
+except:
+	print(i)
+
+	y += 1
+
+finally:
+	print(i)
+
+	y += 1
+
+try:
+	print(i)
+
+	y += 1
+
+except:
+	print(i)
+
+	y += 1
+
+else:
+	print(i)
+
+	y += 1
+
+finally:
+	print(i)
+
+	y += 1
+

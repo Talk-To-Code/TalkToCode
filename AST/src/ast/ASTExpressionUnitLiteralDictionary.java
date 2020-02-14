@@ -9,7 +9,8 @@ import java.util.*;
  */
 public class ASTExpressionUnitLiteralDictionary extends ASTExpressionUnitLiteral{
 	private static final String NODE_TYPE = "Dictionary";
-	private HashMap<ASTExpressionUnitLiteral, ASTExpression> entries;
+	private ArrayList<ASTExpressionUnitLiteral> keys;
+	private ArrayList<ASTExpression> values;
 	
 	public ASTExpressionUnitLiteralDictionary(){
 		super();
@@ -17,12 +18,14 @@ public class ASTExpressionUnitLiteralDictionary extends ASTExpressionUnitLiteral
 	}
 
 	public void addValue(ASTExpressionUnitLiteral key, ASTExpression value){
-		this.entries.put(key, value);
+		this.keys.add(key);
+		this.values.add(value);
 		key.parent = this;
 		value.parent = this;
 	}
 	private void initialize() {
-		this.entries = new HashMap<ASTExpressionUnitLiteral, ASTExpression>();
+		this.keys = new ArrayList<ASTExpressionUnitLiteral>();
+		this.values = new ArrayList<ASTExpression>();
 	}
 	public String typeof(){
 		return super.typeof()+"->"+NODE_TYPE;
@@ -31,11 +34,9 @@ public class ASTExpressionUnitLiteralDictionary extends ASTExpressionUnitLiteral
 	public String toSyntax() {
 		this.result = "";
 		this.result += "{";
-		int index = 0;
-		for(ASTExpressionUnitLiteral key : this.entries.keySet()){
-			this.result+= key.toSyntax() + " : " + this.entries.get(key).toSyntax();
-			if(index < this.entries.size()-1) this.result+= ", ";
-			index++;
+		for(int i = 0; i < this.keys.size(); i++){
+			this.result+= this.keys.get(i).toSyntax() + " : " + this.values.get(i).toSyntax();
+			if(i < this.keys.size()-1) this.result+= ", ";
 		}
 		this.result += "}";
 		if(this.isQuoted) quote();

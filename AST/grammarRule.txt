@@ -23,6 +23,7 @@ blockStatement():
 	| switchStatement()
 	| comment()
 	| classDeclare()
+	| tryCatchStatement()
 
 simpleStatement():
 	expression() < TERMINATOR >
@@ -40,7 +41,7 @@ labelStatement() :
 	< LABEL >< IDENTIFIER > < TERMINATOR >
 
 returnStatement() :
-	< RETURN >(< PARAMETER > expressionC())*< TERMINATOR >
+	< RETURN >(< PARAMETER > expression())*< TERMINATOR >
 
 continueStatement() :
 	< CONTINUE >< IDENTIFIER > < TERMINATOR >
@@ -70,12 +71,12 @@ forStatement() :
 	< FOR > (forStatementC() | forStatementP())
 
 forStatementC() :
-	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expressionC())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expression())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 forStatementP() :
 	< VARIABLE >(< PARAMETER > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
-if_statementC() :
+if_statement() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
 functionStatement() :
@@ -89,6 +90,9 @@ comment() :
 
 classDeclare() :
 	< CLASS > < IDENTIFIER > (< PARENT > < IDENTIFIER >)* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
+
+tryCatchStatement() :
+	< TRY > (statement())* (< CATCH > (< EXCEPTION > < IDENTIFIER >)* (< VARIABLE > <IDENTIFIER>)? < CATCH_START > (statement())* < CATCH_END >)+ (< ELSE > (statement())* < ELSE_BRANCH_END >)? (< FINALLY > (statement())* < FINALLY_END >)? < TERMINATOR >
 
 expression():
 	prefix_expression()
@@ -116,9 +120,9 @@ term() :
 fragment() :
 	< VALUE >value()
 	| < VARIABLE >< IDENTIFIER >
-	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
+	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expression())*< RPAREN >
 	| < LPAREN > expression() < RPAREN >
-	| < LBRACE > (< ARRAY > (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
+	| < LBRACE > ((< ARRAY > | < LIST > | < TUPLE >) (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
 	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
 	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
 
@@ -250,9 +254,17 @@ infixOperators() :
 < TREE : "#tree" >
 < COMMENT: "#comment" >
 < COMMENT_END : #comment_end" >
+< LIST : "#list" >
+< TUPLE : "#tuple" >
+< DICTIONARY : "#dictionary" >
+< KEY : "#key" >
 < PARENT : "#parent" >
 < CLASS_START : "#class_start" >
 < CLASS_END : "#class_end" >
+< EXCEPTION : "#exception" >
+< CATCH_START : "#catch_start" >
+< CATCH_END : "#catch_end" >
+< FINALLY_END : "#finally_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >

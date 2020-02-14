@@ -25,11 +25,17 @@
 | < PROGRAM_P : "#p_program" >| < DECLARE_END : "#dec_end" >| < DIMENSION : "#dimension" >| < PARAMETER_A : "#parameter_a" >| < TREE : "#tree" >
 | < COMMENT : "#comment" >
 | < COMMENT_END : "#comment_end" >
+| < LIST : "#list" >
+| < TUPLE : "#tuple" >
 | < DICTIONARY : "#dictionary" >
 | < KEY : "#key" >
 | < PARENT : "#parent" >
 | < CLASS_START : "#class_start" >
-| < CLASS_END : "#class_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < CLASS_END : "#class_end" >
+| < EXCEPTION : "#exception" >
+| < CATCH_START : "#catch_start" >
+| < CATCH_END : "#catch_end" >
+| < FINALLY_END : "#finally_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -102,10 +108,22 @@
 	)    < LPAREN >    (      < PARAMETER > parameters = expression(pType)      {        call.addParameter(parameters);      }    )*    < RPAREN >  )  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
     ASTExpressionUnitLiteral key;
     ASTExpression value;  }
-  (    < ARRAY >
-    {
-      arr = new ASTExpressionUnitLiteralArray(pType);
-    }
+  (
+    (      < ARRAY >
+      {
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.CURLY);
+      }
+    | < LIST >
+      {
+        if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.SQUARE); 
+      }
+    | < TUPLE >
+      {
+        if (pType != programType.P) throw new ParseException("Not supported in C and Java!");
+        arr = new ASTExpressionUnitLiteralArray(ASTExpressionUnitLiteralArray.bracketType.ROUND); 
+      }
+    )
     (
       < PARAMETER > parameters = expression(pType)
       {
@@ -368,6 +386,83 @@ ASTClass classDeclare(ASTNode parent, programType pType, int indent) :
     return result;
   }
 }
+
+ASTTryCatchStatement tryCatchStatement(ASTNode parent, programType pType, int indent) :
+{
+  ASTStatement temp;
+  ASTTryCatchStatement result;
+  Token ex;
+}
+{
+  < TRY >
+  {
+    switch (pType) {
+      case C:
+      	throw new ParseException("Not Supported in C!\n");
+      	break;
+      case P:
+      	result = new ASTTryCatchStatementP();
+      	break;
+      default:
+      	result = new ASTTryCatchStatement();
+      	break;
+    }
+    result.addParent(parent);
+    result.setIndent(indent);
+  }
+  (
+    temp = statement(parent, pType, indent)
+    { 
+      result.addTryBlock(temp);
+    }
+  )*
+  (    < CATCH >
+    {
+      result.addCatchBlock();
+    }
+    (      < EXCEPTION > ex = < IDENTIFIER >
+      {
+        result.addCatchExceptions(new ASTExpressionUnitIdentifier(ex.image));
+      }
+    )*
+    (      < VARIABLE > ex = < IDENTIFIER >
+      {
+        result.setEx(new ASTExpressionUnitIdentifier(ex.image));
+      }
+    )?
+    < CATCH_START >
+    (      temp = statement(parent, pType, indent)
+      {
+        result.addCatchBlocks(temp);
+      }
+    )*
+    < CATCH_END >
+  )+
+  (    < ELSE >
+    {
+      if(pType == programType.J) throw new ParseException("Not Supported in Java!\n");
+    }
+    (      temp = statement(parent, pType, indent)
+      {
+        ((ASTTryCatchStatementP) result).addElseBlock(temp);
+      }
+    )*
+    < ELSE_BRANCH_END >    
+  )?
+  (    < FINALLY >
+    (
+      temp = statement(parent, pType, indent)
+      {
+        result.addFinallyBlock(temp);
+      }
+    )*
+    < FINALLY_END >    
+  )?
+  <TERMINATOR >
+  {
+    return result;
+  }
+}
 /*SimpleStatement*/ASTBreakStatement breakStatement(programType pType) :{  Token n;  ASTBreakStatement result;}{  < BREAK >  {
     switch (pType) {
       case C:
@@ -512,12 +607,17 @@ ASTClass classDeclare(ASTNode parent, programType pType, int indent) :
 }
 ASTBlockStatement blockStatement(ASTNode parent, programType pType, int indent) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;
   ASTComment comment;
-  ASTClass classDeclare;}{  structDeclare = structDeclareStatement(parent, pType, indent)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType, indent)  {    return doWhile;  }| forStatement = forStatement(parent, pType, indent)  {    return forStatement;  }| functionDeclare = functionStatement(parent, pType, indent)  {    return functionDeclare;  }| ifStatement = if_statement(parent, pType, indent)  {    return ifStatement;  }| whileStatement = whileStatement(parent, pType, indent)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType, indent)  {    return switchStatement;  }
+  ASTClass classDeclare;
+  ASTTryCatchStatement tryCatchStatement;}{  structDeclare = structDeclareStatement(parent, pType, indent)  {    return structDeclare;  }| doWhile = doWhileStatement(parent, pType, indent)  {    return doWhile;  }| forStatement = forStatement(parent, pType, indent)  {    return forStatement;  }| functionDeclare = functionStatement(parent, pType, indent)  {    return functionDeclare;  }| ifStatement = if_statement(parent, pType, indent)  {    return ifStatement;  }| whileStatement = whileStatement(parent, pType, indent)  {    return whileStatement;  }| switchStatement = switchStatement(parent, pType, indent)  {    return switchStatement;  }
 | comment = comment(parent, pType, indent)
   {	return comment;
   }
 | classDeclare = classDeclare(parent, pType, indent)
   {    return classDeclare;
+  }
+| tryCatchStatement = tryCatchStatement(parent, pType, indent)
+  {
+    return tryCatchStatement;
   }}ASTStatement query() :{}{  "?"  (    < STRUCT >    {      getStructure(current);      return new ASTStatement();    }  | < TREE >    {      getTree(current);      return new ASTStatement();    }  )}
 ASTStatement statement(ASTNode parent, programType pType, int indent) :
 {
