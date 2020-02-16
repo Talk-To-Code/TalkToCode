@@ -257,7 +257,7 @@ function segment_switch(splitted_text) {
         return command;
     }
     if (!splitted_text.includes("case")) {
-        command.parsedCommand = "switch " + splitted_text.join(" ") + ";;";
+        command.parsedCommand = "switch #condition " + splitted_text.join(" ") + ";;";
         return command;
     }
     var case_blocks = splitted_text.join(" ").split("case");

@@ -108,11 +108,17 @@ function determine_type(text) {
 }
 
 function parse_continue() {
-    return "continue;;";
+    var statement = new simpleStatement();
+    statement.isContinue = true;
+    statement.parsedStatement = "continue;;"
+    return statement;
 }
 
 function parse_break() {
-    return "break;;";
+    var statement = new simpleStatement();
+    statement.isBreak = true;
+    statement.parsedStatement = "break;;"
+    return statement;
 }
 
 function parse_declare(text) {

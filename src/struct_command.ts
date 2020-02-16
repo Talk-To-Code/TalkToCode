@@ -62,6 +62,8 @@ export class simpleStatement {
     isDeclare: boolean;
     isAssign: boolean;
     isReturn: boolean;
+    isBreak: boolean;
+    isContinue: boolean;
     newline: boolean;
     extendable: boolean;
 
@@ -74,6 +76,8 @@ export class simpleStatement {
         this.isAssign = false;
         this.isPostfix = false;
         this.isReturn = false;
+        this.isBreak = false;
+        this.isContinue = false;
         this.newline = false;
         this.extendable = false;
     }
