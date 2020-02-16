@@ -6,6 +6,7 @@ import { runTestCases } from './tester'
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
+var codeStream = "";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -23,9 +24,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
-		// listen();
-		console.log("testing");
-		runTestCases();
+		listen();
+		// console.log("testing");
+		// runTestCases();
 
 	});
 
@@ -54,6 +55,8 @@ function listen() {
 			else {
 				manager.parse_speech(transcribed_word)
 				displayStructCommands(manager.struct_command_list)
+				displayCode(manager.struct_command_list)
+
 			}
 		}
 	});
@@ -142,17 +145,18 @@ function displayCode(struct_command_list) {
 
     other_child.stdout.setEncoding('utf8');
     other_child.stdout.on('data', (data)=>{
-		console.log(data)
+		codeStream += data;
 
         if (data.includes("AST construction complete")) {
             var code = "#include"
-            var data_segments = data.split("#include")
+            var data_segments = codeStream.split("#include")
 
             var idxOfAST = data_segments[1].indexOf("ASTNode")
 
             data_segments[1] = data_segments[1].slice(0, idxOfAST)
 
-            code += data_segments[1];
+			code += data_segments[1];
+			codeStream = "";
 			writeToEditor(code)
         }
 
