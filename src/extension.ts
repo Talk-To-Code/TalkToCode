@@ -55,7 +55,7 @@ function listen() {
 			else {
 				manager.parse_speech(transcribed_word)
 				displayStructCommands(manager.struct_command_list)
-				// displayCode(manager.struct_command_list)
+				displayCode(manager.struct_command_list)
 			}
 		}
 	});
@@ -124,9 +124,7 @@ function displayCode(struct_command_list) {
 	let commands = '#c_program SampleProgram #include "stdio h";; '
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-
 	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
-
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');
 
