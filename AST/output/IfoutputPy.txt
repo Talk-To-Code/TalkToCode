@@ -14531,7 +14531,7 @@ if(!O0e9Y99):
 
 else:
 	m9S5lQe9nG--
-	as = (897 >= 4601.23334)
+	asd = (897 >= 4601.23334)
 
 
 if(Go880bC8U3c2A1n01gch--):
@@ -15337,7 +15337,7 @@ if(z0Q--):
 					v8r5U7Kh++
 
 				else:
-					as = False
+					asd = False
 					J7++
 					if(S270T718GDe590++):
 
@@ -136402,7 +136402,7 @@ if(~2099672978):
 
 
 
-	as = False
+	asd = False
 
 else:
 	k754C00 = eQb
@@ -219172,7 +219172,7 @@ if(--FJR7F6m):
 
 
 								if((10473.26196 and 26413.74616 * um1W2Pe3Db4B22k960) - 4399.99829):
-									if(as--):
+									if(asd--):
 										if(20163.36670):
 
 

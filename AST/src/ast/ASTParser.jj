@@ -19,9 +19,12 @@
  * The remainder of the tokens are exactly (except for the removal of tokens
  * containing ">>" and "<<") as in the Java grammar and must be diff equivalent
  * (again with the exceptions above) to it.
- *//* WHITE SPACE */< DEFAULT >SKIP :{  " "| "\t"| "\n"| "\r"| "\f"| "/*@egen*/" : AFTER_EGEN}< AFTER_EGEN >SKIP :{  < ~[ ] > : DEFAULT}/* JAVA RESERVED WORDS AND LITERALS */< DEFAULT >TOKEN :{  < ABSTRACT : "abstract" >| < ASSERT : "assert" >| < BOOLEAN : "boolean" >| < BREAK : "break" >| < BYTE : "byte" >| < CASE : "case" >| < CATCH : "catch" >| < CHAR : "char" >| < CLASS : "class" >| < CONST : "const" >| < CONTINUE : "continue" >| < _DEFAULT : "default" >| < DO : "do" >| < DOUBLE : "double" >| < ELSE : "else" >| < ENUM : "enum" >| < EXTENDS : "extends" >| < FALSE : "false" >| < FINAL : "final" >| < FINALLY : "finally" >| < FLOAT : "float" >| < FOR : "for" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
+ *//* WHITE SPACE */< DEFAULT >SKIP :{  " "| "\t"| "\n"| "\r"| "\f"| "/*@egen*/" : AFTER_EGEN}< AFTER_EGEN >SKIP :{  < ~[ ] > : DEFAULT}/* JAVA RESERVED WORDS AND LITERALS */< DEFAULT >TOKEN :{  < ABSTRACT : "abstract" >
+| < AS : "as" >| < ASSERT : "assert" >| < BOOLEAN : "boolean" >| < BREAK : "break" >| < BYTE : "byte" >| < CASE : "case" >| < CATCH : "catch" >| < CHAR : "char" >| < CLASS : "class" >| < CONST : "const" >| < CONTINUE : "continue" >| < _DEFAULT : "default" >| < DO : "do" >| < DOUBLE : "double" >| < ELSE : "else" >| < ENUM : "enum" >| < EXTENDS : "extends" >| < FALSE : "false" >| < FINAL : "final" >| < FINALLY : "finally" >| < FLOAT : "float" >| < FOR : "for" >
+| < FROM : "from" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
 | < PY_OR : "or" >
-| < PY_AND : "and" >| < INCR : "++" >| < DECR : "--" >| < PLUS : "+" >| < MINUS : "-" >| < STAR : "*" >| < SLASH : "/" >| < BIT_AND : "&" >| < BIT_OR : "|" >| < XOR : "^" >| < REM : "%" >| < PLUSASSIGN : "+=" >| < MINUSASSIGN : "-=" >| < STARASSIGN : "*=" >| < SLASHASSIGN : "/=" >| < ANDASSIGN : "&=" >| < ORASSIGN : "|=" >| < XORASSIGN : "^=" >| < REMASSIGN : "%=" >| < SHIFT_LEFT : "<<" >| < SHIFT_RIGHT : ">>" >}/* keywords */TOKEN :{  < ASSIGNMENT : "#assign" >| < CREATE : "#create" >| < TYPE : "#type" >| < VARIABLE : "#variable" >| < VALUE : "#value" >| < FUNCTION : "#function" >| < WITH : "#with" >| < CONDITION : "#condition" >| < EXPRESSIONS : "#expression" >| < IF_BRANCH_START : "#if_branch_start" >| < IF_BRANCH_END : "#if_branch_end" >| < ELSE_BRANCH_START : "#else_branch_start" >| < ELSE_BRANCH_END : "#else_branch_end" >| < PRE : "#pre" >| < POST : "#post" >| < TERMINATOR : ";;" >| < PARAMETER : "#parameter" >| < STRUCT : "#struct" >| < ARRAY : "#array" >| < ACCESS : "#access" >| < ACCESS_END : "#access_end" >| < LABEL : "#label" >| < INDEX : "#indexes" >| < INDEX_END : "#index_end" >| < INCLUDE : "#include" >| < FOR_START : "#for_start" >| < FOR_END : "#for_end" >| < WHILE_START : "#while_start" >| < WHILE_END : "#while_end" >| < SWITCH_START : "#switch_start" >| < SWITCH_END : "#switch_end" >| < CASE_START : "#case_start" >| < CASE_END : "#case_end" >| < FUNCTION_DEC : "#function_declare" >| < FUNCTION_START : "#function_start" >| < FUNCTION_END : "#function_end" >| < STRUCT_DEC : "#struct_declare" >| < STRUCT_START : "#struct_start" >| < STRUCT_END : "#struct_end" >| < PROGRAM_END : "#program_end" >| < PROGRAM_C : "#c_program" >
+| < PY_AND : "and" >
+| < PY_NOT : "not" >| < INCR : "++" >| < DECR : "--" >| < PLUS : "+" >| < MINUS : "-" >| < STAR : "*" >| < SLASH : "/" >| < BIT_AND : "&" >| < BIT_OR : "|" >| < XOR : "^" >| < REM : "%" >| < PLUSASSIGN : "+=" >| < MINUSASSIGN : "-=" >| < STARASSIGN : "*=" >| < SLASHASSIGN : "/=" >| < ANDASSIGN : "&=" >| < ORASSIGN : "|=" >| < XORASSIGN : "^=" >| < REMASSIGN : "%=" >| < SHIFT_LEFT : "<<" >| < SHIFT_RIGHT : ">>" >}/* keywords */TOKEN :{  < ASSIGNMENT : "#assign" >| < CREATE : "#create" >| < TYPE : "#type" >| < VARIABLE : "#variable" >| < VALUE : "#value" >| < FUNCTION : "#function" >| < WITH : "#with" >| < CONDITION : "#condition" >| < EXPRESSIONS : "#expression" >| < IF_BRANCH_START : "#if_branch_start" >| < IF_BRANCH_END : "#if_branch_end" >| < ELSE_BRANCH_START : "#else_branch_start" >| < ELSE_BRANCH_END : "#else_branch_end" >| < PRE : "#pre" >| < POST : "#post" >| < TERMINATOR : ";;" >| < PARAMETER : "#parameter" >| < STRUCT : "#struct" >| < ARRAY : "#array" >| < ACCESS : "#access" >| < ACCESS_END : "#access_end" >| < LABEL : "#label" >| < INDEX : "#indexes" >| < INDEX_END : "#index_end" >| < INCLUDE : "#include" >| < FOR_START : "#for_start" >| < FOR_END : "#for_end" >| < WHILE_START : "#while_start" >| < WHILE_END : "#while_end" >| < SWITCH_START : "#switch_start" >| < SWITCH_END : "#switch_end" >| < CASE_START : "#case_start" >| < CASE_END : "#case_end" >| < FUNCTION_DEC : "#function_declare" >| < FUNCTION_START : "#function_start" >| < FUNCTION_END : "#function_end" >| < STRUCT_DEC : "#struct_declare" >| < STRUCT_START : "#struct_start" >| < STRUCT_END : "#struct_end" >| < PROGRAM_END : "#program_end" >| < PROGRAM_C : "#c_program" >
 | < PROGRAM_P : "#p_program" >| < DECLARE_END : "#dec_end" >| < DIMENSION : "#dimension" >| < PARAMETER_A : "#parameter_a" >| < TREE : "#tree" >
 | < COMMENT : "#comment" >
 | < COMMENT_END : "#comment_end" >
@@ -43,7 +46,10 @@
 | n = < PY_AND >
   {
     return n.image;
-  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value(programType pType) :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
+  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
+| n = < PY_NOT >
+  {    return n.image;
+  }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value(programType pType) :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
     return valueNode;  }| n = < FLOATING_POINT_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
     return valueNode;  }| n = < CHARACTER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
     return valueNode;  }| n = < STRING_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    return valueNode;  }| n = < TRUE >  {
@@ -158,7 +164,8 @@
     ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(var.image);
     result = new ASTExpressionPrefixOperation(operator, i);
     return result;  }| (    operator = prefixOperators() exp = fragment(pType)  )  {
-    if (pType == programType.P && operator != "~") throw new ParseException("Not supported in Python!\n");    result = new ASTExpressionPrefixOperation(operator, exp);    return result;  }| op = < MINUS > exp = expression(pType)  {    result = new ASTExpressionPrefixOperation(op.image, exp);
+    if (pType == programType.P && operator != "~" && operator != "not") throw new ParseException("Not supported in Python!\n");	if (pType != programType.P && operator == "not") throw new ParseException("Not supported in C or Java!\n");
+    result = new ASTExpressionPrefixOperation(operator, exp);    return result;  }| op = < MINUS > exp = expression(pType)  {    result = new ASTExpressionPrefixOperation(op.image, exp);
     return result;  }}ASTExpression postfix_expression(programType pType) :{  String operator;  Token var;}{  < POST > < VARIABLE > var = < IDENTIFIER > operator = incrDecrOperators()  {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(var.image);    ASTExpressionPostfixOperation result = new ASTExpressionPostfixOperation(operator, i);    return result;  }}ASTExpression expression(programType pType) :{  ASTExpression result1;  ASTExpression result2;  ASTExpression result3;  ASTExpression result4;}{  (    result1 = prefix_expression(pType)    {      return result1;    }  | result2 = infix_expression(pType)    {      return result2;    }  | result3 = postfix_expression(pType)    {      return result3;    }  )| result4 = assignment(pType)  {    return result4;  }}ASTExpression assignment(programType pType) :{  ASTExpression term;  Token operator;  ASTExpression exp;  String op;}{  < ASSIGNMENT > term = fragment(pType)  {}  (    token = < WITH >    {      op = "=";    }  | op = compoundOperators()  )  exp = expression(pType)  {    ASTExpressionAssignment result = new ASTExpressionAssignment(term, exp, op);    return result;  }}/*Block Statement*/ASTStructDeclaration structDeclareStatement(ASTNode parent, programType pType, int indent) :{  Token name;  ASTDeclarationStatement attribute;}{  < STRUCT_DEC > name = < IDENTIFIER >  {
     if (pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    ASTStructDeclaration result = new ASTStructDeclaration(name.image);
@@ -524,27 +531,65 @@ ASTTryCatchStatement tryCatchStatement(ASTNode parent, programType pType, int in
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(n.image);    ASTLabelStatement result = new ASTLabelStatement(id);    return result;  }}
 ASTImportStatement importStatement(programType pType) :
 {
+  ASTImportStatement result;
+  ASTExpressionUnitLiteral fromPkg = null;
   ASTExpressionUnitLiteral exp;
+  ASTExpressionUnitIdentifier id;
   Token str;
 }
 {
-  < INCLUDE > str = < STRING_LITERAL > < TERMINATOR >
-  {
-    ASTImportStatement result;
-    exp = new ASTExpressionUnitLiteral(str.image.substring(1,str.image.length()-1));
-    
-    switch (pType) {
-      case C:
-      	result = new ASTImportStatementC(exp);
-      	break;
-      case P:
-      	result = new ASTImportStatementP(exp);
-      	break;
-      default:
-      	result = new ASTImportStatement(exp);
+  (    < FROM > str = < STRING_LITERAL >
+    {
+      if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
+      fromPkg = new ASTExpressionUnitLiteral(str.image.substring(1,str.image.length()-1));
     }
-    return result;
+  )?
+  < INCLUDE > str = < STRING_LITERAL >
+  {
+    exp = new ASTExpressionUnitLiteral(str.image.substring(1,str.image.length()-1));
+
+    if(fromPkg != null) {
+      result = new ASTImportStatementP(fromPkg, true);
+      ((ASTImportStatementP) result).addImport(exp);
+    }
+    else {
+      switch (pType) {
+        case C:
+        	result = new ASTImportStatementC(exp);
+	      	break;
+	    case P:
+	      	result = new ASTImportStatementP(exp, false);
+	      	break;
+	    default:
+	      	result = new ASTImportStatement(exp);
+	  }
+	}
   }
+  (    < AS > str = < IDENTIFIER >
+    {
+      if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
+      id = new ASTExpressionUnitIdentifier(str.image);
+      ((ASTImportStatementP) result).addAs(id);
+    }
+  )?
+  (    < INCLUDE > str = < STRING_LITERAL >
+    {
+      if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
+      exp = new ASTExpressionUnitLiteral(str.image.substring(1,str.image.length()-1));
+      ((ASTImportStatementP) result).addImport(exp);
+    }
+    (      < AS > str = < IDENTIFIER >
+      {
+        if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
+        id = new ASTExpressionUnitIdentifier(str.image);
+        ((ASTImportStatementP) result).addAs(id);
+      }
+    )?
+  )*
+  < TERMINATOR >
+  {
+    return result;
+  }      
 }
 ASTGoToStatement gotoStatement(programType pType) :{  Token label;}{  < GOTO > label = < IDENTIFIER > < TERMINATOR >  {
     if(pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    return new ASTGoToStatement(new ASTExpressionUnitIdentifier(label.image));  }}ASTSimpleStatement simpleStatement(programType pType) :

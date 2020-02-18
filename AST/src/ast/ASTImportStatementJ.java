@@ -4,7 +4,7 @@ package ast;
  * this class is mainly in charge of syntax generation of import statement in Java Programs
  */
 public final class ASTImportStatementJ extends ASTImportStatement{
-	public ASTImportStatementJ(ASTExpression p) {
+	public ASTImportStatementJ(ASTExpressionUnitLiteral p) {
 		super(p);
 		
 	}

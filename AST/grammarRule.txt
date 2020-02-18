@@ -35,7 +35,7 @@ simpleStatement():
 	| importStatement()
 
 importStatement() :
-	< INCLUDE >< STRING_LITERAL > < TERMINATOR >
+	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
 
 labelStatement() :
 	< LABEL >< IDENTIFIER > < TERMINATOR >
@@ -167,6 +167,7 @@ prefixOperators() :
 	< BANG >
 	| < TILDE >
 	| < BIT_AND >
+	| < PY_NOT >
 
 compoundOperators() :
 	< PLUSASSIGN >
@@ -193,6 +194,7 @@ infixOperators() :
 	| < SC_AND >
 	| < PY_OR >
 	| < PY_AND >
+	| < PY_NOT >
 	| < BIT_AND >
 	| < BIT_OR >
 	| < XOR >
@@ -280,6 +282,7 @@ infixOperators() :
 < SC_AND : "&&" >
 < PY_OR : "or" >
 < PY_AND : "and" >
+< PY_NOT : "not" >
 < INCR : "++" >
 < DECR : "--" >
 < PLUS : "+" >
