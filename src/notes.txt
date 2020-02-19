@@ -29,3 +29,11 @@ need to improve undo command.
 else block to be implemented.
 array assignment not sure if done.
 
+call function in assign statement.
+
+camel, dot, underscore naming.
+
+segmenter needs to do more thorough checks. maybe include another else if condition for failed parsing.
+
+if not parseable, dont bother bro. just remove latest command.
+

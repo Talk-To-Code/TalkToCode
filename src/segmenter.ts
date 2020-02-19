@@ -263,22 +263,26 @@ function segment_switch(splitted_text) {
     var case_blocks = splitted_text.join(" ").split("case");
     case_blocks = case_blocks.map(x=>x.trim());
     command.parsedCommand = "switch #condition #variable " + convert2Camel(case_blocks[0].split(" "));
-    var i = 1;
-    for (i; i < case_blocks.length; i++) {
+    for (var i = 1; i < case_blocks.length; i++) {
         var segmented_case = splitLiteralAndStatement(case_blocks[i]);
         if (segmented_case[0] == "not ready") {
             command.logError(segmented_case[1]);
             return command;
         }
-        command.parsedCommand += " case " + parse_fragment(segmented_case[0]);
+        var fragment = parse_fragment(segmented_case[0]);
+        if (fragment[0] == "not ready") {
+            command.logError("fragment is incorrect!");
+            return command;
+        }
+        command.parsedCommand += " case " + fragment[1];
         var statement = parse_statement(segmented_case[1]);
         if (statement.hasError) {
             command.logError("statements are incorrect!");
             return command;
         }
-        command.parsedCommand += " #case_start " + statement.parsedStatement + " #case_end;;";
+        command.parsedCommand += " #case_start " + statement.parsedStatement + " #case_end";
     }
-
+    command.parsedCommand += ";;"
     return command;
 }
 

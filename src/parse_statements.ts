@@ -46,6 +46,7 @@ fragment() :
 */
 
 import { simpleStatement } from './struct_command'
+import { generateKeyPair } from 'crypto';
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
@@ -88,6 +89,8 @@ export function parse_statement(text) {
             return parse_break();
         case "continue":
             return parse_continue();
+        case "function":
+            return parse_function(text);
         default:
             var statement = new simpleStatement();
             statement.logError("default case of parse_statements");
@@ -101,6 +104,7 @@ function determine_type(text) {
     else if (splitted_text[0] == "return") return "return";
     else if (splitted_text[0] == "continue") return "continue";
     else if (splitted_text[0] == "break") return "break";
+    else if (splitted_text[0] == "call") return "function";
     else if (splitted_text.includes("equal")) return "assign";
     else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
     else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
@@ -160,12 +164,23 @@ function parse_declare(text) {
                 statement.logError("equal was last word mentioned.");
                 return statement;
             }
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(2, equal_idx));
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(equal_idx + 1));
+            var fragment1 = parse_fragment(splitted_text.slice(2, equal_idx));
+            var fragment2 = parse_fragment(splitted_text.slice(equal_idx + 1));
+
+            if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
+                statement.logError(fragment1[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
             statement.newline = true;
         }
         else {
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(2));
+            var fragment = parse_fragment(splitted_text.slice(2));
+            if (fragment[0] == "not ready") {
+                statement.logError(fragment[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + fragment[1];
             statement.extendable = true;
         }
     }
@@ -186,7 +201,12 @@ function parse_return(text) {
     }
     /* returning a variable or literal */
     else {
-        statement.parsedStatement += " " + parse_fragment(splitted_text.slice(1).join(" ")) + ";;";
+        var fragment = parse_fragment(splitted_text.slice(1).join(" "));
+        if (fragment[0] == "not ready") {
+            statement.logError(fragment[1]);
+            return statement;
+        }
+        statement.parsedStatement += " " + fragment[1] + ";;";
     }
     statement.newline = true;
     return statement;
@@ -203,8 +223,14 @@ function parse_assignment(text) {
         return statement;
     }
 
-    statement.parsedStatement = "#assign " + parse_fragment(splitted_text.slice(0, equal_idx)) + " #with " + 
-    parse_fragment(splitted_text.slice(equal_idx + 1)) + ";;";
+    var fragment1 = parse_fragment(splitted_text.slice(0, equal_idx));
+    var fragment2 = parse_fragment(splitted_text.slice(equal_idx + 1));
+
+    if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
+        statement.logError(fragment1[1]);
+        return statement;
+    }
+    statement.parsedStatement = "#assign " + fragment1 + " #with " + fragment2 + ";;";
     statement.newline = true;
     return statement;
 }
@@ -239,7 +265,12 @@ function parse_infix(text) {
             awaiting_frag1 = false;
             awaiting_frag2 = true;
             awaiting_segment = true;
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            var fragment = parse_fragment(splitted_text.slice(start, i));
+            if (fragment[0] == "not ready") {
+                statement.logError(fragment[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
             start = i + 1;
         }
         else if (infix_segmenting_operator.includes(splitted_text[i])) {
@@ -250,14 +281,24 @@ function parse_infix(text) {
             awaiting_frag1 = true;
             awaiting_frag2 = false;
             awaiting_segment = false;
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start, i)) + " " + splitted_text[i];
+            var fragment = parse_fragment(splitted_text.slice(start, i));
+            if (fragment[0] == "not ready") {
+                statement.logError(fragment[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
             start = i + 1;
             end++;
         }
         /* Last element */
         else if (i == splitted_text.length - 1) {
             awaiting_frag2 = false;
-            statement.parsedStatement += " " + parse_fragment(splitted_text.slice(start));
+            var fragment = parse_fragment(splitted_text.slice(start));
+            if (fragment[0] == "not ready") {
+                statement.logError(fragment[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + fragment[1];
         }
     }
     if (awaiting_frag1 || awaiting_frag2) {
@@ -276,6 +317,18 @@ function parse_postfix(test) {
     return statement;
 }
 
+function parse_function(text) {
+    var statement = new simpleStatement();
+    statement.isFunction = true;
+    var fragment = parse_fragment(text.split(" "));
+    if (fragment[0] == "not ready") {
+        statement.logError(fragment[1]);
+        return statement;
+    }
+    statement.parsedStatement = fragment[1];
+    return statement;
+}
+
 /* Parse array when doing daclaration.
 E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
 */
@@ -289,14 +342,66 @@ function parse_array_d(text) {
     return parsed_results;  
 }
 
+/* Returns list as [<status>, <parsed_result>] 
+<status> - "ready" or "not_ready"
+<parsed_result> - the successfully parsed result. */
 export function parse_fragment(splitted_text) {
+
     if (splitted_text.length == 1) {
         /* Is a number! (Not Not a number) */
-        if (!isNaN(splitted_text[0])) return "#value " + splitted_text[0];
-        else return "#variable " + splitted_text[0];
+        if (!isNaN(splitted_text[0])) return ["ready", "#value " + splitted_text[0]];
+        else return ["ready", "#variable " + splitted_text[0]];
     }
 
-    return "#variable " + convert2Camel(splitted_text);
+    /* Look out for "end function". */
+    else if (splitted_text[0] == "call") {
+        if (splitted_text[1] != "function") return ["not ready", "function not mentioned."];
+        /* Minimal format is "call function" <function name> "end function". */
+        if (splitted_text.length < 4) return ["not ready", "no function name mentioned."];
+        if (splitted_text.slice(splitted_text.length-2).join(" ") != "end function")
+            return ["not ready", "end function not mentioned."];
+
+        splitted_text.splice((splitted_text.length-2));
+
+        if (!splitted_text.includes("parameter")) {
+            /* Not sure if the terminator should be there. since it will be used in assign statement as well.*/
+            var function_name = convert2Camel(splitted_text.slice(2))
+            if (function_name == "printF") function_name = "printf";
+            if (function_name == "scanF") function_name = "scanf";
+            return ["ready", "#function " + function_name + "();;"];
+        }
+        else {
+            /* There are parameters. */
+            var parameter_blocks = splitted_text.join(" ").split("parameter");
+            parameter_blocks = parameter_blocks.map(x=>x.trim());
+            var function_name = convert2Camel(parameter_blocks[0].split(" ").slice(2));
+            /* Hardcoded mapping of function name */
+            if (function_name == "printF") function_name = "printf";
+            if (function_name == "scanF") function_name = "scanf";
+
+            console.log(function_name)
+
+            var parsed_result = "#function " + function_name + "(";
+            for (var i = 1; i < parameter_blocks.length; i++) {
+                var fragment = parse_fragment(parameter_blocks[i].split(" "));
+                if (fragment[0] == "not ready") return ["not ready", "parameter fragment wrong."];
+                parsed_result += "#parameter " + fragment[1];
+            }
+            parsed_result += ");;";
+            return ["ready", parsed_result];
+        }
+    }
+
+    else if (splitted_text[0] == "string") {
+        /* string literal has to include ["string", <actual string>, "end", "string"], which requires
+        a minimum of 4 words. */
+        if (splitted_text.length < 4) return ["not ready", "no value mentioned."];
+        if (splitted_text.slice(splitted_text.length-2).join(" ") != "end string")
+            return ["not ready", "last 2 words are not end string"];
+
+        return ["ready", `#value \"` + splitted_text.slice(1, splitted_text.length-2).join(" ") + `\"`];
+    }
+    return ["ready", "#variable " + convert2Camel(splitted_text)];
 }
 
 

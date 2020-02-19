@@ -64,6 +64,7 @@ export class simpleStatement {
     isReturn: boolean;
     isBreak: boolean;
     isContinue: boolean;
+    isFunction: boolean;
     newline: boolean;
     extendable: boolean;
 
@@ -78,6 +79,7 @@ export class simpleStatement {
         this.isReturn = false;
         this.isBreak = false;
         this.isContinue = false;
+        this.isFunction = false;
         this.newline = false;
         this.extendable = false;
     }
