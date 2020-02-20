@@ -46,6 +46,8 @@ export function segment_command(text, var_list) {
     switch(starting_command[0]) {
         case "if":
             return segment_if(splitted_text);
+        case "else":
+            return segment_else(splitted_text);
         case "loop":
             return segment_for_loop(splitted_text);
         case "function":
@@ -97,6 +99,14 @@ function segment_if(splitted_text) {
     }
     command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
     command.endCommand = "#if_branch_end;;";
+    return command;
+}
+
+function segment_else(splitted_text) {
+    var command = new structCommand("block");
+    command.isElse = true;
+    command.parsedCommand = "#else_branch_start";
+    command.endCommand = "#else_branch_end;;";
     return command;
 }
 

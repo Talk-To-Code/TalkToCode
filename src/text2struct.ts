@@ -2,8 +2,8 @@ import { segment_command } from './segmenter'
 import { structCommand } from './struct_command';
 
 
-var end_branches = ["if_branch_end;;", "else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
-                    "#function_end;;", "if_branch_end", "else_branch_end", "#for_end", "#while_end", 
+var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
+                    "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
                     "#case_end", "#function_end"];
 
 /*     

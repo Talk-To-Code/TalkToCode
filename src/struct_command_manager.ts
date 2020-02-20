@@ -3,8 +3,8 @@ import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand } from './struct_command';
 
-var end_branches = ["if_branch_end;;", "else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
-                    "#function_end;;", "if_branch_end", "else_branch_end", "#for_end", "#while_end", 
+var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
+                    "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
                     "#case_end", "#function_end"];
 
 export class StructCommandManager {
@@ -186,11 +186,13 @@ export class StructCommandManager {
     /* Right now assume that the curr index is pointing to "". */
     stepOutCommand() {
         /* Perform checks to see if user is within a block or not. */
-
         /* Get index of end_branch */
         var endIdx = -1;
         for (var i = this.curr_index; i < this.struct_command_list.length; i++) {
-            if (end_branches.includes(this.struct_command_list[i])) endIdx = i;
+            if (end_branches.includes(this.struct_command_list[i])) {
+                endIdx = i;
+                break;
+            }
         }
         if (endIdx != -1) {
             this.struct_command_list.splice(this.curr_index, 1); /* Remove "" from the struct_command_list. */

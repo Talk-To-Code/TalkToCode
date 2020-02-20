@@ -7,8 +7,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("declare_assign");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("if_block");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("if_block");
+    runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -22,8 +22,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("do_while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("switch_case");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("switch_case");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("jump_statements");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -59,12 +59,14 @@ function generate_test_cases(cases: string) {
 
     else if (cases == "if_block") {
         test_cases[0] = ["begin if hello greater than 5", "declare integer i equal 4", "i equals 6",
-        "begin if", "i", "equals", "4", "declare count equal 6"];
+        "begin if", "i", "equals", "4", "declare integer count equal 6", "step out", "step out", "else",
+        "hello equals 4"];
 
         test_cases[1] = ["if #condition #variable hello > #value 5 #if_branch_start",
         "#create int #variable i #value 4 #dec_end;;","#assign #variable i #with #value 6;;",
-        "if #condition #variable i == #value 4 #if_branch_start","declare count equal 6","#if_branch_end;;",
-        "#if_branch_end;;"];
+        "if #condition #variable i == #value 4 #if_branch_start",
+        "#create int #variable count #value 6 #dec_end;;","#if_branch_end;;","#if_branch_end",
+        "#else_branch_start","#assign #variable hello #with #value 4;;","","#else_branch_end;;"];
     }
     else if (cases == "for_loop") {
         test_cases[0] = ["begin Loop condition I equal 0 condition I less than 5 condition I plus plus",
@@ -90,7 +92,6 @@ function generate_test_cases(cases: string) {
     }
     
     else if (cases == "switch_case") {
-        test_cases[0] = ["begin switch hello", "case 2 hello equal 5"];
         test_cases[0] = ["begin switch hello", "case 2", "step out", "case 5"];
         test_cases[1] = ["switch #condition #variable hello case #value 2 #case_start #assign #variable hello #with #value 5;; #case_end;;"];
     }
