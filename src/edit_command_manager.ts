@@ -9,23 +9,25 @@ export class EditCommandManager {
     }
 
     checkAll(transcribedWord: String){
+        console.log("DEBUG 1: "+transcribedWord);
         this.check_if_comment_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
         this.check_if_delete_line(transcribedWord);
-        this.check_if_delete_while(transcribedWord);
+        this.check_if_delete_block(transcribedWord);
         this.check_if_rename_function(transcribedWord);
         this.check_if_rename_variable(transcribedWord);
+        this.check_if_insert_before_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
         var arr = text.split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"){
             return true;
         }
         return false;
     }
     
-    check_if_delete_while(text: String) {
+    check_if_delete_block(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="block"){
             let editor = vscode.window.activeTextEditor;
@@ -33,21 +35,22 @@ export class EditCommandManager {
                 let document = editor.document;
                 var line_num = parseInt(arr[5])-1;
                 var block_name = arr[2];
-                var count_whiles = 0;
+                var block_name_end = (block_name == "if" || block_name == "else")? "#"+block_name+"_branch_end": "#"+block_name+"_end";
+                var count_block = 0;
                 if (document.lineAt(line_num).text.startsWith(block_name)){
                     for (var i=line_num;i<document.lineCount;i++){
                         if (i!=line_num && document.lineAt(i).text.startsWith(block_name)){
-                            count_whiles++;
+                            count_block++;
                         }
-                        if (document.lineAt(i).text.startsWith("#while_end")){
-                            if (count_whiles==0){
+                        if (document.lineAt(i).text.startsWith(block_name_end)){
+                            if (count_block==0){
                                 editor.edit (editBuilder =>{
                                     editBuilder.delete(line.range);
                                 });
                                 break;
                             }
                             else{
-                                count_whiles--;
+                                count_block--;
                             }
                         }
                         let line = document.lineAt(i);
@@ -60,9 +63,40 @@ export class EditCommandManager {
             }
         }
     }
+
+    check_if_insert_before_block(text: String) {
+        var arr = text.toLowerCase().split(" ");
+        if (arr[0]=="insert" && arr[1]=="before"){
+            console.log("GOT IN HERE TO INSERT");
+            let editor = vscode.window.activeTextEditor;
+            if (editor){
+                const document = editor.document;
+                let line_num = parseInt(arr[6])-1;
+                let block_name = arr[2];
+                //if (document.lineAt(line_num).text.startsWith(block_name)){
+                // let range = editor.document.lineAt(line_num-1).range;
+                // console.log("CALCULATED RANGE");
+                // editor.selection =  new vscode.Selection(range.start, range.end);
+                // editor.revealRange(range);
+
+                const position = editor.selection.active;
+
+                var newPosition = position.with(line_num, 0);
+
+                var newSelection = new vscode.Selection(newPosition, newPosition);
+                editor.selection = newSelection;
+                editor.edit(editBuilder =>{
+                    editBuilder.insert(document.lineAt(line_num).range.start,"")
+                })
+                
+                //}
+            }
+        }
+        this.delete_edit_commands_from_history();
+    }
     
     check_if_delete_line(text: String) { 
-        var arr = text.split(" ");
+        var arr = text.toLowerCase().split(" ");
         if (arr[0] == "delete" && arr[1]=="line") {
             console.log("IN HERE to delete line");
             let editor = vscode.window.activeTextEditor;
@@ -72,14 +106,15 @@ export class EditCommandManager {
                 let line = document.lineAt(line_num)
                 editor.edit (editBuilder =>{
                     editBuilder.delete(line.range);
+                    this.manager.speech_hist.splice(line_num,1);
+                    this.manager.struct_command_list.splice(line_num,1);
                 });
             }
-            this.delete_edit_commands_from_history();
         }
     }
     
     delete_edit_commands_from_history(){
-        //manager.struct_command_list.splice(manager.struct_command_list.length-1,manager.struct_command_list.length);
+        this.manager.struct_command_list.splice(this.manager.struct_command_list.length-1,this.manager.struct_command_list.length);
         this.manager.speech_hist.splice(this.manager.speech_hist.length-1,this.manager.speech_hist.length);
     }
     
@@ -121,6 +156,7 @@ export class EditCommandManager {
                 }
     
             }
+            this.delete_edit_commands_from_history();
             
         }
     
@@ -142,12 +178,13 @@ export class EditCommandManager {
                             text[i] = replaceWith;
                             editor.edit (editBuilder =>{
                                 editBuilder.replace(document.lineAt(i).range,text.join(" "));
-                        });
+                            });
+                        }   
                     }
                 }
             }
+            this.delete_edit_commands_from_history();
         }
-    }
     }
     
     check_if_rename_variable(text:String) {
@@ -178,6 +215,7 @@ export class EditCommandManager {
                     }
                 }
             }
+            this.delete_edit_commands_from_history();
         }
     }
     
@@ -195,7 +233,8 @@ export class EditCommandManager {
                     this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
                     this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
                 });
-            }	
+            }
+            //this.delete_edit_commands_from_history();	
             
         }
                 
