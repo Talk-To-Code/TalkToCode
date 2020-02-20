@@ -3,6 +3,9 @@ import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand } from './struct_command';
 
+var end_branches = ["if_branch_end;;", "else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
+                    "#function_end;;", "if_branch_end", "else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end"];
 
 export class StructCommandManager {
 
@@ -68,7 +71,6 @@ export class StructCommandManager {
 
                 /* If user has just entered a new line */
                 else {
-                    console.log(this.curr_index)
                     this.curr_index -= 1
                     /* Update speech hist and curr speech, remove latest speech segment. */
                     this.speech_hist[this.curr_index].pop()
@@ -77,6 +79,11 @@ export class StructCommandManager {
                     this.struct_command_list.splice(this.curr_index, 1, "")
                 }
             }
+        }
+
+        else if (cleaned_speech == "step out") {
+            this.curr_speech = [""]; // Not sure if this is right. But just keep it here for now.
+            this.stepOutCommand();
         }
 
         /* Normal process. */
@@ -89,8 +96,8 @@ export class StructCommandManager {
             /* Update speech hist. */
             this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
         }
-
         var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
+        console.log(struct_command)
         this.updateStructCommandList(struct_command);
 
         console.log("speech hist: ")
@@ -112,14 +119,12 @@ export class StructCommandManager {
         command. */
         if (struct_command.go_ahead) {
             this.curr_index += 1
-            this.curr_speech.shift()
+            this.curr_speech.shift() // 
             this.struct_command_list.splice(this.curr_index, 0, this.curr_speech.join(" "))
             this.extendable = false;
         }
-
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
-
             /* Block statement */
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
@@ -167,6 +172,25 @@ export class StructCommandManager {
         // this.concatVariableList(struct_command[1]);
     }
 
+    /* Jump out of whatever block the user is editing in. 
+    Edit the curr_index and the struct_command_list. */
+    /* Right now assume that the curr index is pointing to "". */
+    stepOutCommand() {
+        /* Perform checks to see if user is within a block or not. */
+
+        /* Get index of end_branch */
+        var endIdx = -1;
+        for (var i = this.curr_index; i < this.struct_command_list.length; i++) {
+            if (end_branches.includes(this.struct_command_list[i])) endIdx = i;
+        }
+        if (endIdx != -1) {
+            this.struct_command_list.splice(this.curr_index, 1); /* Remove "" from the struct_command_list. */
+            /* note that after "" has been removed, endIdx no longer points at end branch, but at the index
+            AFTER the end branch. */
+            this.struct_command_list.splice(endIdx, 0, ""); /* Add "" after the end_branch. */
+            this.curr_index = endIdx;
+        }
+    }
     
     concatVariableList(var_list: any) {
         if (var_list.length > 0) {

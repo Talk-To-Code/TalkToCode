@@ -230,7 +230,7 @@ function parse_assignment(text) {
         statement.logError(fragment1[1]);
         return statement;
     }
-    statement.parsedStatement = "#assign " + fragment1 + " #with " + fragment2 + ";;";
+    statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
     statement.newline = true;
     return statement;
 }

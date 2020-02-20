@@ -1,4 +1,10 @@
 import { segment_command } from './segmenter'
+
+
+var end_branches = ["if_branch_end;;", "else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
+                    "#function_end;;", "if_branch_end", "else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end"];
+                    
 /*     
 
 @ Parameters - list of commands, variable list
@@ -14,7 +20,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
     var text = ""
     var go_ahead = false
-    /* For now only assign statements are extendable.
+    /* For now only declare statements are extendable.
     for now only checks if next text segment contains equal. By right should check if first word of next
     segment contains equal. */
     if (is_extendable) {
@@ -31,21 +37,16 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
     }
     /* Just a normal case. */
     else text = text_segment.join(" ");
-
     text = replace_infix_operators(text);
+
     console.log("text going in: " + text)
 
     var struct_command = segment_command(text, var_list);
 
     console.log("segmented results: " + struct_command.parsedCommand);
     
-    if (struct_command.hasError) {
-        console.log(struct_command.errorMessage);
-        return struct_command;
-    }
-    
+    if (struct_command.hasError) return struct_command;
     struct_command.go_ahead = go_ahead;
-
     return struct_command;
 }
 
