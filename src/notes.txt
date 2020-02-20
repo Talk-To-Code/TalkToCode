@@ -15,13 +15,23 @@ e.g. int mark[5] = {19, 10, 8, 17, 9}
 assign case:
 are you assigning number, string or variable?? This is tricky
 
-Block statements:
-Seems like ast parser requires blocks to be completed. This fucking sucks.
-Seems like i will have to import everything each time. hais oh well.
 
 #c_program SampleProgram #include "stdio h";; #create int #variable hello #value 5 #dec_end;;
 for #condition #assign #variable I #with #value 0 #condition #variable is < #value 5 #condition #post #variable I ++ #for_start
 #create int #variable first #value 0 #dec_end;;
 #for_end;; 
 #program_end
+
+todo:
+assign statement needs to check if variable already exists.
+need to improve undo command.
+array assignment not sure if done.
+
+make if statement an extendable block. not sure how it will happen but yea
+
+camel, dot, underscore naming.
+
+segmenter needs to do more thorough checks. maybe include another else if condition for failed parsing.
+
+if not parseable, dont bother bro. just remove latest command and clear the codeBuffer;
 

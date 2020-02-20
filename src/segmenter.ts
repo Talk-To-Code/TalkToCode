@@ -46,6 +46,8 @@ export function segment_command(text, var_list) {
     switch(starting_command[0]) {
         case "if":
             return segment_if(splitted_text);
+        case "else":
+            return segment_else(splitted_text);
         case "loop":
             return segment_for_loop(splitted_text);
         case "function":
@@ -56,6 +58,8 @@ export function segment_command(text, var_list) {
             return segment_switch(splitted_text);
         case "do":
             return segment_do(splitted_text);
+        case "case":
+            return segment_case(splitted_text);
         default:
             var statement = parse_statement(text);
             return statement.convert2StructCommand();
@@ -95,6 +99,14 @@ function segment_if(splitted_text) {
     }
     command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
     command.endCommand = "#if_branch_end;;";
+    return command;
+}
+
+function segment_else(splitted_text) {
+    var command = new structCommand("block");
+    command.isElse = true;
+    command.parsedCommand = "#else_branch_start";
+    command.endCommand = "#else_branch_end;;";
     return command;
 }
 
@@ -251,35 +263,38 @@ function segment_function(splitted_text) {
 function segment_switch(splitted_text) {
     /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
     var command = new structCommand("non-block");
-    command.extendable = true; // command is always extendable (adding new cases, new statements in each cases..)
+    command.newline = true; // Since it is a non-block, have to indicate new line is true.
+
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
         return command;
     }
-    if (!splitted_text.includes("case")) {
-        command.parsedCommand = "switch " + splitted_text.join(" ") + ";;";
+    var fragment = parse_fragment(splitted_text);
+    if (fragment[0] == "not ready") {
+        command.logError(fragment[1]);
         return command;
     }
-    var case_blocks = splitted_text.join(" ").split("case");
-    case_blocks = case_blocks.map(x=>x.trim());
-    command.parsedCommand = "switch #condition #variable " + convert2Camel(case_blocks[0].split(" "));
-    var i = 1;
-    for (i; i < case_blocks.length; i++) {
-        var segmented_case = splitLiteralAndStatement(case_blocks[i]);
-        if (segmented_case[0] == "not ready") {
-            command.logError(segmented_case[1]);
-            return command;
-        }
-        command.parsedCommand += " case " + parse_fragment(segmented_case[0]);
-        var statement = parse_statement(segmented_case[1]);
-        if (statement.hasError) {
-            command.logError("statements are incorrect!");
-            return command;
-        }
-        command.parsedCommand += " #case_start " + statement.parsedStatement + " #case_end;;";
+    command.parsedCommand = "switch #condition " + fragment[1] + ";;";
+    return command;
+}
+
+function segment_case(splitted_text) {
+    var command = new structCommand("block");
+    command.isCase = true;
+    if (splitted_text.length == 0) {
+        command.logError("no term mentioned");
+        return command;
     }
+    var fragment = parse_fragment(splitted_text);
+    if (fragment[0] == "not ready") {
+        command.logError(fragment[1]);
+        return command;
+    }
+    command.parsedCommand = "case " + fragment[1] + " #case_start";
+    command.endCommand = "#case_end;;"
 
     return command;
+
 }
 
 /* Assuming a literal is mentioned first, followed by a statement, segment the 2. */

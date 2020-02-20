@@ -6,6 +6,7 @@ import { runTestCases } from './tester'
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
+var codeBuffer = "";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -54,6 +55,7 @@ function listen() {
 			else {
 				manager.parse_speech(transcribed_word)
 				displayStructCommands(manager.struct_command_list)
+				displayCode(manager.struct_command_list)
 			}
 		}
 	});
@@ -118,61 +120,41 @@ function displayStructCommands(struct_command_list) {
 }
 
 function displayCode(struct_command_list) {
-	let editor = vscode.window.activeTextEditor;
-
 	/* Set up commands to insert */
 	let commands = '#c_program SampleProgram #include "stdio h";; '
-	let i
-	for (i=0; i<struct_command_list.length; i++) {
-		commands += struct_command_list[i] + "\n"
-	}
-
+	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-
-	console.log(commands)
-
 	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
-
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');
-	
 
     other_child.stdin.write(commands);
     other_child.stdin.end();
 
     other_child.stdout.setEncoding('utf8');
     other_child.stdout.on('data', (data)=>{
-		console.log(data)
+		codeBuffer += data;
 
         if (data.includes("AST construction complete")) {
-            var code = "#include"
-            var data_segments = data.split("#include")
-
-            var idxOfAST = data_segments[1].indexOf("ASTNode")
-
-            data_segments[1] = data_segments[1].slice(0, idxOfAST)
-
-            code += data_segments[1];
-			writeToEditor(code)
+            var data_segments = codeBuffer.split("#include");
+			var idxOfAST = data_segments[1].indexOf("ASTNode");
+			codeBuffer = ""; // clear code stream
+			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
         }
-
 	});
-
 }
 
 function writeToEditor(code: string) {
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		/* Get range to delete */
-		var lineCount = editor.document.lineCount
-		var start_pos = new vscode.Position(0, 0)
-		var end_pos = new vscode.Position(lineCount, 0)
-		var range = new vscode.Range(start_pos, end_pos)
-		console.log("hello there")
-		console.log(code)
+		var lineCount = editor.document.lineCount;
+		var start_pos = new vscode.Position(0, 0);
+		var end_pos = new vscode.Position(lineCount, 0);
+		var range = new vscode.Range(start_pos, end_pos);
 		editor.edit(editBuilder => {
-			editBuilder.delete(range)	
-			editBuilder.insert(start_pos, code)
+			editBuilder.delete(range);
+			editBuilder.insert(start_pos, code);
 		});
 	}
 }

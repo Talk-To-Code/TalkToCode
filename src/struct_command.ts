@@ -1,25 +1,3 @@
-/* struct command in the format [list of struct commands, variable list, conditions list]
-
-list of struct commands 
-    each element is a line of struct command. 
-    For e.g. [#create int #variable first #value 1 #dec_end;;]
-    If the struct command contains multiple lines, i.e. is a block statement, then
-    the list of struct commands will contain:
-    ['if #condition #variable helloWorld > #value 5  #if_branch_start', '#if_branch_end;;' ]
-
-variable list
-    list of new variables declared by the user. This is only updated when a declare command is given
-
-conditions list
-    next_line: Is true when the command ends and the user can proceed to new line.
-    extendable: Is true when the command is already parseable and it can still be extended.
-        e.g. "declare int hello" is parseable, but can be extended with "equal 5".
-    go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
-        This flag will tell the manager to go ahead with next command.
-        
-*/
-
-
 export class structCommand {
 
     parsedCommand: string;
@@ -27,9 +5,18 @@ export class structCommand {
     errorMessage: string;
     hasError: boolean;
     isBlock: boolean;
+    isElse: boolean;
+    isCase: boolean;
     newline: boolean;
+    /* extendable: Is true when the command is already parseable and it can still be extended.
+        e.g. "declare int hello" is parseable, but can be extended with "equal 5". */
     extendable: boolean;
+    /* go_ahead: is true when the previously extendable struct command is confirmed to not be an extension of 
+    the prev command. This flag will tell the manager to go ahead with next command. */
     go_ahead: boolean;
+    /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
+    is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
+    removePrevTerminator: boolean;
 
     constructor(typeOfCommand: string) {
         this.parsedCommand = "";
@@ -37,9 +24,12 @@ export class structCommand {
         this.errorMessage = "";
         this.hasError = false;
         this.isBlock = false;
+        this.isElse = false;
+        this.isCase = false;
         this.newline = false;
         this.extendable = false;
         this.go_ahead = false;
+        this.removePrevTerminator = false;
 
         if (typeOfCommand == "block") {
             this.isBlock = true;
@@ -62,6 +52,9 @@ export class simpleStatement {
     isDeclare: boolean;
     isAssign: boolean;
     isReturn: boolean;
+    isBreak: boolean;
+    isContinue: boolean;
+    isFunction: boolean;
     newline: boolean;
     extendable: boolean;
 
@@ -74,6 +67,9 @@ export class simpleStatement {
         this.isAssign = false;
         this.isPostfix = false;
         this.isReturn = false;
+        this.isBreak = false;
+        this.isContinue = false;
+        this.isFunction = false;
         this.newline = false;
         this.extendable = false;
     }
