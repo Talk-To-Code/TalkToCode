@@ -25,7 +25,6 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 todo:
 assign statement needs to check if variable already exists.
 need to improve undo command.
-else block to be implemented.
 array assignment not sure if done.
 
 make if statement an extendable block. not sure how it will happen but yea
