@@ -96,8 +96,10 @@ export class StructCommandManager {
             /* Update speech hist. */
             this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
         }
-        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable);
-        console.log(struct_command)
+        var prev_struct_command = "";
+        if (this.curr_index > 0) prev_struct_command = this.struct_command_list[this.curr_index-1];
+        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable, prev_struct_command);
+
         this.updateStructCommandList(struct_command);
 
         console.log("speech hist: ")
@@ -123,6 +125,13 @@ export class StructCommandManager {
             this.struct_command_list.splice(this.curr_index, 0, this.curr_speech.join(" "))
             this.extendable = false;
         }
+
+        if (struct_command.removePrevTerminator) {
+            var prev_index = this.curr_index - 1;
+            /* Remove terminator. */
+            this.struct_command_list[prev_index] = this.struct_command_list[prev_index].replace(";;", "");
+        }
+
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
             /* Block statement */

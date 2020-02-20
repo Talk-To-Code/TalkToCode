@@ -270,6 +270,7 @@ function segment_switch(splitted_text) {
 
 function segment_case(splitted_text) {
     var command = new structCommand("block");
+    command.isCase = true;
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
         return command;
