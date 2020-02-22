@@ -5,6 +5,7 @@
 
 // export function correct_words
 export function clean(input_speech: string) {
+    input_speech = input_speech.toLowerCase();
     input_speech = fix_common_errors(input_speech);
     input_speech = replace_math_operators(input_speech);
     input_speech = correct_variables(input_speech);

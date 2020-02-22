@@ -381,7 +381,8 @@ function parse_array_d(text: string) {
 export function parse_fragment(splitted_text: string[]) {
 
     if (splitted_text.length == 1) {
-        if (typeof splitted_text[0] == "number") return ["ready", "#value " + splitted_text[0]];
+        /* Is a number! Not Not a number. */
+        if (!isNaN(Number(splitted_text[0]))) return ["ready", "#value " + splitted_text[0]];
         else return ["ready", "#variable " + splitted_text[0]];
     }
 
@@ -447,7 +448,7 @@ export function parse_fragment(splitted_text: string[]) {
             indexValue = convert2Camel(splitted_text.slice(indexIdx+1));
         else indexValue = splitted_text[splitted_text.length-1];
         var indexValueType = "";
-        if (typeof splitted_text[splitted_text.length-1] == "number") indexValueType = "#value";
+        if (!isNaN(Number(splitted_text[splitted_text.length-1]))) indexValueType = "#value";
         else indexValueType = "#variable";
 
         return ["ready", "#array " + var_name + " #indexes " + indexValueType + " " + indexValue + " #index_end"];

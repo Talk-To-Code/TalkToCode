@@ -7,6 +7,7 @@ const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
 var codeBuffer = "";
+var errorFlag = false;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -24,9 +25,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
-		// listen();
-		console.log("testing");
-		runTestCases();
+
+		listen();
+		// console.log("testing");
+		// runTestCases();
 
 	});
 
@@ -53,6 +55,9 @@ function listen() {
 			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
 
 			else {
+				errorFlag = false;
+				codeBuffer = "";
+
 				manager.parse_speech(transcribed_word)
 				displayStructCommands(manager.struct_command_list)
 				displayCode(manager.struct_command_list)
@@ -99,15 +104,19 @@ function displayCode(struct_command_list: string[]) {
     other_child.stdin.end();
 
     other_child.stdout.setEncoding('utf8');
-    other_child.stdout.on('data', (data)=>{
+    other_child.stdout.on('data', (data: string)=>{
 		codeBuffer += data;
 
-        if (data.includes("AST construction complete")) {
+        if (data.includes("AST construction complete") && !errorFlag) {
             var data_segments = codeBuffer.split("#include");
 			var idxOfAST = data_segments[1].indexOf("ASTNode");
 			codeBuffer = ""; // clear code stream
 			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
-        }
+		}
+		else if (data.includes("Not Supported Syntax Format")) {
+			codeBuffer = ""
+			errorFlag = true;
+		}
 	});
 }
 

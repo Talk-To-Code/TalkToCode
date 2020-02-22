@@ -10,7 +10,7 @@ async function test_spawn() {
     child.stdin.end();
 
     child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (data)=>{
+    child.stdout.on('data', (data: string)=>{
         console.log(data)
 
         if (data.includes("AST construction complete")) {
@@ -38,7 +38,7 @@ async function test_spawn2() {
     child.stdin.end();
 
     child.stdout.setEncoding('utf8');
-    child.stdout.on('data', (data)=>{
+    child.stdout.on('data', (data: string)=>{
         console.log(data)
 	});
 }

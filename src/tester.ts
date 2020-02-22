@@ -4,8 +4,8 @@ export function runTestCases() {
 
     var test_cases = [[""], [""]];
 
-    // test_cases = generate_test_cases("declare_assign");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("declare_assign");
+    runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("if_block");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -22,8 +22,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("do_while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("switch_case");
-    runTestCase(test_cases[0], test_cases[1]);
+    // 
+    
 
     // test_cases = generate_test_cases("jump_statements");
     // runTestCase(test_cases[0], test_cases[1]);

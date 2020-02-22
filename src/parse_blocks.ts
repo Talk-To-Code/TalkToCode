@@ -63,7 +63,7 @@ export function parse_command(text: string, var_list: string[], func_list: strin
 function determine_user_command(text: string, var_list: string[]) {
 
     text = text.replace("begin if", "if");
-    text = text.replace("begin Loop", "loop");
+    text = text.replace("begin loop", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
     text = text.replace("do while", "do");
@@ -293,18 +293,4 @@ function parse_case(splitted_text: string[]) {
     command.endCommand = "#case_end;;"
 
     return command;
-
-}
-
-/* Assuming a literal is mentioned first, followed by a statement, segment the 2. */
-function splitLiteralAndStatement(text: string) {
-    var splitted_text = text.split(" ");
-
-    if (splitted_text.length == 0) return ["not ready", "no literal"];
-    if (splitted_text.length == 1) return ["not ready", "no statement"];
-
-    if (!isNaN(splitted_text[0])) return [splitted_text[0], splitted_text.slice(1).join(" ")];
-    else return ["not ready", "no matches"];
-    // if (splitted_text[0] == "string") not implemented yet!
-
 }

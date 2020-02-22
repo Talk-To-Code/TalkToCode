@@ -105,6 +105,8 @@ export class StructCommandManager {
         console.log(this.speech_hist)
         console.log("command struct list:")
         console.log(this.struct_command_list)
+        console.log("variable list:")
+        console.log(this.variable_list)
     }
 
     /* Updating the struct command list */
@@ -149,7 +151,8 @@ export class StructCommandManager {
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
             var speech = this.curr_speech.join(" ")
-            this.struct_command_list.splice(this.curr_index, 1, speech)
+            var commented_speech = "#comment #value \"" + speech + "\";; #comment_end;;"
+            this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
