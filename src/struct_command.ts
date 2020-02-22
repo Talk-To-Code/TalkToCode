@@ -3,20 +3,34 @@ export class structCommand {
     parsedCommand: string;
     endCommand: string;
     errorMessage: string;
+    /* newVariable: stores string of new variable declared. */
+    newVariable: string;
+    /* newFunction: stores string of new function declared. */
+    newFunction: string;
+    /* hasError: true when input speech is not parseable. */
     hasError: boolean;
+    /* isBlock: true when the struct command is a block statement. Useful for updating the struct command
+    list in the struct_command_manager. */
     isBlock: boolean;
+    /* isElse: true when struct command is an Else block. Useful for checking conditions on whether the else
+    block is part of a previous If block. Used in the text2struct.ts file. */
     isElse: boolean;
+    /* isCase: true when struct command is a Case block. Useful for checking conditions on whether the case
+    block is part of a previous switch block. Used in the text2struct.ts file. */
     isCase: boolean;
     /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
     is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
     removePrevTerminator: boolean;
     /* removePrevious: is true if the previous statement is extendable by the current statement. */
     removePrevious: boolean;
+    
 
     constructor(typeOfCommand: string) {
         this.parsedCommand = "";
         this.endCommand = "";
         this.errorMessage = "";
+        this.newVariable = "";
+        this.newFunction = "";
         this.hasError = false;
         this.isBlock = false;
         this.isElse = false;

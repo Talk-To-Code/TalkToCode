@@ -13,6 +13,8 @@ export class StructCommandManager {
     struct_command_list: string[]
     /* List of variables declared by the user */
     variable_list: string[]
+    /* List of functions declared by the user */
+    functions_list: string[]
     /* current index within the struct_command_list - helpful for:
         - determining where to splice new struct commands into the struct command list.
         - for extendable commands. whether to splice and replace/extend extendable command or go ahead to
@@ -31,6 +33,7 @@ export class StructCommandManager {
         this.struct_command_list = [""];
         this.curr_speech = [""];
         this.variable_list = [""];
+        this.functions_list = [""];
         this.speech_hist = [[""]];
     }
 
@@ -39,6 +42,7 @@ export class StructCommandManager {
         this.struct_command_list = [""];
         this.curr_speech = [""];
         this.variable_list = [""];
+        this.functions_list = [""];
         this.speech_hist = [[""]];
     }
 
@@ -91,9 +95,11 @@ export class StructCommandManager {
         }
         var prev_struct_command = "";
         if (this.curr_index > 0) prev_struct_command = this.struct_command_list[this.curr_index-1];
-        var struct_command = get_struct(this.curr_speech, this.variable_list, prev_struct_command);
+        var struct_command = get_struct(this.curr_speech, this.variable_list, this.functions_list, 
+                            prev_struct_command);
 
         this.updateStructCommandList(struct_command);
+        this.updateVariableAndFunctionList(struct_command);
 
         console.log("speech hist: ")
         console.log(this.speech_hist)
@@ -147,8 +153,6 @@ export class StructCommandManager {
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
-
-        // this.concatVariableList(struct_command[1]);
     }
 
     /* Jump out of whatever block the user is editing in. 
@@ -173,13 +177,17 @@ export class StructCommandManager {
         }
     }
     
-    concatVariableList(var_list: any) {
-        if (var_list.length > 0) {
-            let i;
-            for (i = 0; i < var_list.length; i++) {
-                if (var_list[i].length > 0 && !this.variable_list.includes(var_list[i])) {
-                    this.variable_list.push(var_list[i]);
-                }
+    updateVariableAndFunctionList(struct_command: structCommand) {
+
+        if (struct_command.newFunction != "") {
+            if (!this.functions_list.includes(struct_command.newFunction)) {
+                this.functions_list.push(struct_command.newFunction);
+            }
+        }
+
+        if (struct_command.newVariable != "") {
+            if (!this.variable_list.includes(struct_command.newVariable)) {
+                this.variable_list.push(struct_command.newVariable);
             }
         }
     }
