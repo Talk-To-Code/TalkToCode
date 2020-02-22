@@ -30,7 +30,7 @@ conditions list
     go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
         This flag will tell the manager to go ahead with next command. */
 
-export function segment_command(text, var_list) {
+export function segment_command(text: string, var_list: string[]) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") {
@@ -67,7 +67,7 @@ export function segment_command(text, var_list) {
 }
 
 /* To determine what command the user is trying say */
-function determine_user_command(text, var_list) {
+function determine_user_command(text: string, var_list: string[]) {
 
     text = text.replace("begin if", "if");
     text = text.replace("begin Loop", "loop");
@@ -84,7 +84,7 @@ function determine_user_command(text, var_list) {
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] */
-function segment_if(splitted_text) {
+function segment_if(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
@@ -102,7 +102,7 @@ function segment_if(splitted_text) {
     return command;
 }
 
-function segment_else(splitted_text) {
+function segment_else(splitted_text: string[]) {
     var command = new structCommand("block");
     command.isElse = true;
     command.parsedCommand = "#else_branch_start";
@@ -112,7 +112,7 @@ function segment_else(splitted_text) {
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
-function segment_while(splitted_text) {
+function segment_while(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
     var statement = parse_statement(splitted_text.join(" "));
@@ -129,7 +129,7 @@ function segment_while(splitted_text) {
     return command;
 }
 
-function segment_do(splitted_text) {
+function segment_do(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "do #condition"
     var statement = parse_statement(splitted_text.join(" "));
@@ -147,7 +147,7 @@ function segment_do(splitted_text) {
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
-function segment_for_loop(splitted_text) {
+function segment_for_loop(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
@@ -187,7 +187,7 @@ function segment_for_loop(splitted_text) {
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
-function segment_function(splitted_text) {
+function segment_function(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "#function_declare";
     if (!splitted_text.includes("with")) {
@@ -262,10 +262,9 @@ function segment_function(splitted_text) {
     return command;
 }
 
-function segment_switch(splitted_text) {
+function segment_switch(splitted_text: string[]) {
     /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
     var command = new structCommand("non-block");
-    command.newline = true; // Since it is a non-block, have to indicate new line is true.
 
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
@@ -280,7 +279,7 @@ function segment_switch(splitted_text) {
     return command;
 }
 
-function segment_case(splitted_text) {
+function segment_case(splitted_text: string[]) {
     var command = new structCommand("block");
     command.isCase = true;
     if (splitted_text.length == 0) {
@@ -300,7 +299,7 @@ function segment_case(splitted_text) {
 }
 
 /* Assuming a literal is mentioned first, followed by a statement, segment the 2. */
-function splitLiteralAndStatement(text) {
+function splitLiteralAndStatement(text: string) {
     var splitted_text = text.split(" ");
 
     if (splitted_text.length == 0) return ["not ready", "no literal"];

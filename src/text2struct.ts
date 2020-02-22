@@ -6,6 +6,8 @@ var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#wh
                     "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
                     "#case_end", "#function_end"];
 
+var operators = ["+", "-", "*", "/"]
+
 /*     
 
 @ Parameters - list of commands, variable list
@@ -24,32 +26,18 @@ prev_command
     For e.g. Else block can on be created if prev_command is "#if_branch_end"
 
 @ Returns the structCommand obj*/
-export function get_struct(text_segment: string[], var_list: string[], is_extendable: boolean, prev_command: string) {
+export function get_struct(input_speech_segments: string[], var_list: string[], prev_command: string) {
 
-    var text = ""
-    var go_ahead = false
-    /* For now only declare statements are extendable.
-    for now only checks if next text segment contains equal. By right should check if first word of next
-    segment contains equal. */
-    if (is_extendable) {
-        
-        if (text_segment.length < 2) console.log("ERROR. Extendable case, but text segment less than length 2.")
+    var input_speech = input_speech_segments.join(" ");
 
-        /* extendable! */
-        if (text_segment[1].includes("equal")) text = text_segment.join(" ");
-        /* Not extendable :( */
-        else {
-            go_ahead = true
-            text = text_segment[1];
-        }
-    }
-    /* Just a normal case. */
-    else text = text_segment.join(" ");
-    text = replace_infix_operators(text);
+    var removePrevious = checkPrevStatement(input_speech, prev_command);
+    if (removePrevious) input_speech = remakePrevDeclareSpeech(prev_command) + " " + input_speech;
 
-    console.log("text going in: " + text)
+    input_speech = replace_infix_operators(input_speech);
 
-    var struct_command = segment_command(text, var_list);
+    console.log("text going in: " + input_speech)
+
+    var struct_command = segment_command(input_speech, var_list);
 
     console.log("segmented results: " + struct_command.parsedCommand);
     
@@ -57,9 +45,9 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
         console.log("Error " + struct_command.errorMessage)
         return struct_command;
     }
-    struct_command.go_ahead = go_ahead;
 
     struct_command.removePrevTerminator = checkPrevBlock(struct_command, prev_command);
+    struct_command.removePrevious = removePrevious;
     return struct_command;
 }
 
@@ -77,16 +65,28 @@ function replace_infix_operators(text: string) {
     return text;
 }
 
+/* Check if previous statement is extendable with the current statement. */
+function checkPrevStatement(input_text: string, prev_command: string) {
+    /* A declare statement without an assignment */
+    if (prev_command.includes("#create") && prev_command.split(" ").length == 5) {
+        if (input_text.split(" ")[0] == "equal") return true;
+    }
+    return false;
+}
+
+
 /* check if current struct command is an extendable block of the prev block. */
 function checkPrevBlock(struct_command: structCommand, prev_command: string) {
 
     if (!end_branches.includes(prev_command)) return false;
 
     if (prev_command == "#if_branch_end;;" && struct_command.isElse) return true;
-    if (prev_command == "#case_end;;" && struct_command.isCase) {
-        console.log("i should be here")
-        return true;
-    }
+    if (prev_command == "#case_end;;" && struct_command.isCase) return true;
 
     else return false;
+}
+
+function remakePrevDeclareSpeech(struct_command: string) {
+    var splitted_text = struct_command.split(" ");
+    return "declare " + splitted_text[1] + " " + splitted_text[3];
 }

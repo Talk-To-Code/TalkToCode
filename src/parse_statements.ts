@@ -54,7 +54,7 @@ var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
-export function convert2Camel(name_arr) {
+export function convert2Camel(name_arr: string[]) {
 
     if (name_arr.length == 1) return name_arr.join(" ");
 
@@ -70,7 +70,7 @@ export function convert2Camel(name_arr) {
 
 /* Purpose of this function is to parse any potential statement into the structured command. */
 /* Returns class statement. */
-export function parse_statement(text) {
+export function parse_statement(text: string) {
     var statementType = determine_type(text);
     switch(statementType) {
         case "declare":
@@ -96,7 +96,7 @@ export function parse_statement(text) {
     }
 }
 
-function determine_type(text) {
+function determine_type(text: string) {
     var splitted_text = text.split(" ");
     if (splitted_text[0] == "declare") return "declare";
     else if (splitted_text[0] == "return") return "return";
@@ -123,7 +123,7 @@ function parse_break() {
     return statement;
 }
 
-function parse_declare(text) {
+function parse_declare(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
     statement.parsedStatement = "#create";
@@ -152,7 +152,6 @@ function parse_declare(text) {
             return statement;
         }
         statement.parsedStatement += " " + parse_array_d(splitted_text.slice(3).join(" "));
-        statement.newline = true;
     }
     else {
         /* Check if Equal is mentioned. */
@@ -170,7 +169,6 @@ function parse_declare(text) {
                 return statement;
             }
             statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
-            statement.newline = true;
         }
         else {
             var fragment = parse_fragment(splitted_text.slice(2));
@@ -179,14 +177,13 @@ function parse_declare(text) {
                 return statement;
             }
             statement.parsedStatement += " " + fragment[1];
-            statement.extendable = true;
         }
     }
     statement.parsedStatement +=  " #dec_end;;";
     return statement;
 }
 
-function parse_return(text) {
+function parse_return(text: string) {
     var statement = new simpleStatement();
     statement.isReturn = true;
     statement.parsedStatement = "return #paramater";
@@ -199,18 +196,17 @@ function parse_return(text) {
     }
     /* returning a variable or literal */
     else {
-        var fragment = parse_fragment(splitted_text.slice(1).join(" "));
+        var fragment = parse_fragment(splitted_text.slice(1));
         if (fragment[0] == "not ready") {
             statement.logError(fragment[1]);
             return statement;
         }
         statement.parsedStatement += " " + fragment[1] + ";;";
     }
-    statement.newline = true;
     return statement;
 }
 
-function parse_assignment(text) {
+function parse_assignment(text: string) {
     var statement = new simpleStatement();
     statement.isAssign = true;
     var splitted_text = text.split(" ");
@@ -229,12 +225,11 @@ function parse_assignment(text) {
         return statement;
     }
     statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
-    statement.newline = true;
     return statement;
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] or ['hello', '<', '5', '&&', 'g' '==', '5']*/
-function parse_infix(text) {
+function parse_infix(text: string) {
     var statement = new simpleStatement();
     statement.isInfix = true;
     var splitted_text = text.split(" ");
@@ -307,7 +302,7 @@ function parse_infix(text) {
     return statement;
 }
 
-function parse_postfix(test) {
+function parse_postfix(test: string) {
     var statement = new simpleStatement();
     statement.isPostfix = true;
     var splitted_text = test.split(" ");
@@ -315,7 +310,7 @@ function parse_postfix(test) {
     return statement;
 }
 
-function parse_function(text) {
+function parse_function(text: string) {
     var statement = new simpleStatement();
     statement.isFunction = true;
     var fragment = parse_fragment(text.split(" "));
@@ -330,7 +325,7 @@ function parse_function(text) {
 /* Parse array when doing daclaration.
 E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
 */
-function parse_array_d(text) {
+function parse_array_d(text: string) {
     var splitted_text = text.split(" ");
     var size_idx = splitted_text.indexOf("size");
     var parsed_results = "#array #variable";
@@ -343,7 +338,7 @@ function parse_array_d(text) {
 /* Returns list as [<status>, <parsed_result>] 
 <status> - "ready" or "not_ready"
 <parsed_result> - the successfully parsed result. */
-export function parse_fragment(splitted_text) {
+export function parse_fragment(splitted_text: string[]) {
 
     if (splitted_text.length == 1) {
         /* Is a number! (Not Not a number) */
@@ -376,8 +371,6 @@ export function parse_fragment(splitted_text) {
             /* Hardcoded mapping of function name */
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
-
-            console.log(function_name)
 
             var parsed_result = "#function " + function_name + "(";
             for (var i = 1; i < parameter_blocks.length; i++) {

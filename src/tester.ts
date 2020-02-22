@@ -10,8 +10,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("if_block");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("for_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("for_loop");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("create_function");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -22,14 +22,14 @@ export function runTestCases() {
     // test_cases = generate_test_cases("do_while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("switch_case");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("switch_case");
+    runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("jump_statements");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("jump_statements");
+    runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("call_function");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("call_function");
+    runTestCase(test_cases[0], test_cases[1]);
 
 }
 
@@ -53,7 +53,6 @@ function generate_test_cases(cases: string) {
 
     else if (cases == "jump_statements") {
         test_cases[0] = ["return i equal 2"];
-
         test_cases[1] = ["return #paramater #assign #variable i #with #value 2;;",""];
     }
 
@@ -93,14 +92,14 @@ function generate_test_cases(cases: string) {
     
     else if (cases == "switch_case") {
         test_cases[0] = ["begin switch hello", "case 2", "step out", "case 5"];
-        test_cases[0] = ["switch #condition #variable hello;;","case #value 2 #case_start","#case_end",
+        test_cases[1] = ["switch #condition #variable hello;;","case #value 2 #case_start","#case_end",
         "case #value 5 #case_start","","#case_end;;"]
     }
 
     else if (cases == "call_function") {
         test_cases[0] = ["call function print f parameter string enter two numbers end string end function"];
         // test_cases[0] = ["call function print f"]
-        test_cases[1] = ["#function printf(#parameter #value \"enter 2 numbers\");;"];
+        test_cases[1] = ["#function printf(#parameter #value \"enter 2 numbers\");;", ""];
     }
 
     return test_cases
