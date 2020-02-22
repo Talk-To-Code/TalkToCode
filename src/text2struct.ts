@@ -53,7 +53,10 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
     console.log("segmented results: " + struct_command.parsedCommand);
     
-    if (struct_command.hasError) return struct_command;
+    if (struct_command.hasError) {
+        console.log("Error " + struct_command.errorMessage)
+        return struct_command;
+    }
     struct_command.go_ahead = go_ahead;
 
     struct_command.removePrevTerminator = checkPrevBlock(struct_command, prev_command);
@@ -62,7 +65,7 @@ export function get_struct(text_segment: string[], var_list: string[], is_extend
 
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string) {
-    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while")) {
+    if (text.includes("begin if") || text.includes("begin Loop") ||text.includes("while")) {
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
         text = text.replace(/less than/g, '<');

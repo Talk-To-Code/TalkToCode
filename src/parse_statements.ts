@@ -46,7 +46,6 @@ fragment() :
 */
 
 import { simpleStatement } from './struct_command'
-import { generateKeyPair } from 'crypto';
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
@@ -73,7 +72,6 @@ export function convert2Camel(name_arr) {
 /* Returns class statement. */
 export function parse_statement(text) {
     var statementType = determine_type(text);
-
     switch(statementType) {
         case "declare":
             return parse_declare(text);
@@ -313,7 +311,7 @@ function parse_postfix(test) {
     var statement = new simpleStatement();
     statement.isPostfix = true;
     var splitted_text = test.split(" ");
-    statement.parsedStatement = "#variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
+    statement.parsedStatement = "#post #variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
     return statement;
 }
 

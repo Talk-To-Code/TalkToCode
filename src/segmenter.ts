@@ -164,21 +164,23 @@ function segment_for_loop(splitted_text) {
         command.logError("need to have 3 conditions.");
         return command;
     }
+    for (var i = 0; i < condition_blocks.length; i++) {
+        /* Do not confuse first condition block for an infix condition. it is an assign statement. */
+        if ( i == 0) condition_blocks[0] = condition_blocks[0].replace("==", "equal");
 
-    var i = 0;
-    for (i; i < condition_blocks.length; i++) {
         var statement = parse_statement(condition_blocks[i]);
         if (statement.hasError) {
             command.logError("something wrong with for-loop infix condition.");
             return command;
         }
-        if (!statement.isInfix) {
+        if (!statement.isInfix && i == 1) {
             command.logError("infix is required.");
             return command;
         }
         statement.removeTerminator();
         command.parsedCommand += " #condition " + statement.parsedStatement;
     }
+    command.parsedCommand += " #for_start"
     command.endCommand = "#for_end;;";
     return command;
 }
