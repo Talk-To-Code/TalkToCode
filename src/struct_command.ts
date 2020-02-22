@@ -3,38 +3,42 @@ export class structCommand {
     parsedCommand: string;
     endCommand: string;
     errorMessage: string;
+    /* newVariable: stores string of new variable declared. */
+    newVariable: string;
+    /* newFunction: stores string of new function declared. */
+    newFunction: string;
+    /* hasError: true when input speech is not parseable. */
     hasError: boolean;
+    /* isBlock: true when the struct command is a block statement. Useful for updating the struct command
+    list in the struct_command_manager. */
     isBlock: boolean;
+    /* isElse: true when struct command is an Else block. Useful for checking conditions on whether the else
+    block is part of a previous If block. Used in the text2struct.ts file. */
     isElse: boolean;
+    /* isCase: true when struct command is a Case block. Useful for checking conditions on whether the case
+    block is part of a previous switch block. Used in the text2struct.ts file. */
     isCase: boolean;
-    newline: boolean;
-    /* extendable: Is true when the command is already parseable and it can still be extended.
-        e.g. "declare int hello" is parseable, but can be extended with "equal 5". */
-    extendable: boolean;
-    /* go_ahead: is true when the previously extendable struct command is confirmed to not be an extension of 
-    the prev command. This flag will tell the manager to go ahead with next command. */
-    go_ahead: boolean;
     /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
     is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
     removePrevTerminator: boolean;
+    /* removePrevious: is true if the previous statement is extendable by the current statement. */
+    removePrevious: boolean;
+    
 
     constructor(typeOfCommand: string) {
         this.parsedCommand = "";
         this.endCommand = "";
         this.errorMessage = "";
+        this.newVariable = "";
+        this.newFunction = "";
         this.hasError = false;
         this.isBlock = false;
         this.isElse = false;
         this.isCase = false;
-        this.newline = false;
-        this.extendable = false;
-        this.go_ahead = false;
         this.removePrevTerminator = false;
+        this.removePrevious = false;
 
-        if (typeOfCommand == "block") {
-            this.isBlock = true;
-            this.newline = true;
-        }
+        if (typeOfCommand == "block") this.isBlock = true;
     }
 
     logError(errorMessage:string) {
@@ -55,8 +59,6 @@ export class simpleStatement {
     isBreak: boolean;
     isContinue: boolean;
     isFunction: boolean;
-    newline: boolean;
-    extendable: boolean;
 
     constructor() {
         this.parsedStatement = "";
@@ -70,8 +72,6 @@ export class simpleStatement {
         this.isBreak = false;
         this.isContinue = false;
         this.isFunction = false;
-        this.newline = false;
-        this.extendable = false;
     }
 
     logError(errorMessage:string) {
@@ -86,8 +86,6 @@ export class simpleStatement {
     convert2StructCommand() {
         var command = new structCommand("non-block");
         command.parsedCommand = this.parsedStatement;
-        command.newline = this.newline;
-        command.extendable = this.extendable;
 
         command.hasError = this.hasError;
         command.errorMessage = this.errorMessage;

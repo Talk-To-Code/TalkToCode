@@ -55,19 +55,6 @@ function word_2_num(text: string) {
     return text;
 }
 
-/* Automatically indent 'end' statements (e.g. end declare) when necessary. */
-// for block statements, this requires the user to manually declare since we don't know if user
-// intends to stay within the block.
-function concat_end_statements(text) {
-
-    var text_segments = text.split(" ");
-    /* For the case where the user says out the whole variable declaration at once. */
-    //if (text_segments.length == 5
-
-    return text
-}
-
-
 // if (require.main === module) {
 //     console.log(clean("declare integer first equal one and declare"));
 // }

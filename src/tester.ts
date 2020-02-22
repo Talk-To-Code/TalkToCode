@@ -7,8 +7,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("declare_assign");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("if_block");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("if_block");
+    // runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -22,8 +22,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("do_while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("switch_case");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("switch_case");
+    runTestCase(test_cases[0], test_cases[1]);
 
     // test_cases = generate_test_cases("jump_statements");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -42,64 +42,76 @@ function generate_test_cases(cases: string) {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
         test_cases[0] = ["declare integer", "hello world", "equal 5", "hello world equals 4",
-        "declare float", "count", "equals hello",
+        "declare float", "count", "equals hello world",
         "declare integer first equals 10"];
 
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 
-        "#create float #variable count #variable hello #dec_end;;",
+        "#create float #variable count #variable helloWorld #dec_end;;",
         "#create int #variable first #value 10 #dec_end;;", ""];
     }
 
     else if (cases == "jump_statements") {
-        test_cases[0] = ["return i equal 2"];
-
-        test_cases[1] = ["return #paramater #assign #variable i #with #value 2;;",""];
+        test_cases[0] = ["declare integer i", "return i equal 2"];
+        test_cases[1] = ["#create int #variable i #dec_end;;","return #paramater #assign #variable i #with #value 2;;",""];
     }
 
     else if (cases == "if_block") {
-        test_cases[0] = ["begin if hello greater than 5", "declare integer i equal 4", "i equals 6",
-        "begin if", "i", "equals", "4", "declare integer count equal 6", "step out", "step out", "else",
+        test_cases[0] = ["declare integer hello equal 4", "begin if hello greater than 5", 
+        "declare integer i equal 4", "i equals 6", "begin if", "i", "equals", "4", 
+        "declare integer count equal 6", "step out", "step out", "else",
         "hello equals 4"];
 
-        test_cases[1] = ["if #condition #variable hello > #value 5 #if_branch_start",
+        test_cases[1] = ["#create int #variable hello #value 4 #dec_end;;",
+        "if #condition #variable hello > #value 5 #if_branch_start",
         "#create int #variable i #value 4 #dec_end;;","#assign #variable i #with #value 6;;",
         "if #condition #variable i == #value 4 #if_branch_start",
         "#create int #variable count #value 6 #dec_end;;","#if_branch_end;;","#if_branch_end",
         "#else_branch_start","#assign #variable hello #with #value 4;;","","#else_branch_end;;"];
     }
     else if (cases == "for_loop") {
-        test_cases[0] = ["begin Loop condition I equal 0 condition I less than 5 condition I plus plus",
+        test_cases[0] = ["declare integer I", 
+        "begin Loop condition I equal 0 condition I less than 5 condition I plus plus",
         "declare integer hello equals 5"];
-        test_cases[1] = ["for #condition #assign #variable I #with #value 0 #condition #variable I < #value 5 #condition #post #variable I ++ #for_start",
+
+        test_cases[1] = ["#create int #variable I #dec_end;;", 
+        "for #condition #assign #variable I #with #value 0 #condition #variable I < #value 5 #condition #post #variable I ++ #for_start",
         "#create int #variable hello #value 5 #dec_end;;","","#for_end;;"];
     }
 
     else if (cases == "create_function") {
         test_cases[0] = ["create function find maximum with return type integer with parameter integer array numbers with parameter integer length begin"];
-        test_cases[1] = ["#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter int length #function_start", "", "#function_end;;"];
+        test_cases[1] = ["#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter #type int length #function_start", "", "#function_end;;"];
     }
 
     else if (cases == "while_loop") {
-        test_cases[0] = ["while first not equal second"];
-        test_cases[1] = ["while #condition #variable first != #variable second #while_start","","#while_end;;"];
+        test_cases[0] = ["declare integer first equal 1", "declare integer second equal 3", 
+        "while first not equal second"];
+        test_cases[1] = ["#create int #variable first #value 1 #dec_end;;",
+        "#create int #variable second #value 3 #dec_end;;",
+        "while #condition #variable first != #variable second #while_start","","#while_end;;"];
     }
 
     else if (cases == "do_while_loop") {
-        test_cases[0] = ["do while first not equal second", "hello equal 5"];
-        test_cases[1] = ["do #condition #variable first != #variable second #while_start", "#assign #variable hello #with #value 5;;", 
-        "","#while_end;;"];
+        test_cases[0] = ["declare integer first equal 1", "declare integer second equal 1", 
+        "declare integer hello equals 4", "do while first not equal second", "hello equal 5"];
+        test_cases[1] = ["#create int #variable first #value 1 #dec_end;;",
+        "#create int #variable second #value 1 #dec_end;;","#create int #variable hello #value 4 #dec_end;;",
+        "do #condition #variable first != #variable second #while_start",
+        "#assign #variable hello #with #value 5;;","","#while_end;;"];
     }
     
     else if (cases == "switch_case") {
-        test_cases[0] = ["begin switch hello", "case 2", "step out", "case 5"];
-        test_cases[1] = ["switch #condition #variable hello case #value 2 #case_start #assign #variable hello #with #value 5;; #case_end;;"];
+        test_cases[0] = ["declare integer hello equal 5", "begin switch hello", "case 2", "step out", "case 5"];
+        test_cases[1] = ["#create int #variable hello #value 5 #dec_end;;",
+        "switch #condition #variable hello","case #value 2 #case_start","#case_end",
+        "case #value 5 #case_start","","#case_end;;"];
     }
 
     else if (cases == "call_function") {
         test_cases[0] = ["call function print f parameter string enter two numbers end string end function"];
         // test_cases[0] = ["call function print f"]
-        test_cases[1] = [""];
+        test_cases[1] = ["#function printf(#parameter #value \"enter 2 numbers\");;", ""];
     }
 
     return test_cases

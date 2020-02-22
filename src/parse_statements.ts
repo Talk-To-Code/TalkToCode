@@ -46,7 +46,6 @@ fragment() :
 */
 
 import { simpleStatement } from './struct_command'
-import { generateKeyPair } from 'crypto';
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
@@ -55,7 +54,7 @@ var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
-export function convert2Camel(name_arr) {
+export function convert2Camel(name_arr: string[]) {
 
     if (name_arr.length == 1) return name_arr.join(" ");
 
@@ -71,34 +70,33 @@ export function convert2Camel(name_arr) {
 
 /* Purpose of this function is to parse any potential statement into the structured command. */
 /* Returns class statement. */
-export function parse_statement(text) {
+export function parse_statement(text: string, var_list: string[], funct_list: string[]) {
     var statementType = determine_type(text);
-
     switch(statementType) {
         case "declare":
-            return parse_declare(text);
+            return parse_declare(text, var_list, funct_list);
         case "assign":
-            return parse_assignment(text);
+            return parse_assignment(text, var_list, funct_list);
         case "infix":
-            return parse_infix(text);
+            return parse_infix(text, var_list, funct_list);
         case "postfix": // For now just postfix man.
-            return parse_postfix(text);
+            return parse_postfix(text, var_list, funct_list);
         case "return":
-            return parse_return(text);
+            return parse_return(text, var_list, funct_list);
         case "break":
             return parse_break();
         case "continue":
             return parse_continue();
         case "function":
-            return parse_function(text);
+            return parse_function(text, var_list, funct_list);
         default:
             var statement = new simpleStatement();
-            statement.logError("default case of parse_statements");
+            statement.logError("Does not match any statement format.");
             return statement;
     }
 }
 
-function determine_type(text) {
+function determine_type(text: string) {
     var splitted_text = text.split(" ");
     if (splitted_text[0] == "declare") return "declare";
     else if (splitted_text[0] == "return") return "return";
@@ -125,7 +123,7 @@ function parse_break() {
     return statement;
 }
 
-function parse_declare(text) {
+function parse_declare(text: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
     statement.parsedStatement = "#create";
@@ -154,7 +152,6 @@ function parse_declare(text) {
             return statement;
         }
         statement.parsedStatement += " " + parse_array_d(splitted_text.slice(3).join(" "));
-        statement.newline = true;
     }
     else {
         /* Check if Equal is mentioned. */
@@ -171,8 +168,12 @@ function parse_declare(text) {
                 statement.logError(fragment1[1]);
                 return statement;
             }
+            var validity = checkValidity(fragment2[1], var_list, funct_list);
+            if (!validity) {
+                statement.logError("variable or function not yet declared.");
+                return statement;
+            }
             statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
-            statement.newline = true;
         }
         else {
             var fragment = parse_fragment(splitted_text.slice(2));
@@ -181,38 +182,41 @@ function parse_declare(text) {
                 return statement;
             }
             statement.parsedStatement += " " + fragment[1];
-            statement.extendable = true;
         }
     }
     statement.parsedStatement +=  " #dec_end;;";
     return statement;
 }
 
-function parse_return(text) {
+function parse_return(text: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isReturn = true;
     statement.parsedStatement = "return #paramater";
     var splitted_text = text.split(" ");
     /* Return has an assign statement */
     if (splitted_text.includes("equal")) {
-        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "));
+        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "), var_list, funct_list);
         if (assign_statement.hasError) return assign_statement;
         else statement.parsedStatement += " " + assign_statement.parsedStatement; // assign statement alr has its own ";;"
     }
     /* returning a variable or literal */
     else {
-        var fragment = parse_fragment(splitted_text.slice(1).join(" "));
+        var fragment = parse_fragment(splitted_text.slice(1));
         if (fragment[0] == "not ready") {
             statement.logError(fragment[1]);
             return statement;
         }
+        var validity = checkValidity(fragment[1], var_list, funct_list);
+        if (!validity) {
+            statement.logError("variable or function not yet declared.");
+            return statement;
+        }
         statement.parsedStatement += " " + fragment[1] + ";;";
     }
-    statement.newline = true;
     return statement;
 }
 
-function parse_assignment(text) {
+function parse_assignment(text: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isAssign = true;
     var splitted_text = text.split(" ");
@@ -230,13 +234,22 @@ function parse_assignment(text) {
         statement.logError(fragment1[1]);
         return statement;
     }
+    var validity = checkValidity(fragment1[1], var_list, funct_list);
+    if (!validity) {
+        statement.logError("variable or function not yet declared.");
+        return statement;
+    }
+    validity = checkValidity(fragment2[1], var_list, funct_list);
+    if (!validity) {
+        statement.logError("variable or function not yet declared.");
+        return statement;
+    }
     statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
-    statement.newline = true;
     return statement;
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] or ['hello', '<', '5', '&&', 'g' '==', '5']*/
-function parse_infix(text) {
+function parse_infix(text: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isInfix = true;
     var splitted_text = text.split(" ");
@@ -259,7 +272,7 @@ function parse_infix(text) {
         end++;
         if (infix_comparison_operator.includes(splitted_text[i])) {
             if (end - start <= 1 || awaiting_segment) {
-                statement.logError("Incomplete");
+                statement.logError("Incomplete infix statement");
                 return statement;
             }
             awaiting_frag1 = false;
@@ -270,12 +283,17 @@ function parse_infix(text) {
                 statement.logError(fragment[1]);
                 return statement;
             }
+            var validity = checkValidity(fragment[1], var_list, funct_list);
+            if (!validity) {
+                statement.logError("variable or function not yet declared.");
+                return statement;
+            }
             statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
             start = i + 1;
         }
         else if (infix_segmenting_operator.includes(splitted_text[i])) {
             if (end - start <= 1) {
-                statement.logError("Incomplete");
+                statement.logError("Incomplete infix statement");
                 return statement;
             }
             awaiting_frag1 = true;
@@ -284,6 +302,11 @@ function parse_infix(text) {
             var fragment = parse_fragment(splitted_text.slice(start, i));
             if (fragment[0] == "not ready") {
                 statement.logError(fragment[1]);
+                return statement;
+            }
+            var validity = checkValidity(fragment[1], var_list, funct_list);
+            if (!validity) {
+                statement.logError("variable or function not yet declared.");
                 return statement;
             }
             statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
@@ -298,6 +321,11 @@ function parse_infix(text) {
                 statement.logError(fragment[1]);
                 return statement;
             }
+            var validity = checkValidity(fragment[1], var_list, funct_list);
+            if (!validity) {
+                statement.logError("variable or function not yet declared.");
+                return statement;
+            }
             statement.parsedStatement += " " + fragment[1];
         }
     }
@@ -309,20 +337,25 @@ function parse_infix(text) {
     return statement;
 }
 
-function parse_postfix(test) {
+function parse_postfix(test: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isPostfix = true;
     var splitted_text = test.split(" ");
-    statement.parsedStatement = "#variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
+    statement.parsedStatement = "#post #variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
     return statement;
 }
 
-function parse_function(text) {
+function parse_function(text: string, var_list: string[], funct_list: string[]) {
     var statement = new simpleStatement();
     statement.isFunction = true;
     var fragment = parse_fragment(text.split(" "));
     if (fragment[0] == "not ready") {
         statement.logError(fragment[1]);
+        return statement;
+    }
+    var validity = checkValidity(fragment[1], var_list, funct_list);
+    if (!validity) {
+        statement.logError("variable or function not yet declared.");
         return statement;
     }
     statement.parsedStatement = fragment[1];
@@ -332,7 +365,7 @@ function parse_function(text) {
 /* Parse array when doing daclaration.
 E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
 */
-function parse_array_d(text) {
+function parse_array_d(text: string) {
     var splitted_text = text.split(" ");
     var size_idx = splitted_text.indexOf("size");
     var parsed_results = "#array #variable";
@@ -345,11 +378,10 @@ function parse_array_d(text) {
 /* Returns list as [<status>, <parsed_result>] 
 <status> - "ready" or "not_ready"
 <parsed_result> - the successfully parsed result. */
-export function parse_fragment(splitted_text) {
+export function parse_fragment(splitted_text: string[]) {
 
     if (splitted_text.length == 1) {
-        /* Is a number! (Not Not a number) */
-        if (!isNaN(splitted_text[0])) return ["ready", "#value " + splitted_text[0]];
+        if (typeof splitted_text[0] == "number") return ["ready", "#value " + splitted_text[0]];
         else return ["ready", "#variable " + splitted_text[0]];
     }
 
@@ -379,8 +411,6 @@ export function parse_fragment(splitted_text) {
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
 
-            console.log(function_name)
-
             var parsed_result = "#function " + function_name + "(";
             for (var i = 1; i < parameter_blocks.length; i++) {
                 var fragment = parse_fragment(parameter_blocks[i].split(" "));
@@ -399,12 +429,49 @@ export function parse_fragment(splitted_text) {
         if (splitted_text.slice(splitted_text.length-2).join(" ") != "end string")
             return ["not ready", "last 2 words are not end string"];
 
-        return ["ready", `#value \"` + splitted_text.slice(1, splitted_text.length-2).join(" ") + `\"`];
+        return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-2).join(" ") + "\""];
     }
+    else if (splitted_text.includes("array")) {
+        /* array fragment has to include [<var_name>, "array", "index", <value>] which requires a minimum
+        of 4 words. */
+        if (splitted_text.length < 4) return ["not ready", "array fragment missing some values."];
+        if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
+
+        var arrayIdx = splitted_text.indexOf("array");
+        var var_name = convert2Camel(splitted_text.slice(0, arrayIdx));
+
+        var indexIdx = splitted_text.indexOf("index");
+        var indexValue = "";
+        /* If the <value> segment has a length of more than one, combine the name. */
+        if (splitted_text.slice(indexIdx+1).length > 1) 
+            indexValue = convert2Camel(splitted_text.slice(indexIdx+1));
+        else indexValue = splitted_text[splitted_text.length-1];
+        var indexValueType = "";
+        if (typeof splitted_text[splitted_text.length-1] == "number") indexValueType = "#value";
+        else indexValueType = "#variable";
+
+        return ["ready", "#array " + var_name + " #indexes " + indexValueType + " " + indexValue + " #index_end"];
+    }
+
     return ["ready", "#variable " + convert2Camel(splitted_text)];
 }
 
+/* checks if the fragment contains an illegal use of undeclared variable or function.
+Returns true if the fragment is valid. */
+export function checkValidity(fragment: string, var_list: string[], funct_list: string[]) {
 
-// console.log(parse_statement("declare int array hello world size 5"));
-// console.log(parse_statement("hello world equal bye bye"));
-// console.log(parse_infix("hello < 5 || hello != 5"))
+    if (fragment.includes("#variable")) {
+        var var_name = fragment.split(" ")[1];
+        if (!var_list.includes(var_name)) return false;
+    }
+
+    if (fragment.includes("#function")) {
+        var funct_name = fragment.split(" ")[0];
+        var idxParam = funct_name.indexOf("(");
+        funct_name = funct_name.slice(0, idxParam);
+
+        if (!funct_name.includes(funct_name)) return false;
+    }
+
+    return true;
+}

@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
+import { parse_statement, convert2Camel, parse_fragment, checkValidity } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -21,16 +21,9 @@ list of struct commands
     ['if #condition #variable helloWorld > #value 5  #if_branch_start', '#if_branch_end;;' ]
 
 variable list
-    list of new variables declared by the user. This is only updated when a declare command is given
+    list of new variables declared by the user. This is only updated when a declare command is given. */
 
-conditions list
-    next_line: Is true when the command ends and the user can proceed to new line.
-    extendable: Is true when the command is already parseable and it can still be extended.
-        e.g. "declare int hello" is parseable, but can be extended with "equal 5".
-    go_ahead: is true when the struct command confirmed to not be an extension of prev command. 
-        This flag will tell the manager to go ahead with next command. */
-
-export function segment_command(text, var_list) {
+export function parse_command(text: string, var_list: string[], func_list: string[]) {
     var starting_command = determine_user_command(text, var_list);
 
     if (starting_command[0] == "not ready") {
@@ -45,29 +38,29 @@ export function segment_command(text, var_list) {
 
     switch(starting_command[0]) {
         case "if":
-            return segment_if(splitted_text);
+            return parse_if(splitted_text, var_list, func_list);
         case "else":
-            return segment_else(splitted_text);
+            return parse_else(splitted_text);
         case "loop":
-            return segment_for_loop(splitted_text);
+            return parse_for_loop(splitted_text, var_list, func_list);
         case "function":
-            return segment_function(splitted_text);
+            return parse_function(splitted_text);
         case "while":
-            return segment_while(splitted_text);
+            return parse_while(splitted_text, var_list, func_list);
         case "switch":
-            return segment_switch(splitted_text);
+            return parse_switch(splitted_text, var_list, func_list);
         case "do":
-            return segment_do(splitted_text);
+            return parse_do(splitted_text, var_list, func_list);
         case "case":
-            return segment_case(splitted_text);
+            return parse_case(splitted_text);
         default:
-            var statement = parse_statement(text);
+            var statement = parse_statement(text, var_list, func_list);
             return statement.convert2StructCommand();
     }
 }
 
 /* To determine what command the user is trying say */
-function determine_user_command(text, var_list) {
+function determine_user_command(text: string, var_list: string[]) {
 
     text = text.replace("begin if", "if");
     text = text.replace("begin Loop", "loop");
@@ -84,13 +77,13 @@ function determine_user_command(text, var_list) {
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] */
-function segment_if(splitted_text) {
+function parse_if(splitted_text: string[], var_list: string[], func_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
     if (statement.hasError) {
-        command.logError("incomplete condition");
+        command.logError("incomplete condition, " + statement.errorMessage);
         return command;
     }
     if (!statement.isInfix) {
@@ -102,7 +95,7 @@ function segment_if(splitted_text) {
     return command;
 }
 
-function segment_else(splitted_text) {
+function parse_else(splitted_text: string[]) {
     var command = new structCommand("block");
     command.isElse = true;
     command.parsedCommand = "#else_branch_start";
@@ -112,12 +105,12 @@ function segment_else(splitted_text) {
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
-function segment_while(splitted_text) {
+function parse_while(splitted_text: string[], var_list: string[], func_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
     if (statement.hasError) {
-        command.logError("incomplete condition");
+        command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
     }
     if (!statement.isInfix) {
@@ -129,12 +122,12 @@ function segment_while(splitted_text) {
     return command;
 }
 
-function segment_do(splitted_text) {
+function parse_do(splitted_text: string[], var_list: string[], func_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "do #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
     if (statement.hasError) {
-        command.logError("incomplete condition");
+        command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
     }
     if (!statement.isInfix) {
@@ -147,7 +140,7 @@ function segment_do(splitted_text) {
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
-function segment_for_loop(splitted_text) {
+function parse_for_loop(splitted_text: string[], var_list: string[], func_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
@@ -164,28 +157,30 @@ function segment_for_loop(splitted_text) {
         command.logError("need to have 3 conditions.");
         return command;
     }
-
-    var i = 0;
-    for (i; i < condition_blocks.length; i++) {
-        var statement = parse_statement(condition_blocks[i]);
+    for (var i = 0; i < condition_blocks.length; i++) {
+        
+        /* Do not confuse first condition block for an infix condition. it is an assign statement. */
+        if ( i == 0) condition_blocks[0] = condition_blocks[0].replace("==", "equal");
+        var statement = parse_statement(condition_blocks[i], var_list, func_list);
         if (statement.hasError) {
-            command.logError("something wrong with for-loop infix condition.");
+            command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
             return command;
         }
-        if (!statement.isInfix) {
+        if (!statement.isInfix && i == 1) {
             command.logError("infix is required.");
             return command;
         }
         statement.removeTerminator();
         command.parsedCommand += " #condition " + statement.parsedStatement;
     }
+    command.parsedCommand += " #for_start"
     command.endCommand = "#for_end;;";
     return command;
 }
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
-function segment_function(splitted_text) {
+function parse_function(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "#function_declare";
     if (!splitted_text.includes("with")) {
@@ -260,10 +255,9 @@ function segment_function(splitted_text) {
     return command;
 }
 
-function segment_switch(splitted_text) {
+function parse_switch(splitted_text: string[], var_list: string[], func_list: string[]) {
     /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
     var command = new structCommand("non-block");
-    command.newline = true; // Since it is a non-block, have to indicate new line is true.
 
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
@@ -274,11 +268,16 @@ function segment_switch(splitted_text) {
         command.logError(fragment[1]);
         return command;
     }
+    var validity = checkValidity(fragment[1], var_list, func_list);
+    if (!validity) {
+        command.logError("variable or function not yet declared.");
+        return command;
+    }
     command.parsedCommand = "switch #condition " + fragment[1] + ";;";
     return command;
 }
 
-function segment_case(splitted_text) {
+function parse_case(splitted_text: string[]) {
     var command = new structCommand("block");
     command.isCase = true;
     if (splitted_text.length == 0) {
@@ -298,7 +297,7 @@ function segment_case(splitted_text) {
 }
 
 /* Assuming a literal is mentioned first, followed by a statement, segment the 2. */
-function splitLiteralAndStatement(text) {
+function splitLiteralAndStatement(text: string) {
     var splitted_text = text.split(" ");
 
     if (splitted_text.length == 0) return ["not ready", "no literal"];

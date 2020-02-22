@@ -61,40 +61,7 @@ function listen() {
 	});
 }
 
-function check_if_delete_line(text: String) { 
-	var arr = text.split(" ");
-	if (arr[0] == "delete" && arr[1]=="line") {
-		console.log("deleting line...");
-		let editor = vscode.window.activeTextEditor;
-		if (editor) {
-			const document = editor.document;
-			let line_num = parseInt(arr[2])
-			let line = document.lineAt(line_num)
-			editor.edit (editBuilder =>{
-				editBuilder.delete(line.range)
-			});
-		}
-	}
-}
-
-
-function check_if_comment_line(text: String) {
-	var arr = text.split(" ");
-	if (arr[0]== "comment" && arr[1] == "line"){
-		let editor = vscode.window.activeTextEditor;
-		if (editor){
-			const document = editor.document;
-			let line_num = parseInt(arr[2])
-			let line = document.lineAt(line_num)
-			editor.edit (editBuilder => {
-				editBuilder.insert(line.range.start, "// ")
-			});
-		}	
-	}		
-}
-
-
-function displayStructCommands(struct_command_list) {
+function displayStructCommands(struct_command_list: string[]) {
 	let editor = vscode.window.activeTextEditor;
 
 	/* Set up commands to insert */
@@ -119,7 +86,7 @@ function displayStructCommands(struct_command_list) {
 
 }
 
-function displayCode(struct_command_list) {
+function displayCode(struct_command_list: string[]) {
 	/* Set up commands to insert */
 	let commands = '#c_program SampleProgram #include "stdio h";; '
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"

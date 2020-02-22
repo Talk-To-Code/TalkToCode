@@ -1,17 +1,10 @@
-// console.log("equal equal equal".replace(/equal/g, "bar"))
+var name = `#function printf(#parameter #value "enter the numbers of elements : ");; `
+if (name.includes("#function")) {
+    var funct_name = name.split(" ")[1];
+    var idxParam = funct_name.indexOf("(");
+    funct_name = funct_name.slice(0, idxParam);
+    console.log(funct_name)
+}
 
-// module.exports = {
-
-//     hello: function() {
-//         console.log("hello from another file.")
-//     }
-
-// }
-
-var arr1 = ["apple", "orange"]
-var arr2 = ["papaya", "carrot"]
-var arr3 = ["apple", "cucumber"]
-
-console.log(arr3.some(x=>arr1.includes(x)))
 
 

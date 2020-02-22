@@ -13,6 +13,8 @@ export class StructCommandManager {
     struct_command_list: string[]
     /* List of variables declared by the user */
     variable_list: string[]
+    /* List of functions declared by the user */
+    functions_list: string[]
     /* current index within the struct_command_list - helpful for:
         - determining where to splice new struct commands into the struct command list.
         - for extendable commands. whether to splice and replace/extend extendable command or go ahead to
@@ -20,9 +22,6 @@ export class StructCommandManager {
     curr_index: number
     /* current command the user is saying. Stored in a list of string. e.g. ["declare", "integer", "hello"]*/
     curr_speech: string[]
-
-    /* If the command is extendable. e.g. "declare integer hello", can be extended with "equals 5" */
-    extendable: boolean
 
     /* Contains 2D list of string. Rows indicate completed struct commands. Columns indicate segments
     of speech that make up the struct command. Uses curr_index as well to splice speech segments.
@@ -34,7 +33,7 @@ export class StructCommandManager {
         this.struct_command_list = [""];
         this.curr_speech = [""];
         this.variable_list = [""];
-        this.extendable = false;
+        this.functions_list = [""];
         this.speech_hist = [[""]];
     }
 
@@ -43,7 +42,7 @@ export class StructCommandManager {
         this.struct_command_list = [""];
         this.curr_speech = [""];
         this.variable_list = [""];
-        this.extendable = false;
+        this.functions_list = [""];
         this.speech_hist = [[""]];
     }
 
@@ -61,8 +60,6 @@ export class StructCommandManager {
                 /* Remove latest struct command. It will be updated by updateStructCommand later. */
                 this.struct_command_list.splice(this.curr_index, 1, "")
 
-                /* extendable will be false, updateSructCommand will regenerate anyway. */
-                this.extendable = false
             }
             /* If curr speech is empty. e.g. just enterd new line or beginning of code. */
             else {
@@ -98,9 +95,11 @@ export class StructCommandManager {
         }
         var prev_struct_command = "";
         if (this.curr_index > 0) prev_struct_command = this.struct_command_list[this.curr_index-1];
-        var struct_command = get_struct(this.curr_speech, this.variable_list, this.extendable, prev_struct_command);
+        var struct_command = get_struct(this.curr_speech, this.variable_list, this.functions_list, 
+                            prev_struct_command);
 
         this.updateStructCommandList(struct_command);
+        this.updateVariableAndFunctionList(struct_command);
 
         console.log("speech hist: ")
         console.log(this.speech_hist)
@@ -111,19 +110,11 @@ export class StructCommandManager {
     /* Updating the struct command list */
     updateStructCommandList(struct_command: structCommand) {
 
-        /* Check if go ahead - Basically, the latest input speech is confirmed to not be related to the
-        previous extendable command. We can go ahead and increase curr_index and remove the previous 
-        extentable command from the curr_speech. 
-
-        * NOTE that the extendable command is already in the struct command list. *
-
-        curr_index should point at the chunk of speech that we have confirmed to not be related to prev
-        command. */
-        if (struct_command.go_ahead) {
-            this.curr_index += 1
-            this.curr_speech.shift() // 
-            this.struct_command_list.splice(this.curr_index, 0, this.curr_speech.join(" "))
-            this.extendable = false;
+        if (struct_command.removePrevious) {
+            this.curr_index -= 1;
+            /* Remove current "" line and prev struct command. */
+            this.struct_command_list.splice(this.curr_index, 2);
+            this.struct_command_list.splice(this.curr_index, 0, "");
         }
 
         if (struct_command.removePrevTerminator) {
@@ -134,6 +125,8 @@ export class StructCommandManager {
 
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
+            this.curr_speech = [""] // Clear curr speech to prepare for next command
+
             /* Block statement */
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
@@ -142,30 +135,15 @@ export class StructCommandManager {
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.
-
-                this.curr_speech = [""] // Clear curr speech to prepare for next command
             }
-    
             /* Single line */
             else {
-
-                /* Splice and delete previous (unparseable speech) or (extendable command). */
+                /* Splice and delete previous (unparseable speech) */
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
 
-                /* If new_line is true, insert blank line "". Now curr_index points at blank line. */
-                if (struct_command.newline) {
-                    this.curr_speech = [""] // Clear curr speech to prepare for next command
-                    
-                    this.curr_index += 1 // Point at next index
-                    this.struct_command_list.splice(this.curr_index, 0, "") // Insert blank line "".
-                }
-
-                this.extendable = struct_command.extendable
-
-                /* Combine the extendable message into 1 */
-                if (this.extendable) {
-                    this.curr_speech = [this.curr_speech.join(" ")]
-                }
+                /* insert blank line "". Now curr_index points at blank line. */
+                this.curr_index += 1 // Point at next index
+                this.struct_command_list.splice(this.curr_index, 0, "") // Insert blank line "".
             }
         }
         /* Not ready to parse, add normal speech to struct_command_list */
@@ -174,11 +152,7 @@ export class StructCommandManager {
             this.struct_command_list.splice(this.curr_index, 1, speech)
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
-            /* I'm not sure if extendable should be false here. But keep it here for now. */
-            this.extendable = false
         }
-
-        // this.concatVariableList(struct_command[1]);
     }
 
     /* Jump out of whatever block the user is editing in. 
@@ -203,13 +177,17 @@ export class StructCommandManager {
         }
     }
     
-    concatVariableList(var_list: any) {
-        if (var_list.length > 0) {
-            let i;
-            for (i = 0; i < var_list.length; i++) {
-                if (var_list[i].length > 0 && !this.variable_list.includes(var_list[i])) {
-                    this.variable_list.push(var_list[i]);
-                }
+    updateVariableAndFunctionList(struct_command: structCommand) {
+
+        if (struct_command.newFunction != "") {
+            if (!this.functions_list.includes(struct_command.newFunction)) {
+                this.functions_list.push(struct_command.newFunction);
+            }
+        }
+
+        if (struct_command.newVariable != "") {
+            if (!this.variable_list.includes(struct_command.newVariable)) {
+                this.variable_list.push(struct_command.newVariable);
             }
         }
     }
