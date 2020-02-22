@@ -381,8 +381,7 @@ function parse_array_d(text: string) {
 export function parse_fragment(splitted_text: string[]) {
 
     if (splitted_text.length == 1) {
-        /* Is a number! (Not Not a number) */
-        if (!isNaN(splitted_text[0])) return ["ready", "#value " + splitted_text[0]];
+        if (typeof splitted_text[0] == "number") return ["ready", "#value " + splitted_text[0]];
         else return ["ready", "#variable " + splitted_text[0]];
     }
 
@@ -430,8 +429,30 @@ export function parse_fragment(splitted_text: string[]) {
         if (splitted_text.slice(splitted_text.length-2).join(" ") != "end string")
             return ["not ready", "last 2 words are not end string"];
 
-        return ["ready", `#value \"` + splitted_text.slice(1, splitted_text.length-2).join(" ") + `\"`];
+        return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-2).join(" ") + "\""];
     }
+    else if (splitted_text.includes("array")) {
+        /* array fragment has to include [<var_name>, "array", "index", <value>] which requires a minimum
+        of 4 words. */
+        if (splitted_text.length < 4) return ["not ready", "array fragment missing some values."];
+        if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
+
+        var arrayIdx = splitted_text.indexOf("array");
+        var var_name = convert2Camel(splitted_text.slice(0, arrayIdx));
+
+        var indexIdx = splitted_text.indexOf("index");
+        var indexValue = "";
+        /* If the <value> segment has a length of more than one, combine the name. */
+        if (splitted_text.slice(indexIdx+1).length > 1) 
+            indexValue = convert2Camel(splitted_text.slice(indexIdx+1));
+        else indexValue = splitted_text[splitted_text.length-1];
+        var indexValueType = "";
+        if (typeof splitted_text[splitted_text.length-1] == "number") indexValueType = "#value";
+        else indexValueType = "#variable";
+
+        return ["ready", "#array " + var_name + " #indexes " + indexValueType + " " + indexValue + " #index_end"];
+    }
+
     return ["ready", "#variable " + convert2Camel(splitted_text)];
 }
 

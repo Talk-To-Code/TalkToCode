@@ -12,9 +12,6 @@ E.G.:
 As of now, cannot parse integer array with assignment.
 e.g. int mark[5] = {19, 10, 8, 17, 9}
 
-assign case:
-are you assigning number, string or variable?? This is tricky
-
 
 #c_program SampleProgram #include "stdio h";; #create int #variable hello #value 5 #dec_end;;
 for #condition #assign #variable I #with #value 0 #condition #variable is < #value 5 #condition #post #variable I ++ #for_start
@@ -24,17 +21,10 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 
 todo:
 need to improve undo command.
-array assignment not sure if done.
-
-check validity with parse_fragment exported
-
 make if statement an extendable block. not sure how it will happen but yea
-
+dot, underscore naming.
 make cursor obvious - like a comment that says cursor??
-
-camel, dot, underscore naming.
-
+make it work with symbol. like ambersand or percent
 segmenter needs to do more thorough checks. maybe include another else if condition for failed parsing.
-
 if not parseable, dont bother bro. just remove latest command and clear the codeBuffer;
 
