@@ -11,13 +11,13 @@
 #function_declare printTriangle #parameter a
 #function_start
 #create #variable i #value 0 #dec_end #variable j #value 0 #dec_end #variable k #value 0 #dec_end;;
-for #variable i #function range(#parameter #variable a + #value 1)
+for #parameter #variable i #function range(#parameter #variable a + #value 1)
 #for_start
-for #variable j #function range(#parameter #variable a + #value 1)
+for #parameter #variable j #function range(#parameter #variable a + #value 1)
 #for_start
 #function print(#parameter #value " ");;
 #for_end;;
-for #variable k #function range(#parameter #value 2 * #variable i + #value 1)
+for #parameter #variable k #function range(#parameter #value 2 * #variable i + #value 1)
 #for_start
 #function print(#parameter #value "*");;
 #for_end;;
@@ -27,7 +27,7 @@ for #variable k #function range(#parameter #value 2 * #variable i + #value 1)
 #function_declare printRectangle #parameter n #parameter l
 #function_start
 #create #variable i #value 0 #dec_end #variable j #value 0 #dec_end;;
-for #variable i #function range(#parameter #variable n)
+for #parameter #variable i #function range(#parameter #variable n)
 #for_start
 while #condition #variable j < #variable l
 #while_start

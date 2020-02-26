@@ -5,7 +5,7 @@ int  main(){
 
 	printf("Enter an integer\n");
 
-	scanf("%d",&n);
+	scanf("%d", &n);
 
 	if(n == 2) {
 		printf("Prime number.\n");

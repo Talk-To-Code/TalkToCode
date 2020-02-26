@@ -24,14 +24,14 @@ public final class ASTDeclarationStatementP extends ASTDeclarationStatement {
 		for(int i = 0;i<this.variables.size();i++){
 			this.result+= this.variables.get(i).getObject().toSyntax();
 			if(i!=this.variables.size()-1){
-				this.result+= ",";
+				this.result+= ", ";
 			}
 		}
 		this.result += " = ";
 		for(int i = 0;i<this.variables.size();i++){
 			this.result+= this.variables.get(i).getExp().toSyntax();
 			if(i!=this.variables.size()-1){
-				this.result+= ",";
+				this.result+= ", ";
 			}
 		}
 		return this.result+"\n";

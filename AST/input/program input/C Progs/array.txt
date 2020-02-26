@@ -2,7 +2,7 @@
 #include "stdio.h";;
 #function_declare main int
 #function_start
-#create int #variable n #dec_end #variable c #dec_end #array #variable array #indexes #value 100 #index_end #dec_end;;
+#create int #variable n #dec_end #variable c #dec_end #array #variable array #indexes 100 #index_end #dec_end;;
 #function printf(#parameter #value "Enter the number of elements in array\n");;
 #function scanf(#parameter #value "%d" #parameter & #variable n);;
 #function printf(#parameter #value "Enter %d elements\n" #parameter #variable n);;

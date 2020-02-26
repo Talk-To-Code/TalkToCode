@@ -10,7 +10,7 @@ statement():
 
 query():
 	"?"(#struct    				//display the partial struct of the current node in the tree (like where this node	belongs to
-	|#tree  					//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
+	|#tree  				//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
 	)
 
 blockStatement():
@@ -24,6 +24,7 @@ blockStatement():
 	| comment()
 	| classDeclare()
 	| tryCatchStatement()
+	| withStatement()
 
 simpleStatement():
 	expression() < TERMINATOR >
@@ -33,6 +34,7 @@ simpleStatement():
 	| labelStatement()
 	| returnStatement()
 	| importStatement()
+	| gotoStatement()
 
 importStatement() :
 	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
@@ -44,7 +46,7 @@ returnStatement() :
 	< RETURN >(< PARAMETER > expression())*< TERMINATOR >
 
 continueStatement() :
-	< CONTINUE >< IDENTIFIER > < TERMINATOR >
+	< CONTINUE >< TERMINATOR >
 
 breakStatement() :
 	< BREAK > (< IDENTIFIER >)? < TERMINATOR >
@@ -54,7 +56,7 @@ gotoStatement() :
 
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
-	((<VARIABLE><IDENTIFIER>(expression())?<DECLARE_END>)
+	(((<VARIABLE><IDENTIFIER>|access())(expression())?<DECLARE_END>)
 	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>value()<INDEX_END>)+<DECLARE_END>))+
 	< TERMINATOR >
 
@@ -74,7 +76,7 @@ forStatementC() :
 	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expression())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 forStatementP() :
-	< VARIABLE >(< PARAMETER > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+	(< PARAMETER > < VARIABLE > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 if_statement() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
@@ -89,10 +91,13 @@ comment() :
 	< COMMENT > (statement())* < COMMENT_END > < TERMINATOR >
 
 classDeclare() :
-	< CLASS > < IDENTIFIER > (< PARENT > < IDENTIFIER >)* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
+	< CLASS > < IDENTIFIER > (< PARENT > (< IDENTIFIER > | access()))* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
 
 tryCatchStatement() :
 	< TRY > (statement())* (< CATCH > (< EXCEPTION > < IDENTIFIER >)* (< VARIABLE > <IDENTIFIER>)? < CATCH_START > (statement())* < CATCH_END >)+ (< ELSE > (statement())* < ELSE_BRANCH_END >)? (< FINALLY > (statement())* < FINALLY_END >)? < TERMINATOR >
+
+withStatemnt() :
+	< WITH > (fragment() (< IDENTIFIER >)?)+ < WITH_START > (statement())* < WITH_END > < TERMINATOR >
 
 expression():
 	prefix_expression()
@@ -107,9 +112,9 @@ postfix_expression() :
 	< POST > < VARIABLE > < IDENTIFIER > incrDecrOperators()
 
 prefix_expression() :
-	incrDecrOperators() < VARIABLE > < IDENTIFIER >
+	incrDecrOperators() fragment()
 	| prefixOperators() fragment()
-	| < MINUS >expression()
+	| < MINUS > expression()
 
 infix_expression() :
 	term()
@@ -117,18 +122,36 @@ infix_expression() :
 term() :
 	fragment()(infixOperators()fragment())*
 
+access() :
+	< ACCESS > (fragment() | < IDENTIFIER > | < NEW >)(fragment() | < IDENTIFIER > | < NEW >)+< ACCESS_END >
+
+func() :
+	< FUNCTION > (< IDENTIFIER > | < FLOAT > | < INT > | access()) < LPAREN >(< PARAMETER >expression()(< IDENTIFIER >)?)*< RPAREN >
+
 fragment() :
 	< VALUE >value()
 	| < VARIABLE >< IDENTIFIER >
-	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expression())*< RPAREN >
+	| func()
 	| < LPAREN > expression() < RPAREN >
 	| < LBRACE > ((< ARRAY > | < LIST > | < TUPLE >) (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
-	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
-	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
+	| < ARRAY > (< IDENTIFIER > | func() | access()) ( < INDEX > expression() < INDEX_END >)+
+	| access()
+
+types_J():
+	< IDENTIFIER >
+	| primitive_typesJ()
 
 types_C():
-	< IDENTIFIER >
+	(< STRUCT >)?< IDENTIFIER >
 	| (primitive_typesC())+
+
+primitive_typesJ() :
+	< BYTE >
+	| < INT >
+	| < CHAR >
+	| < DOUBLE >
+	| < FLOAT >
+	| < BOOLEAN >
 
 primitive_typesC() :
 	< INT >
@@ -194,7 +217,6 @@ infixOperators() :
 	| < SC_AND >
 	| < PY_OR >
 	| < PY_AND >
-	| < PY_NOT >
 	| < BIT_AND >
 	| < BIT_OR >
 	| < XOR >
@@ -267,6 +289,8 @@ infixOperators() :
 < CATCH_START : "#catch_start" >
 < CATCH_END : "#catch_end" >
 < FINALLY_END : "#finally_end" >
+< WITH_START : "#with_start" >
+< WITH_END : "#with_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >
@@ -307,6 +331,11 @@ infixOperators() :
 < RPAREN : ")" >
 < LBRACE : "{" >
 < RBRACE : "}" >
+< LBRACKET : "[" >
+< RBRACKET : "]" >
+< SEMICOLON : ";" >
+< COMMA : "," >
+< DOT : "." >
 < INTEGER_LITERAL :
     < DECIMAL_LITERAL > ([ "l", "L" ])?
   | < HEX_LITERAL > ([ "l", "L" ])?
@@ -353,6 +382,7 @@ infixOperators() :
     "\"" >
 
 < ABSTRACT : "abstract" >
+< AS : "as" >
 < ASSERT : "assert" >
 < BOOLEAN : "boolean" >
 < BREAK : "break" >
@@ -374,6 +404,7 @@ infixOperators() :
 < FINALLY : "finally" >
 < FLOAT : "float" >
 < FOR : "for" >
+< FROM : "from" >
 < GOTO : "goto" >
 < IF : "if" >
 < IMPLEMENTS : "implements" >

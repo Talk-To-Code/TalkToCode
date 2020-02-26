@@ -10,7 +10,7 @@ if #condition #variable n == #value 2
 #function print(#parameter #value "Prime number.\n");;
 #if_branch_end
 #else_branch_start
-for #variable c #function range(#parameter #value 2 #parameter #variable n)
+for #parameter #variable c #function range(#parameter #value 2 #parameter #variable n)
 #for_start
 if #condition #variable n % #variable c == #value 0
 #if_branch_start

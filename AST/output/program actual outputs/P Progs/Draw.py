@@ -13,7 +13,7 @@ def printStar():
 
 
 def printTriangle(a):
-	i,j,k = 0,0,0
+	i, j, k = 0, 0, 0
 
 	for i in range(a + 1):
 		for j in range(a + 1):
@@ -29,19 +29,22 @@ def printTriangle(a):
 
 
 def printRectangle(n, l):
-	i,j = 0,0
+	i, j = 0, 0
 
 	for i in range(n):
 		while (j < l):
 			if(i == 0 or i == n - 1):
 				print("*")
 
+
 			else:
 				if(j == 0 or j == l - 1):
 					print("*")
 
+
 				else:
 					print(" ")
+
 
 
 
@@ -67,17 +70,21 @@ def main():
 	if(a == 0):
 		printStar()
 
+
 	else:
 		if(a == 1):
 			printTriangle(5)
 
+
 		else:
 			if(a == 2):
-				printRectangle(4,5)
+				printRectangle(4, 5)
+
 
 			else:
 				if(a == 3):
 					print("END\n")
+
 
 
 

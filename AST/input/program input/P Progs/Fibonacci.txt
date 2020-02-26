@@ -6,7 +6,7 @@
 #function print(#parameter #value "Enter the number of terms\n");;
 #assign #variable n #with #function input();;
 #function print(#parameter #value "First " + #variable n + #value " terms of Fibonacci series are :-\n");;
-for #variable c #function range(#parameter #variable n)
+for #parameter #variable c #function range(#parameter #variable n)
 #for_start
 if #condition #variable c <= #value 1
 #if_branch_start
