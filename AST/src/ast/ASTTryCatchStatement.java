@@ -46,6 +46,7 @@ public class ASTTryCatchStatement extends ASTBlockStatement {
 	
 	public void setEx(ASTExpressionUnitIdentifier ex) {
 		this.ex.set(this.numCatchBlocks, ex);
+		ex.addParent(this);
 	}
 	
 	public void addCatchBlocks(ASTStatement s) {

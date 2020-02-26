@@ -10,7 +10,7 @@ import java.util.*;
 public class ASTExpressionUnitIdentifierArrayObject extends ASTExpressionUnitIdentifier{
 	private static final String NODE_TYPE = "Array Object";
 	private ArrayList<ASTExpression> indexes;
-	private String name;
+	private ASTExpressionUnit name;
 	private int dimension;
 	
 	private void initialize() {
@@ -23,7 +23,7 @@ public class ASTExpressionUnitIdentifierArrayObject extends ASTExpressionUnitIde
 		initialize();
 	}
 
-	public ASTExpressionUnitIdentifierArrayObject(String name){
+	public ASTExpressionUnitIdentifierArrayObject(ASTExpressionUnit name){
 		this.name = name;
 		initialize();
 	}
@@ -35,7 +35,7 @@ public class ASTExpressionUnitIdentifierArrayObject extends ASTExpressionUnitIde
 	//syntax construction
 	public String toSyntax(){
 			this.result = "";
-			this.result+=this.name;
+			this.result+=this.name.toSyntax();
 			for(int i = 0; i<this.dimension;i++){
 				this.result+="[";
 				this.result+=this.indexes.get(i).toSyntax();

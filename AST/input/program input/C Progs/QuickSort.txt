@@ -34,7 +34,7 @@ if #condition #variable i < #variable j
 #function_end;;
 #function_declare main int
 #function_start
-#create int #variable size #dec_end #variable i #dec_end #array #variable X #indexes #value 100 #index_end #dec_end;;
+#create int #variable size #dec_end #variable i #dec_end #array #variable X #indexes 100 #index_end #dec_end;;
 #function printf(#parameter #value "Enter size of the array: ");;
 #function scanf(#parameter #value "%d" #parameter & #variable size);;
 #function printf(#parameter #value "Enter %d elements: " #parameter #variable size);;

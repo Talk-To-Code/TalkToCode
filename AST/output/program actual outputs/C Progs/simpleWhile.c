@@ -4,7 +4,7 @@ int  main(){
 	int value = 1;
 
 	while (value <= 3){
-		printf("Value is %d\n",value);
+		printf("Value is %d\n", value);
 
 		value++;
 

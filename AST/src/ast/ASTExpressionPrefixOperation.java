@@ -58,7 +58,9 @@ public class ASTExpressionPrefixOperation extends ASTExpression{
 	}
 
 	public String toSyntax() {
-		this.result = this.op.toSyntax() + identifier1.toSyntax();
+		this.result = this.op.toSyntax();
+		if(this.result.compareTo("not") == 0) this.result += " ";
+		this.result += identifier1.toSyntax();
 		if(this.isQuoted) quote();
 		return this.result;
 	}

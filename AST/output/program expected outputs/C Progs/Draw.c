@@ -70,9 +70,9 @@ int  main(){
 
 	printf("Enter a number\n");
 
-	scanf("%d",&a);
+	scanf("%d", &a);
 
-	printf("a = %d\n",a);
+	printf("a = %d\n", a);
 
 	switch (a) {
 		case 0:
@@ -84,7 +84,7 @@ int  main(){
 			break;
 
 		case 2:
-			printRectangle(4,5);
+			printRectangle(4, 5);
 			break;
 
 		case 3:

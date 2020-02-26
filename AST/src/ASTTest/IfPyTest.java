@@ -52,7 +52,8 @@ public class IfPyTest extends TestCase {
 					currentTemp = "";
 					count++;
 				}
-				currentTemp = currentTemp.concat(temp + "\n");
+				if(temp.compareTo("") == 0 || (temp.trim().length() >= 3 && temp.trim().substring(0,3).compareTo("if(") == 0) || (temp.trim().length() >= 5 && temp.trim().substring(0,5).compareTo("else:") == 0)) currentTemp = currentTemp.concat(temp + "\n");
+				else currentTemp = currentTemp.concat(temp + "\n\n");
 			}
 			count++;
 			expectedOutput.add(currentTemp);
