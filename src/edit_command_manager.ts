@@ -17,6 +17,7 @@ export class EditCommandManager {
         this.check_if_rename_function(transcribedWord);
         this.check_if_rename_variable(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
+        this.check_if_comment_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
@@ -66,6 +67,7 @@ export class EditCommandManager {
 
     check_if_insert_before_block(text: String) {
         var arr = text.toLowerCase().split(" ");
+        var temp = 0;
         if (arr[0]=="insert" && arr[1]=="before"){
             console.log("GOT IN HERE TO INSERT");
             let editor = vscode.window.activeTextEditor;
@@ -83,16 +85,66 @@ export class EditCommandManager {
 
                 var newPosition = position.with(line_num, 0);
 
+                editor.edit(editBuilder =>{
+                    editBuilder.insert(document.lineAt(line_num).range.start,"\n")
+                })
+
                 var newSelection = new vscode.Selection(newPosition, newPosition);
                 editor.selection = newSelection;
-                editor.edit(editBuilder =>{
-                    editBuilder.insert(document.lineAt(line_num).range.start,"")
-                })
+                temp = this.manager.curr_index;
+                this.manager.curr_index=line_num;
+                //this.manager.curr_speech.splice(line_num,0,"");
                 
-                //}
             }
         }
+        this.manager.curr_index = temp+1;
         this.delete_edit_commands_from_history();
+    }
+
+    check_if_comment_block(text:String){
+        var arr = text.split(" ");
+        if (arr[0]=="comment" && arr[1]=="block"){
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                let document = editor.document;
+                var line_num = parseInt(arr[5])-1;
+                var block_name = arr[2];
+                var block_name_end = (block_name == "if" || block_name == "else")? "#"+block_name+"_branch_end": "#"+block_name+"_end";
+                var count_block = 0;
+                if (document.lineAt(line_num).text.startsWith(block_name)){
+                    for (var i=line_num;i<document.lineCount;i++){
+                        if (i!=line_num && document.lineAt(i).text.startsWith(block_name)){
+                            count_block++;
+                        }
+                        if (document.lineAt(i).text.startsWith(block_name_end)){
+                            if (count_block==0){
+                                editor.edit (editBuilder => {
+                                editBuilder.insert(line.range.start, "#comment");
+                                editBuilder.insert(line.range.end,"#end_comment");
+                                });
+
+                                this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
+                                this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
+                                break;
+                            }
+                            else{
+                                count_block--;
+                            }
+                        }
+                        let line = document.lineAt(i);
+                        editor.edit (editBuilder =>{
+                            editBuilder.insert(line.range.start, "#comment");
+                            editBuilder.insert(line.range.end,"#end_comment");
+                        });
+
+                        this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
+                        this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
+                        
+                    }
+                }
+                this.delete_edit_commands_from_history();
+            }
+        }
     }
     
     check_if_delete_line(text: String) { 
