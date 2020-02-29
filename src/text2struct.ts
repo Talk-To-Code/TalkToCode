@@ -59,7 +59,7 @@ export function get_struct(input_speech_segments: string[], var_list: string[], 
 
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string) {
-    if (text.includes("begin if") || text.includes("begin Loop") ||text.includes("while")) {
+    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while")) {
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
         text = text.replace(/less than/g, '<');

@@ -7,6 +7,8 @@ var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#wh
                     "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
                     "#case_end", "#function_end"];
 
+var cursor_comment = "#comment #value \" cursor here \";; #comment_end;;"
+
 export class StructCommandManager {
 
     /* List of structure commands. Used to feed into the AST */
@@ -105,6 +107,8 @@ export class StructCommandManager {
         console.log(this.speech_hist)
         console.log("command struct list:")
         console.log(this.struct_command_list)
+        console.log("variable list:")
+        console.log(this.variable_list)
     }
 
     /* Updating the struct command list */
@@ -131,7 +135,7 @@ export class StructCommandManager {
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
                 this.curr_index += 1
-                this.struct_command_list.splice(this.curr_index, 0, "")
+                this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.
@@ -143,13 +147,14 @@ export class StructCommandManager {
 
                 /* insert blank line "". Now curr_index points at blank line. */
                 this.curr_index += 1 // Point at next index
-                this.struct_command_list.splice(this.curr_index, 0, "") // Insert blank line "".
+                this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
             }
         }
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
             var speech = this.curr_speech.join(" ")
-            this.struct_command_list.splice(this.curr_index, 1, speech)
+            var commented_speech = "#comment #value \"" + speech + "\";; #comment_end;;"
+            this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
@@ -172,7 +177,7 @@ export class StructCommandManager {
             this.struct_command_list.splice(this.curr_index, 1); /* Remove "" from the struct_command_list. */
             /* note that after "" has been removed, endIdx no longer points at end branch, but at the index
             AFTER the end branch. */
-            this.struct_command_list.splice(endIdx, 0, ""); /* Add "" after the end_branch. */
+            this.struct_command_list.splice(endIdx, 0, cursor_comment); /* Add "" after the end_branch. */
             this.curr_index = endIdx;
         }
     }
