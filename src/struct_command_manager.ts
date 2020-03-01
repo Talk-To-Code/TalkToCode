@@ -97,8 +97,7 @@ export class StructCommandManager {
         }
         var prev_struct_command = "";
         if (this.curr_index > 0) prev_struct_command = this.struct_command_list[this.curr_index-1];
-        var struct_command = get_struct(this.curr_speech, this.variable_list, this.functions_list, 
-                            prev_struct_command);
+        var struct_command = get_struct(this.curr_speech, prev_struct_command);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);

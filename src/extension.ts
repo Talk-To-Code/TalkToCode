@@ -26,9 +26,9 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		listen();
-		// console.log("testing");
-		// runTestCases();
+		//listen();
+		console.log("testing");
+		runTestCases();
 
 	});
 
