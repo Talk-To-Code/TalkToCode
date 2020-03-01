@@ -6,8 +6,9 @@ import { runTestCases } from './tester'
 import { EditCommandManager } from './edit_command_manager';
 const {spawn} = require('child_process');
 
+var code_segments = [""];
 var manager = new StructCommandManager();
-var editManager = new EditCommandManager(manager);
+var editManager = new EditCommandManager(manager, code_segments);
 var codeBuffer = "";
 var errorFlag = false;
 
@@ -58,16 +59,23 @@ function listen() {
 			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
 
 			else if (editManager.check_if_edit_command(transcribed_word)){
-				editManager.checkAll(transcribed_word);
+				console.log("IN HERE TO EDIT");
+				editManager.checkAll(transcribed_word, code_segments);
+				console.log("DONE CHECKING ALL EDITS");
+				displayStructCommands(manager.struct_command_list);
+				console.log("DONE WITH DISPLAYING STRUCTURED COMMAND")
+				displayCode(manager.struct_command_list)
+				console.log("DONE WITH DISPLAYING CODE")
 			}
 
 			else {
+				console.log("IN HERE TO PARSE STUFF");
 				errorFlag = false;
 				codeBuffer = "";
 
 				manager.parse_speech(transcribed_word)
 				displayStructCommands(manager.struct_command_list)
-				//displayCode(manager.struct_command_list)
+				displayCode(manager.struct_command_list)
 			}
 		}
 	});
@@ -109,7 +117,7 @@ function displayCode(struct_command_list: string[]) {
 	console.log(commands)
 
 	console.log("GOT THIS FAR");
-	let cwd = '/Users/Archana/TalkToCode/AST/src';
+	let cwd = '/Users/Archana/Desktop/TalkToCode/AST/src';
 
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');
@@ -122,7 +130,8 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-            var data_segments = codeBuffer.split("#include");
+			var data_segments = codeBuffer.split("#include");
+			console.log("DEBUG IN EXTENSION: "+data_segments);
 			var idxOfAST = data_segments[1].indexOf("ASTNode");
 			codeBuffer = ""; // clear code stream
 			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
@@ -135,6 +144,21 @@ function displayCode(struct_command_list: string[]) {
 }
 
 function writeToEditor(code: string) {
+	var commands = code.split("\n");
+    code_segments = [""];
+    var i;
+    for (i = 0; i < commands.length; i++) {
+        if (!commands[i].toString().startsWith("#include") && commands[i]!="") {
+            code_segments.push(commands[i]);
+        }
+	}
+	code_segments.splice(0,1);
+	
+	var i;
+	for (i=0;i<code_segments.length;i++){
+		console.log("DEBUG IN CODE SEGMENT: "+i)
+		console.log(code_segments[i]);
+	}
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		/* Get range to delete */

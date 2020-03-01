@@ -1,5 +1,6 @@
 package ast;
 import java.util.ArrayList;
+import java.util.List;
 /**
  * @author GAO RISHENG A0101891L
  * This class is mainly construct the ASTNode for a program
@@ -18,6 +19,14 @@ public class ASTCompilationUnit extends ASTNode {
 	public void addStatement(ASTStatement s){
 		this.statements.add(s);
 		s.addParent(this);
+	}
+
+	public List<String> getStatements(){
+		List<String> stringStatements = new ArrayList<>();
+		for (ASTStatement s: statements){
+			stringStatements.add(s.toSyntax());
+		}
+		return stringStatements;
 	}
 	//virtual method
 	public String toSyntax(){

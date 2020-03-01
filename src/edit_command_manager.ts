@@ -3,12 +3,16 @@ import * as vscode from 'vscode';
 
 export class EditCommandManager {
     manager: StructCommandManager
+    code_segments: string[]
 
-    constructor(manager: StructCommandManager) {
+    constructor(manager: StructCommandManager, code_segments: string[]) {
         this.manager = manager;
+        this.code_segments = code_segments;
+
     }
 
-    checkAll(transcribedWord: String){
+    checkAll(transcribedWord: String, code_segments:string[]){
+        this.code_segments = code_segments;
         console.log("DEBUG 1: "+transcribedWord);
         this.check_if_comment_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
@@ -31,6 +35,7 @@ export class EditCommandManager {
     check_if_delete_block(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="block"){
+            console.log
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 let document = editor.document;
@@ -75,11 +80,6 @@ export class EditCommandManager {
                 const document = editor.document;
                 let line_num = parseInt(arr[6])-1;
                 let block_name = arr[2];
-                //if (document.lineAt(line_num).text.startsWith(block_name)){
-                // let range = editor.document.lineAt(line_num-1).range;
-                // console.log("CALCULATED RANGE");
-                // editor.selection =  new vscode.Selection(range.start, range.end);
-                // editor.revealRange(range);
 
                 const position = editor.selection.active;
 
@@ -96,9 +96,9 @@ export class EditCommandManager {
                 //this.manager.curr_speech.splice(line_num,0,"");
                 
             }
+            this.manager.curr_index = temp+1;
+            this.delete_edit_commands_from_history();
         }
-        this.manager.curr_index = temp+1;
-        this.delete_edit_commands_from_history();
     }
 
     check_if_comment_block(text:String){
@@ -147,6 +147,7 @@ export class EditCommandManager {
         }
     }
     
+    //WORKS
     check_if_delete_line(text: String) { 
         var arr = text.toLowerCase().split(" ");
         if (arr[0] == "delete" && arr[1]=="line") {
@@ -154,13 +155,11 @@ export class EditCommandManager {
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 const document = editor.document;
-                let line_num = parseInt(arr[2])-1
-                let line = document.lineAt(line_num)
-                editor.edit (editBuilder =>{
-                    editBuilder.delete(line.range);
-                    this.manager.speech_hist.splice(line_num,1);
-                    this.manager.struct_command_list.splice(line_num,1);
-                });
+                let line_num = parseInt(arr[2])-1;
+                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                if (index!=-1){
+                    this.manager.struct_command_list.splice(index,1);
+                 }
             }
         }
     }
@@ -271,25 +270,21 @@ export class EditCommandManager {
         }
     }
     
+    //TENTATIVE, DON'T THINK COMMENT IS SUPPORTED
     check_if_comment_line(text: String) {
-        var arr = text.split(" ");
+        var arr = text.toLowerCase().split(" ");
         if (arr[0]== "comment" && arr[1] == "line"){
+            console.log("IN HERE COMMENTING LINE");
             let editor = vscode.window.activeTextEditor;
             if (editor){
                 const document = editor.document;
-                let line_num = parseInt(arr[2])
-                let line = document.lineAt(line_num-1);
-                editor.edit (editBuilder => {
-                    editBuilder.insert(line.range.start, "#comment");
-                    editBuilder.insert(line.range.end,"#end_comment");
-                    this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
-                    this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
-                });
+                let line_num = parseInt(arr[2])-1
+                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                if (index!=-1){
+                    this.manager.struct_command_list[index] = "#comment"+this.manager.struct_command_list[index]+"#end_comment";
+                }
             }
-            //this.delete_edit_commands_from_history();	
-            
-        }
-                
+        }      
     }
     
 }
