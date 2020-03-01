@@ -1,11 +1,5 @@
 import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
-
-
-var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
-                    "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
-                    "#case_end", "#function_end"];
-
 /*     
 
 @ Parameters - list of commands, variable list
@@ -13,19 +7,12 @@ var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#wh
 list of commands
     list of commands the user has spoken. For e.g. ['declare', 'int', 'hello']
 
-variable list
-    list of variable already declared
-
-is_extendable
-    boolean value to indicate that the 2 items in the text_segment have a possibility to be combined.
-
 prev_command
     string value of prev struct command. Useful for determining if the block command being created is legal.
     For e.g. Else block can on be created if prev_command is "#if_branch_end"
 
 @ Returns the structCommand obj*/
-export function get_struct(input_speech_segments: string[], var_list: string[], func_list: string[], 
-    prev_command: string) {
+export function get_struct(input_speech_segments: string[], prev_command: string) {
 
     var input_speech = input_speech_segments.join(" ");
     var removePrevious = checkPrevStatement(input_speech, prev_command);
@@ -34,7 +21,7 @@ export function get_struct(input_speech_segments: string[], var_list: string[], 
     input_speech = replace_infix_operators(input_speech);
 
     console.log("text going in: " + input_speech)
-    var struct_command = parse_command(input_speech, var_list, func_list);
+    var struct_command = parse_command(input_speech);
     console.log("segmented results: " + struct_command.parsedCommand);
     
     if (struct_command.hasError) {

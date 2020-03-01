@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel, parse_fragment, checkValidity } from './parse_statements'
+import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -23,8 +23,8 @@ list of struct commands
 variable list
     list of new variables declared by the user. This is only updated when a declare command is given. */
 
-export function parse_command(text: string, var_list: string[], func_list: string[]) {
-    var starting_command = determine_user_command(text, var_list);
+export function parse_command(text: string) {
+    var starting_command = determine_user_command(text);
 
     if (starting_command[0] == "not ready") {
         var command = new structCommand("non-block");
@@ -38,29 +38,29 @@ export function parse_command(text: string, var_list: string[], func_list: strin
 
     switch(starting_command[0]) {
         case "if":
-            return parse_if(splitted_text, var_list, func_list);
+            return parse_if(splitted_text);
         case "else":
             return parse_else(splitted_text);
         case "loop":
-            return parse_for_loop(splitted_text, var_list, func_list);
+            return parse_for_loop(splitted_text);
         case "function":
             return parse_function(splitted_text);
         case "while":
-            return parse_while(splitted_text, var_list, func_list);
+            return parse_while(splitted_text);
         case "switch":
-            return parse_switch(splitted_text, var_list, func_list);
+            return parse_switch(splitted_text);
         case "do":
-            return parse_do(splitted_text, var_list, func_list);
+            return parse_do(splitted_text);
         case "case":
             return parse_case(splitted_text);
         default:
-            var statement = parse_statement(text, var_list, func_list);
+            var statement = parse_statement(text);
             return statement.convert2StructCommand();
     }
 }
 
 /* To determine what command the user is trying say */
-function determine_user_command(text: string, var_list: string[]) {
+function determine_user_command(text: string) {
 
     text = text.replace("begin if", "if");
     text = text.replace("begin loop", "loop");
@@ -77,11 +77,11 @@ function determine_user_command(text: string, var_list: string[]) {
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] */
-function parse_if(splitted_text: string[], var_list: string[], func_list: string[]) {
+function parse_if(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
+    var statement = parse_statement(splitted_text.join(" "));
     if (statement.hasError) {
         command.logError("incomplete condition, " + statement.errorMessage);
         return command;
@@ -105,10 +105,10 @@ function parse_else(splitted_text: string[]) {
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
-function parse_while(splitted_text: string[], var_list: string[], func_list: string[]) {
+function parse_while(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
-    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
+    var statement = parse_statement(splitted_text.join(" "));
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -122,10 +122,10 @@ function parse_while(splitted_text: string[], var_list: string[], func_list: str
     return command;
 }
 
-function parse_do(splitted_text: string[], var_list: string[], func_list: string[]) {
+function parse_do(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "do #condition"
-    var statement = parse_statement(splitted_text.join(" "), var_list, func_list);
+    var statement = parse_statement(splitted_text.join(" "));
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -140,7 +140,7 @@ function parse_do(splitted_text: string[], var_list: string[], func_list: string
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
-function parse_for_loop(splitted_text: string[], var_list: string[], func_list: string[]) {
+function parse_for_loop(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
@@ -161,7 +161,7 @@ function parse_for_loop(splitted_text: string[], var_list: string[], func_list: 
         
         /* Do not confuse first condition block for an infix condition. it is an assign statement. */
         if ( i == 0) condition_blocks[0] = condition_blocks[0].replace("==", "equal");
-        var statement = parse_statement(condition_blocks[i], var_list, func_list);
+        var statement = parse_statement(condition_blocks[i]);
         if (statement.hasError) {
             command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
             return command;
@@ -255,7 +255,7 @@ function parse_function(splitted_text: string[]) {
     return command;
 }
 
-function parse_switch(splitted_text: string[], var_list: string[], func_list: string[]) {
+function parse_switch(splitted_text: string[]) {
     /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
     var command = new structCommand("non-block");
 
@@ -266,11 +266,6 @@ function parse_switch(splitted_text: string[], var_list: string[], func_list: st
     var fragment = parse_fragment(splitted_text);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
-        return command;
-    }
-    var validity = checkValidity(fragment[1], var_list, func_list);
-    if (!validity) {
-        command.logError("variable or function not yet declared.");
         return command;
     }
     command.parsedCommand = "switch #condition " + fragment[1] + ";;";
