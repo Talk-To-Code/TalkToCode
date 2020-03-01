@@ -136,6 +136,7 @@ fragment() :
 	| < LBRACE > ((< ARRAY > | < LIST > | < TUPLE >) (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
 	| < ARRAY > (< IDENTIFIER > | func() | access()) ( < INDEX > expression() < INDEX_END >)+
 	| access()
+	| < LAMBDA > (< IDENTIFIER>)* expression() < LAMBDA_END >
 
 types_J():
 	< IDENTIFIER >
@@ -291,6 +292,8 @@ infixOperators() :
 < FINALLY_END : "#finally_end" >
 < WITH_START : "#with_start" >
 < WITH_END : "#with_end" >
+< LAMBDA : "#lambda" >
+< LAMBDA_END : "#lambda_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >

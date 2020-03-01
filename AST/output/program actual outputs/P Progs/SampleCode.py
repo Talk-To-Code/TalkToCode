@@ -466,9 +466,13 @@ if(__name__ == "__main__"):
 
 	t = (1, 'e', "ea", 3.3, True, False)
 
+	x = lambda a, b : a - b
+
 	print(s)
 
 	print(t)
+
+	print(x(1))
 
 	serverName = sys.argv[1]
 
