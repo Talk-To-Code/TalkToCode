@@ -13,15 +13,14 @@ export class EditCommandManager {
 
     checkAll(transcribedWord: String, code_segments:string[]){
         this.code_segments = code_segments;
-        console.log("DEBUG 1: "+transcribedWord);
-        this.check_if_comment_line(transcribedWord);
-        this.check_if_delete_function(transcribedWord);
         this.check_if_delete_line(transcribedWord);
+        this.check_if_delete_function(transcribedWord);
         this.check_if_delete_block(transcribedWord);
+        this.check_if_comment_line(transcribedWord);
+        this.check_if_comment_block(transcribedWord);
         this.check_if_rename_function(transcribedWord);
         this.check_if_rename_variable(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
-        this.check_if_comment_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
@@ -31,44 +30,182 @@ export class EditCommandManager {
         }
         return false;
     }
+
+    //WORKS
+    check_if_delete_line(text: String) { 
+        var arr = text.toLowerCase().split(" ");
+        if (arr[0] == "delete" && arr[1]=="line") {
+            console.log("IN HERE to delete line");
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const document = editor.document;
+                let line_num = parseInt(arr[2])-1;
+                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                if (index!=-1){
+                    this.manager.struct_command_list.splice(index,1);
+                 }
+            }
+        }
+    }
+
+    //WORKS
+    check_if_delete_function(text: String) {
+        var arr = text.toLowerCase().split(" ");
+        if (arr[0]=="delete" && arr[1]=="function"){
+            console.log("TRYING TO DELETE A FUNCTION");
+            var functionToDelete = arr[2];
+            var start = -1;
+            var end = -1;
+            var countNestedFunctions = 0;
+            var flag = false;
+            for (var i=0;i<this.manager.struct_command_list.length;i++){
+                let structuredText = this.manager.struct_command_list[i];
+                if (structuredText.startsWith("#function_declare")){
+                    var temp = structuredText.split(" ");
+                    if (temp[1]==functionToDelete){
+                        start = i;
+                        flag = true;
+                    }
+                    else if (i>start && flag==true){
+                        countNestedFunctions+=1;
+                    } 
+                }
+                else if (structuredText.startsWith("#function_end")){
+                    if (countNestedFunctions>0){
+                        countNestedFunctions--;
+                    }
+                    if (countNestedFunctions==0) end = i;
+                }
+            }
+            this.manager.struct_command_list.splice(start,(end-start)+1);
+        } 
+    }
     
+    //WORKS : Delete block [block-name] at line [line-number]
     check_if_delete_block(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="block"){
-            console.log
+            console.log("IN HERE TO DELETE A BLOCK");
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 let document = editor.document;
                 var line_num = parseInt(arr[5])-1;
-                var block_name = arr[2];
-                var block_name_end = (block_name == "if" || block_name == "else")? "#"+block_name+"_branch_end": "#"+block_name+"_end";
+                var line = document.lineAt(line_num).text.trimLeft();
+                var start = -1;
+                var end = -1;
+                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            
+                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
                 var count_block = 0;
-                if (document.lineAt(line_num).text.startsWith(block_name)){
-                    for (var i=line_num;i<document.lineCount;i++){
-                        if (i!=line_num && document.lineAt(i).text.startsWith(block_name)){
+                 if (line.startsWith(block_name)){
+                    var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                    start = index;
+                    for (var i=index;i<this.manager.struct_command_list.length;i++){
+                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
                             count_block++;
                         }
-                        if (document.lineAt(i).text.startsWith(block_name_end)){
+
+                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
                             if (count_block==0){
-                                editor.edit (editBuilder =>{
-                                    editBuilder.delete(line.range);
-                                });
+                                end = i;
                                 break;
                             }
-                            else{
+                            else if (count_block>0){
                                 count_block--;
                             }
                         }
-                        let line = document.lineAt(i);
-                        editor.edit (editBuilder =>{
-                            editBuilder.delete(line.range);
-                        });
+
                     }
+                    this.manager.struct_command_list.splice(start,(end-start)+1);
                 }
-                this.delete_edit_commands_from_history();
             }
         }
     }
+
+     //WORKS BUT DOESNT WORK ON FIRST LINES OF BLOCKS
+     check_if_comment_line(text: String) {
+        var arr = text.toLowerCase().split(" ");
+        if (arr[0]== "comment" && arr[1] == "line"){
+            console.log("IN HERE COMMENTING LINE");
+            let editor = vscode.window.activeTextEditor;
+            if (editor){
+                const document = editor.document;
+                let line_num = parseInt(arr[2])-1;
+                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                if (index!=-1){
+                    this.manager.struct_command_list[index] = "#comment " + this.manager.struct_command_list[index] + " #comment_end;;"
+                }
+            }
+        }      
+    }
+
+    // WORKS BUT BUG BECAUSE OF CURSOR COMMENT
+    check_if_comment_block(text:String){
+        var arr = text.split(" ");
+        if (arr[0]=="comment" && arr[1]=="block"){
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                let document = editor.document;
+                var line_num = parseInt(arr[5])-1;
+                var line = document.lineAt(line_num).text.trimLeft();
+                var start = -1;
+                var end = -1;
+                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            
+                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
+                var count_block = 0;
+                 if (line.startsWith(block_name)){
+                    var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                    start = index;
+                    for (var i=index;i<this.manager.struct_command_list.length;i++){
+                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
+                            count_block++;
+                        }
+
+                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
+                            if (count_block==0){
+                                end = i;
+                                break;
+                            }
+                            else if (count_block>0){
+                                count_block--;
+                            }
+                        }
+
+                    }
+                  
+                    if (!this.manager.struct_command_list[start].startsWith("#comment")){
+                            this.manager.struct_command_list[start] = "#comment " + line 
+                    this.manager.struct_command_list[end] = line + " #comment_end;;";  
+                    }
+                }
+            }
+        }
+    }
+
+    check_if_rename_function(text: String) {
+        var arr = text.toLowerCase().split(" ");
+        if (arr[0]=="rename" && arr[1]=="function") {
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                const document = editor.document;
+                var functionToReplace = arr[2];
+                var replaceWith = arr[4];
+                for (var i=0;i<document.lineCount;i++){
+                    let line = document.lineAt(i).text;
+                    let text = line.split(" ");
+                    for (var j=1;j<text.length;j++){
+                        if (text[j]==functionToReplace && text[j-1]=="#function_declare"){
+                            text[j] = replaceWith;
+                            
+                        }   
+                    }
+                }
+            }
+        }
+    }
+
+
 
     check_if_insert_before_block(text: String) {
         var arr = text.toLowerCase().split(" ");
@@ -96,148 +233,9 @@ export class EditCommandManager {
                 //this.manager.curr_speech.splice(line_num,0,"");
                 
             }
-            this.manager.curr_index = temp+1;
-            this.delete_edit_commands_from_history();
         }
     }
 
-    check_if_comment_block(text:String){
-        var arr = text.split(" ");
-        if (arr[0]=="comment" && arr[1]=="block"){
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                let document = editor.document;
-                var line_num = parseInt(arr[5])-1;
-                var block_name = arr[2];
-                var block_name_end = (block_name == "if" || block_name == "else")? "#"+block_name+"_branch_end": "#"+block_name+"_end";
-                var count_block = 0;
-                if (document.lineAt(line_num).text.startsWith(block_name)){
-                    for (var i=line_num;i<document.lineCount;i++){
-                        if (i!=line_num && document.lineAt(i).text.startsWith(block_name)){
-                            count_block++;
-                        }
-                        if (document.lineAt(i).text.startsWith(block_name_end)){
-                            if (count_block==0){
-                                editor.edit (editBuilder => {
-                                editBuilder.insert(line.range.start, "#comment");
-                                editBuilder.insert(line.range.end,"#end_comment");
-                                });
-
-                                this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
-                                this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
-                                break;
-                            }
-                            else{
-                                count_block--;
-                            }
-                        }
-                        let line = document.lineAt(i);
-                        editor.edit (editBuilder =>{
-                            editBuilder.insert(line.range.start, "#comment");
-                            editBuilder.insert(line.range.end,"#end_comment");
-                        });
-
-                        this.manager.speech_hist[line_num-1]= "#comment"+this.manager.speech_hist[line_num-1]+"#end_comment";
-                        this.manager.struct_command_list[line_num-1] = "#comment"+this.manager.struct_command_list[line_num-1]+"#end_comment";
-                        
-                    }
-                }
-                this.delete_edit_commands_from_history();
-            }
-        }
-    }
-    
-    //WORKS
-    check_if_delete_line(text: String) { 
-        var arr = text.toLowerCase().split(" ");
-        if (arr[0] == "delete" && arr[1]=="line") {
-            console.log("IN HERE to delete line");
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                let line_num = parseInt(arr[2])-1;
-                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
-                if (index!=-1){
-                    this.manager.struct_command_list.splice(index,1);
-                 }
-            }
-        }
-    }
-    
-    delete_edit_commands_from_history(){
-        this.manager.struct_command_list.splice(this.manager.struct_command_list.length-1,this.manager.struct_command_list.length);
-        this.manager.speech_hist.splice(this.manager.speech_hist.length-1,this.manager.speech_hist.length);
-    }
-    
-    check_if_delete_function(text: String) {
-        var arr = text.split(" ");
-        if (arr[0]=="delete" && arr[1]=="function"){
-            console.log("TRYING TO DELETE A FUNCTION");
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                var functionToDelete = arr[2];
-                var start = -1;
-                var end = -1;
-                var countNestedFunctions = 0;
-                var flag = false;
-                for (var i=0;i<document.lineCount;i++){
-                    let structuredText = document.lineAt(i).text;
-                    if (structuredText.startsWith("#function_declare")){
-                        var temp = structuredText.split(" ");
-                        if (temp[1].toLowerCase==functionToDelete.toLowerCase){
-                            start = i;
-                            flag = true;
-                        }
-                        else if (flag==true){
-                            countNestedFunctions+=1;
-                        }
-                        
-                    }
-                    if (structuredText.startsWith("#function_end")){
-                        countNestedFunctions--;
-                        if (countNestedFunctions==0) end = i;
-                    }
-                }
-    
-                for (var i=start;i<=end;i++){
-                    editor.edit (editBuilder =>{
-                        editBuilder.delete(document.lineAt(i).range);
-                    });
-                }
-    
-            }
-            this.delete_edit_commands_from_history();
-            
-        }
-    
-    }
-    
-    check_if_rename_function(text: String) {
-        var arr = text.split(" ");
-        if (arr[0]=="rename" && arr[1]=="function") {
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                var functionToReplace = arr[2];
-                var replaceWith = arr[4];
-                for (var i=0;i<document.lineCount;i++){
-                    let line = document.lineAt(i).text;
-                    let text = line.split(" ");
-                    for (var j=1;j<text.length;j++){
-                        if (text[i]==functionToReplace && text[i-1]=="#function_declare"){
-                            text[i] = replaceWith;
-                            editor.edit (editBuilder =>{
-                                editBuilder.replace(document.lineAt(i).range,text.join(" "));
-                            });
-                        }   
-                    }
-                }
-            }
-            this.delete_edit_commands_from_history();
-        }
-    }
-    
     check_if_rename_variable(text:String) {
         var arr = text.split(" ");
         if (arr[0]=="rename" && (arr[1]=="variable" || arr[1]=="variables")){
@@ -266,25 +264,6 @@ export class EditCommandManager {
                     }
                 }
             }
-            this.delete_edit_commands_from_history();
         }
-    }
-    
-    //TENTATIVE, DON'T THINK COMMENT IS SUPPORTED
-    check_if_comment_line(text: String) {
-        var arr = text.toLowerCase().split(" ");
-        if (arr[0]== "comment" && arr[1] == "line"){
-            console.log("IN HERE COMMENTING LINE");
-            let editor = vscode.window.activeTextEditor;
-            if (editor){
-                const document = editor.document;
-                let line_num = parseInt(arr[2])-1
-                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
-                if (index!=-1){
-                    this.manager.struct_command_list[index] = "#comment"+this.manager.struct_command_list[index]+"#end_comment";
-                }
-            }
-        }      
-    }
-    
+    }    
 }

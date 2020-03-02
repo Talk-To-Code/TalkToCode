@@ -143,11 +143,23 @@ function displayCode(struct_command_list: string[]) {
 	});
 }
 
+function compareCommands(command1: string, command2: string){
+	if (command1.length!=command2.length && (command1.startsWith("if") || command1.startsWith("else"))) return false;
+	var count = 0;
+	for (var i=0;i<command1.length;i++){
+		if (command1.charAt(i)!=command2.charAt(i)){
+			count++;
+		}
+	}
+	return count<=1;
+}
+
 function writeToEditor(code: string) {
 	var commands = code.split("\n");
     code_segments = [""];
     var i;
-    for (i = 0; i < commands.length; i++) {
+    for (i = 1;i < commands.length; i++) {
+		if (compareCommands(commands[i],commands[i-1])) continue;
         if (!commands[i].toString().startsWith("#include") && commands[i]!="") {
             code_segments.push(commands[i]);
         }
