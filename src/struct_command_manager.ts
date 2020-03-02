@@ -134,11 +134,7 @@ export class StructCommandManager {
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
                 this.curr_index += 1
-<<<<<<< HEAD
                 this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
-=======
-                this.struct_command_list.push("") // Blank line for the curr_index to point at later.
->>>>>>> sem 2 first changes
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.
