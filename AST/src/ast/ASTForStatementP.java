@@ -47,7 +47,7 @@ public class ASTForStatementP extends ASTForStatement {
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";
 			this.result += this.statements.get(i).toSyntax();
-			this.result += "\n";
+			if(this.statements.get(i) instanceof ASTSimpleStatement || this.statements.get(i) instanceof ASTComment) this.result += "\n";
 		}
 		if(!this.elseBranch.isEmpty()){
 			for(int i = 0; i < this.indent; i++) this.result+="\t";
@@ -56,7 +56,7 @@ public class ASTForStatementP extends ASTForStatement {
 				for(int j = 0; j < this.indent; j++) this.result+="\t";
 				this.result += "\t";
 				this.result += this.elseBranch.get(i).toSyntax();
-				this.result += "\n";
+				if(this.elseBranch.get(i) instanceof ASTSimpleStatement || this.elseBranch.get(i) instanceof ASTComment) this.result += "\n";
 			}
 		}
 		return this.result;

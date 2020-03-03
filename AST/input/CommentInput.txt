@@ -1,3 +1,6 @@
 #comment #value "This is a comment.";; #comment_end;;
 #comment #assign #variable x #with #value 2;; #comment_end;;
 #comment if #condition #variable x == #value 1 #if_branch_start #function print(#parameter #value "x is equal to one.\n");; #if_branch_end #else_branch_start #function print(#parameter #value "x is not equal to one.\n");; #else_branch_end;; #comment_end;;
+#comment if #condition #variable x == #value 1 #if_branch_start #function print(#parameter #value "x is equal to one.\n");; #if_branch_end #else_branch_start #function print(#parameter #value "x is not equal to one.\n");; #else_branch_end;; #comment_end 1;;
+#comment if #condition #variable x == #value 1 #if_branch_start #function print(#parameter #value "x is equal to one.\n");; #if_branch_end #else_branch_start #function print(#parameter #value "x is not equal to one.\n");; #else_branch_end;; #comment_end 1 3;;
+#comment if #condition #variable x == #value 1 #if_branch_start #function print(#parameter #value "x is equal to one.\n");; #if_branch_end #else_branch_start #function print(#parameter #value "x is not equal to one.\n");; #else_branch_end;; #comment_end 1 3 2;;

@@ -20,7 +20,6 @@ public class ASTIfStatementP extends ASTIfStatement {
 			result+= ("\t"+this.ifBranch.get(i).toSyntax());
 			if(this.ifBranch.get(i) instanceof ASTSimpleStatement || this.ifBranch.get(i) instanceof ASTComment) result += "\n";
 		}
-		result += "\n";
 		if(!this.elseBranch.isEmpty()){
 			for(int i = 0; i < this.indent; i++) result+="\t";
 			result += "else:\n";
@@ -29,9 +28,8 @@ public class ASTIfStatementP extends ASTIfStatement {
 				result+=("\t"+this.elseBranch.get(j).toSyntax());
 				if(this.elseBranch.get(j) instanceof ASTSimpleStatement || this.elseBranch.get(j) instanceof ASTComment) result += "\n";
 			}
-			result +="\n";
 		}
-		this.result = result + "\n";
+		this.result = result;
 		return this.result;
 	}
 }

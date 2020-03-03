@@ -24,7 +24,7 @@ public class ASTReturnStatementP extends ASTReturnStatement {
 				this.result+=", ";
 			}
 		}
-		return this.result;
+		return this.result + "\n";
 	}
 
 }

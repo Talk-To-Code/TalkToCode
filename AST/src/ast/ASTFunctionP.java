@@ -33,7 +33,7 @@ public class ASTFunctionP extends ASTFunction {
 			for(int i = 0; i < this.indent; i++) this.result+="\t";
 			this.result+="\t";
 			this.result+=s.toSyntax();
-			this.result+="\n";
+			if(s instanceof ASTSimpleStatement || s instanceof ASTComment) this.result+="\n";
 		}
 		return this.result;
 	}

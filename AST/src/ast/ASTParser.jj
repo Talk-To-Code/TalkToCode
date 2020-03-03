@@ -443,6 +443,7 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
 {
   ASTStatement temp;
   ASTComment result;
+  Token i;
 }
 {
   < COMMENT >
@@ -466,7 +467,16 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
       result.addStatement(temp);
     }
   )*
-  < COMMENT_END > <TERMINATOR >
+  < COMMENT_END >
+  (    i = < INTEGER_LITERAL >
+    {
+      int numLines = result.getNumLines();
+      int line = Integer.parseInt(i.image);
+      if(line > numLines) throw new IndexOutOfBoundsException("Index: " + Integer.toString(line-1) + " Size: " + Integer.toString(numLines));
+      result.addCommentedOutLine(line-1);
+    }
+  )*
+  <TERMINATOR >
   {
     return result;
   }

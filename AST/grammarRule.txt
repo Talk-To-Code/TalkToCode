@@ -88,7 +88,7 @@ structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
 
 comment() :
-	< COMMENT > (statement())* < COMMENT_END > < TERMINATOR >
+	< COMMENT > (statement())* < COMMENT_END > (< IDENTIFIER >)* < TERMINATOR >
 
 classDeclare() :
 	< CLASS > < IDENTIFIER > (< PARENT > (< IDENTIFIER > | access()))* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
