@@ -6,12 +6,9 @@ def main():
 	if(x == 1):
 		print("x is equal to one.\n")
 
-
 	else:
 		print("x is not equal to one.\n")
 
-
-
-
 	return 
+
 

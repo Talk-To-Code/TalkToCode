@@ -326,8 +326,10 @@ if #condition #function len(#parameter #access sys argv #access_end) != #value 3
 #if_branch_end;;
 #create #variable s {#array #parameter {#list #parameter #value 1 #parameter #value 3} #parameter {#array #parameter #value 3.3 #parameter #value 4.45} #parameter {#tuple #parameter #value "hi" #parameter #value "bye"} #parameter {#dictionary #key "melon" #value #value 5 #key "tomato" #value #value 10}} #dec_end;;
 #create #variable t {#tuple #parameter #value 1 #parameter #value 'e' #parameter #value "ea" #parameter #value 3.3 #parameter #value true #parameter #value false} #dec_end;;
+#create #variable x #lambda a b #variable a - #variable b #lambda_end #dec_end;;
 #function print(#parameter #variable s);;
 #function print(#parameter #variable t);;
+#function print(#parameter #function x(#parameter #value 1));;
 #create #variable serverName #array #access sys argv #access_end #indexes #value 1 #index_end #dec_end;;
 #create #variable serverPort #function int(#parameter #array #access sys argv #access_end #indexes #value 2 #index_end) #dec_end;;
 #create #variable dataQueue #function #access queue Queue #access_end (#parameter #value 100 maxsize) #dec_end;;

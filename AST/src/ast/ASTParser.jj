@@ -40,7 +40,9 @@
 | < CATCH_END : "#catch_end" >
 | < FINALLY_END : "#finally_end" >
 | < WITH_START : "#with_start" >
-| < WITH_END : "#with_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < WITH_END : "#with_end" >
+| < LAMBDA : "#lambda" >
+| < LAMBDA_END: "#lambda_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -198,7 +200,8 @@ ASTExpressionUnitFunctionCall func(programType pType) :
 ASTExpression fragment(programType pType) :{  Token var = new Token();  String id;  Token check = new Token();  ASTExpressionUnitLiteral v = new ASTExpressionUnitLiteral();  ASTExpression parameters = new ASTExpression();  ASTExpression result = new ASTExpression();
   Token identifier = new Token();
   ASTExpressionUnitAccess access;
-  ASTExpressionUnitFunctionCall call;}{  (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
+  ASTExpressionUnitFunctionCall call;
+  ASTExpressionUnitLambda lambda;}{  (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
     return v;  }| id = variable()  {    return new ASTExpressionUnitIdentifier(id);  }|  call = func(pType)  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
     ASTExpressionUnitLiteral key;
     ASTExpression value;  }
@@ -256,7 +259,23 @@ ASTExpressionUnitFunctionCall func(programType pType) :
       array.addIndex(parameters);
     }  )+
   {    return array;
-  }| access = access(pType)  {    return access;  }}ASTExpression term(programType pType) :{  ArrayList < String > operators = new ArrayList < String > ();  ArrayList < ASTExpression > operands = new ArrayList < ASTExpression > ();  String operator = null;  ASTExpression operand1;  ASTExpression operand2 = new ASTExpression();  ASTExpression result;}{  operand1 = fragment(pType)  (    operator = infixOperators()    {
+  }| access = access(pType)  {    return access;  }
+| < LAMBDA >
+  {    if(pType == programType.C) throw new ParseException("Not supported in C!\n");
+    lambda = new ASTExpressionUnitLambda();
+  }
+  (
+    var = < IDENTIFIER >
+    {
+      lambda.addParameter(var.image);
+    }
+  )*
+  parameters = expression(pType)
+  {    lambda.setExpression(parameters);
+  }
+  < LAMBDA_END >
+  {    return lambda;
+  }}ASTExpression term(programType pType) :{  ArrayList < String > operators = new ArrayList < String > ();  ArrayList < ASTExpression > operands = new ArrayList < ASTExpression > ();  String operator = null;  ASTExpression operand1;  ASTExpression operand2 = new ASTExpression();  ASTExpression result;}{  operand1 = fragment(pType)  (    operator = infixOperators()    {
       if (pType == programType.P && (operator == "||" || operator == "&&")) throw new ParseException("Not supported in Python!\n");
       else if (pType != programType.P && (operator == "or" || operator == "and")) throw new ParseException("Not supported in C and Java!\n");      operators.add(operator);    }    operand2 = fragment(pType)    {      operands.add(operand2);    }  )*  {    if (operator == null || operators.isEmpty())    {      result = operand1;      return result;    }    result = new ASTExpression();    while (!operators.isEmpty())    {      result = new ASTExpressionInfixOperation(operators.remove(0), operand1, operands.remove(0));      operand1 = result;    }    return result;  }}ASTExpression infix_expression(programType pType) :{  ASTExpression result;}{  result = term(pType)  {    return result;  }}ASTExpression prefix_expression(programType pType) :{  String operator;  Token op;  ASTExpressionPrefixOperation result;  ASTExpression exp;}{
   (    operator = incrDecrOperators() exp = fragment(pType)
@@ -424,6 +443,7 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
 {
   ASTStatement temp;
   ASTComment result;
+  Token i;
 }
 {
   < COMMENT >
@@ -447,7 +467,16 @@ ASTComment comment(ASTNode parent, programType pType, int indent) :
       result.addStatement(temp);
     }
   )*
-  < COMMENT_END > <TERMINATOR >
+  < COMMENT_END >
+  (    i = < INTEGER_LITERAL >
+    {
+      int numLines = result.getNumLines();
+      int line = Integer.parseInt(i.image);
+      if(line > numLines) throw new IndexOutOfBoundsException("Index: " + Integer.toString(line-1) + " Size: " + Integer.toString(numLines));
+      result.addCommentedOutLine(line-1);
+    }
+  )*
+  <TERMINATOR >
   {
     return result;
   }

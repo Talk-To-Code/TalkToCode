@@ -13,7 +13,6 @@ def main():
 		if(c <= 1):
 			next = c
 
-
 		else:
 			next = first + second
 
@@ -21,11 +20,8 @@ def main():
 
 			second = next
 
-
-
-
 		print(next + "\n")
 
-
 	return 
+
 

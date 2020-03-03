@@ -42,9 +42,15 @@ public class CommentTest extends TestCase {
 			expectedOutput.add(currentTemp);
 			count++;
 			currentTemp = "";
-			while((temp=br.readLine())!=null) currentTemp = currentTemp.concat(temp + "\n");
+			for(int j = 0; j < 9; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
 			count++;
 			expectedOutput.add(currentTemp);
+			for(int i = 0; i < 3; i++) {
+				currentTemp = "";
+				for(int j = 0; j < 6; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
+				count++;
+				expectedOutput.add(currentTemp);
+			}
 			
 			int testNo = 0;
 			while(testNo!=count){
