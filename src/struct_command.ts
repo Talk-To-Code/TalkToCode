@@ -21,8 +21,10 @@ export class structCommand {
     /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
     is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
     removePrevTerminator: boolean;
-    /* removePrevious: is true if the previous statement is extendable by the current statement. */
-    removePrevious: boolean;
+    /* removePreviousStatement: is true if the previous statement is extendable by the current statement. */
+    removePreviousStatement: boolean;
+    /* removePreviousBlock: is true if the previous block is extendable by the current statement. */
+    removePreviousBlock: boolean;
     
 
     constructor(typeOfCommand: string) {
@@ -36,7 +38,8 @@ export class structCommand {
         this.isElse = false;
         this.isCase = false;
         this.removePrevTerminator = false;
-        this.removePrevious = false;
+        this.removePreviousStatement = false;
+        this.removePreviousBlock = false;
 
         if (typeOfCommand == "block") this.isBlock = true;
     }

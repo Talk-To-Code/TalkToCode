@@ -49,19 +49,12 @@ function listen() {
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
+			errorFlag = false;
+			codeBuffer = "";
 
-			if (transcribed_word == "show me the document") showTextDocument();
-
-			else if (transcribed_word == "show me the code") displayCode(manager.struct_command_list)
-
-			else {
-				errorFlag = false;
-				codeBuffer = "";
-
-				manager.parse_speech(transcribed_word)
-				displayStructCommands(manager.struct_command_list)
-				displayCode(manager.struct_command_list)
-			}
+			manager.parse_speech(transcribed_word);
+			developerMode(manager.struct_command_list, manager.speech_hist, manager.curr_speech, manager.curr_index);
+			displayCode(manager.struct_command_list);
 		}
 	});
 }
@@ -88,7 +81,26 @@ function displayStructCommands(struct_command_list: string[]) {
 			editBuilder.insert(start_pos, commands)
 		});
 	}
+}
 
+function developerMode(struct_command_list: string[], speech_hist: string[][], curr_speech: string[], curr_idx: number) {
+
+	let toDisplay = "Current Speech: " + curr_speech + '\n';
+	toDisplay += "Current index: " + curr_idx + '\n';
+	toDisplay += "//////////////////////////////////";
+	toDisplay += "Structured Command List: \n";
+	
+	for (var i = 0; i < struct_command_list.length; i++) {
+		toDisplay += "[" + i + "]" + struct_command_list[i] + '\n';
+	}
+	toDisplay += "//////////////////////////////////";
+	toDisplay += "Speech History List: \n";
+
+	for (var i = 0; i < speech_hist.length; i++) {
+		toDisplay += "[" + i + "]" + speech_hist[i] + '\n';
+	}
+
+	writeToEditor(toDisplay);
 }
 
 function displayCode(struct_command_list: string[]) {

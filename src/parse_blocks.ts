@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
+import { parse_statement, joinName, parse_fragment } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -210,7 +210,7 @@ function parse_function(splitted_text: string[]) {
         return command;
     }
 
-    command.parsedCommand += " " + convert2Camel(with_blocks[0].split(" ")); /* Add function name. */    
+    command.parsedCommand += " " + joinName(with_blocks[0].split(" ")); /* Add function name. */    
     command.parsedCommand += " " +  with_blocks[1].slice(12); /* Add var type. */
 
     if (with_blocks.length == 2) {

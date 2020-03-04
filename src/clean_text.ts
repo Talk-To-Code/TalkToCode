@@ -10,6 +10,7 @@ export function clean(input_speech: string) {
     input_speech = replace_math_operators(input_speech);
     input_speech = correct_variables(input_speech);
     input_speech = word_2_num(input_speech);
+    input_speech = find_symbol(input_speech);
 
     return input_speech;
 }
@@ -19,23 +20,58 @@ function fix_common_errors(text: string) {
     text = text.replace('equals', 'equal');
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
-    text = text.replace('begin is', 'begin if')
+    text = text.replace('begin is', 'begin if');
+    text = text.replace('steps out', 'step out');
     return text;
 }
 
 /* Replace all math operators like '+', '-' and '*' with 'plus', 'minus' and 'multiply'.*/
 function replace_math_operators(text: string) {
-        text = text.replace('+', 'plus');
-        text = text.replace('-', 'minus');
-        text = text.replace('*', 'multiply');
-        text = text.replace('/', 'divide');
+    text = text.replace('+', 'plus');
+    text = text.replace('-', 'minus');
+    text = text.replace('*', 'multiply');
+    text = text.replace('/', 'divide');
     return text;
 }
 
-/* Replace all variables with the short form that will be used in text2struct.*/
+/* Replace all variables with the short form that will be used in text2struct. If integer is 
+part of a string, do not correct it. */
 function correct_variables(text: string) {
-    text = text.replace(/integer/g, "int");
-    text = text.replace(/character/g, "int");
+    if (text.includes("integer") || text.includes("character")) {
+        var splitted_text = text.split(" ");
+        var string_flag = false;
+        for (var i = 0; i < splitted_text.length; i++) {
+            if (splitted_text[i] == "string") string_flag = !string_flag;
+            else if (!string_flag && splitted_text[i] == "integer") splitted_text[i] = "int";
+            else if (!string_flag && splitted_text[i] == "character") splitted_text[i] = "char";
+        }
+        text = splitted_text.join(" ");
+    }
+    return text;
+}
+
+function find_symbol(text: string) {
+    if (text.includes("symbol")) {
+        var splitted_text = text.split(" ");
+        var symbol_flag = false;
+        for(var i = 0; i < splitted_text.length; i++) {
+            if (symbol_flag) {
+                if (splitted_text[i] == "ampersand") splitted_text[i] = "&";
+                else if (splitted_text[i] == "dollar") splitted_text[i] = "$";
+                else if (splitted_text[i] == "percent") splitted_text[i] = "%";
+                else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
+                else if (splitted_text[i] == "colon") splitted_text[i] = ":";
+                else if (splitted_text[i] == "equal") splitted_text[i] = "=";
+                else if (splitted_text[i] == "dot") splitted_text[i] = ".";
+
+                symbol_flag = false;
+            }
+            if (splitted_text[i] == "symbol")  symbol_flag = true;
+        }
+        text = splitted_text.join(" ");
+        text = text.replace(/symbol /g, "");
+    }
+
     return text;
 }
 

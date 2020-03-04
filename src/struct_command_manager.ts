@@ -32,7 +32,7 @@ export class StructCommandManager {
 
     constructor() {
         this.curr_index = 0;
-        this.struct_command_list = [""];
+        this.struct_command_list = [cursor_comment];
         this.curr_speech = [""];
         this.variable_list = [""];
         this.functions_list = [""];
@@ -41,7 +41,7 @@ export class StructCommandManager {
 
     reset() {
         this.curr_index = 0;
-        this.struct_command_list = [""];
+        this.struct_command_list = [cursor_comment];
         this.curr_speech = [""];
         this.variable_list = [""];
         this.functions_list = [""];
@@ -54,30 +54,7 @@ export class StructCommandManager {
 
         /* Check if it is undo command */
         if (cleaned_speech == "scratch that") {
-            /* If curr speech is not empty */
-            if (this.curr_speech.length > 0 && this.curr_speech[0] != "") {
-                /* Update speech hist and curr speech, remove latest speech segment. */
-                this.speech_hist[this.curr_index].pop()
-                this.curr_speech = this.speech_hist[this.curr_index]
-                /* Remove latest struct command. It will be updated by updateStructCommand later. */
-                this.struct_command_list.splice(this.curr_index, 1, "")
-
-            }
-            /* If curr speech is empty. e.g. just enterd new line or beginning of code. */
-            else {
-                /* If it is just the beginning of the code */
-                if (this.speech_hist.length == 0) console.log("Nothing to undo.")
-
-                /* If user has just entered a new line */
-                else {
-                    this.curr_index -= 1
-                    /* Update speech hist and curr speech, remove latest speech segment. */
-                    this.speech_hist[this.curr_index].pop()
-                    this.curr_speech = this.speech_hist[this.curr_index]
-                    /* Remove latest struct command. It will be updated by updateStructCommand later. */
-                    this.struct_command_list.splice(this.curr_index, 1, "")
-                }
-            }
+            this.scratchThatCommand();
         }
 
         else if (cleaned_speech == "step out") {
@@ -91,9 +68,8 @@ export class StructCommandManager {
             /* Remove the "" blanks from the curr speech. */
             this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
                 return value != "";
-            });
-            /* Update speech hist. */
-            this.speech_hist.splice(this.curr_index, 1, this.curr_speech);
+            });            
+            this.speech_hist.splice(this.curr_index, 1, this.curr_speech); /* Update speech hist. */
         }
         var prev_struct_command = "";
         if (this.curr_index > 0) prev_struct_command = this.struct_command_list[this.curr_index-1];
@@ -101,26 +77,27 @@ export class StructCommandManager {
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
-
-        console.log("speech hist: ")
-        console.log(this.speech_hist)
-        console.log("command struct list:")
-        console.log(this.struct_command_list)
-        console.log("variable list:")
-        console.log(this.variable_list)
     }
 
     /* Updating the struct command list */
     updateStructCommandList(struct_command: structCommand) {
 
-        if (struct_command.removePrevious) {
+        if (struct_command.removePreviousStatement) {
             this.curr_index -= 1;
             /* Remove current "" line and prev struct command. */
             this.struct_command_list.splice(this.curr_index, 2);
             this.struct_command_list.splice(this.curr_index, 0, "");
         }
 
-        if (struct_command.removePrevTerminator) {
+        
+        else if (struct_command.removePreviousBlock) {
+            this.curr_index -= 1;
+            /* Remove current "" line and prev struct command. */
+            this.struct_command_list.splice(this.curr_index, 3);
+            this.struct_command_list.splice(this.curr_index, 0, "");
+        }
+
+        else if (struct_command.removePrevTerminator) {
             var prev_index = this.curr_index - 1;
             /* Remove terminator. */
             this.struct_command_list[prev_index] = this.struct_command_list[prev_index].replace(";;", "");
@@ -159,13 +136,11 @@ export class StructCommandManager {
         }
     }
 
-    /* Jump out of whatever block the user is editing in. 
-    Edit the curr_index and the struct_command_list. */
-    /* Right now assume that the curr index is pointing to "". */
+    /* Jump out of whatever block the user is editing in. Edit the curr_index and the struct_command_list. */
+    /* Assume that the curr index is pointing to the cursor. */
     stepOutCommand() {
         /* Perform checks to see if user is within a block or not. */
-        /* Get index of end_branch */
-        var endIdx = -1;
+        var endIdx = -1; /* Get index of end_branch */
         for (var i = this.curr_index; i < this.struct_command_list.length; i++) {
             if (end_branches.includes(this.struct_command_list[i])) {
                 endIdx = i;
@@ -173,12 +148,54 @@ export class StructCommandManager {
             }
         }
         if (endIdx != -1) {
-            this.struct_command_list.splice(this.curr_index, 1); /* Remove "" from the struct_command_list. */
-            /* note that after "" has been removed, endIdx no longer points at end branch, but at the index
+            this.struct_command_list.splice(this.curr_index, 1); /* Remove cursor from the struct_command_list. */
+            /* note that after cursor has been removed, endIdx no longer points at end branch, but at the index
             AFTER the end branch. */
-            this.struct_command_list.splice(endIdx, 0, cursor_comment); /* Add "" after the end_branch. */
+            this.struct_command_list.splice(endIdx, 0, cursor_comment); /* Add cursor after the end_branch. */
             this.curr_index = endIdx;
         }
+    }
+
+    /* The undo command. */
+    scratchThatCommand() {
+
+        if (this.speech_hist.length == 1 && JSON.stringify(this.speech_hist[0]) == JSON.stringify([""])) {
+            console.log("Nothing to undo.");
+            return;
+        }
+
+        
+        /* If curr speech is empty. e.g. just enterd new line. */
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
+
+            /* Case 1: Entered new line after finishing a block */
+            // Check if there is an end_block after curr_index
+            if (this.struct_command_list.length -1 > this.curr_index && 
+                end_branches.includes(this.struct_command_list[this.curr_index+1])) {
+                this.curr_index -= 1;
+                this.struct_command_list.splice(this.curr_index, 3, cursor_comment);
+                this.speech_hist[this.curr_index].pop();
+                this.curr_speech = this.speech_hist[this.curr_index];
+            }
+            
+
+            /* Case 2: Entered new line after finishing a statement */
+            else {
+                this.curr_index = this.curr_index - 1;
+                this.struct_command_list.splice(this.curr_index, 2, cursor_comment);
+                this.speech_hist[this.curr_index].pop();
+                this.curr_speech = this.speech_hist[this.curr_index];
+            }
+        }
+        /* User made a mistake during curr speech */
+        else {
+            /* Update speech hist and curr speech, remove latest speech segment. */
+            this.speech_hist[this.curr_index].pop();
+            this.curr_speech = this.speech_hist[this.curr_index];
+
+            /* Remove latest struct command. It will be updated by updateStructCommand later. */
+            this.struct_command_list.splice(this.curr_index, 1, cursor_comment);
+        }   
     }
     
     updateVariableAndFunctionList(struct_command: structCommand) {

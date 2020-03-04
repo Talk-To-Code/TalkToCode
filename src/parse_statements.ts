@@ -50,22 +50,35 @@ import { simpleStatement } from './struct_command'
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
-var infix_segmenting_operator = ["||", "&&", "&", "|", "or", "and"];
+var infix_segmenting_operator = ["or", "and", "bit_and", "bit_or"]; // user speech input.
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
-export function convert2Camel(name_arr: string[]) {
-
+export function joinName(name_arr: string[]) {
+    var var_name = "";
     if (name_arr.length == 1) return name_arr.join(" ");
-
-    var var_name = name_arr[0].toLowerCase();
-    var i;
-    for (i = 1; i < name_arr.length; i++) {
-        /* Change first letter to capital */
-        var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
-        var_name = var_name + toAdd;
+    if (name_arr[0] == "dot") var_name = name_arr.slice(1).join(".");
+    else if (name_arr[0] == "underscore") var_name = name_arr.slice(1).join("_");
+    else {
+        var_name = name_arr[0].toLowerCase();
+        var i;
+        for (i = 1; i < name_arr.length; i++) {
+            /* Change first letter to capital */
+            var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
+            var_name = var_name + toAdd;
+        }
     }
     return var_name;
+}
+
+/* Maps "or" to "||", "and" to "&&" and so on. */
+function mapInfixSegmentingOperator(operator: string) {
+    operator = operator.replace("or", "||");
+    operator = operator.replace("and", "&&");
+    operator = operator.replace("bit_or", "|");
+    operator = operator.replace("bit_and", "&");
+
+    return operator;
 }
 
 /* Purpose of this function is to parse any potential statement into the structured command. */
@@ -279,7 +292,7 @@ function parse_infix(text: string) {
                 statement.logError(fragment[1]);
                 return statement;
             }
-            statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
+            statement.parsedStatement += " " + fragment[1] + " " + mapInfixSegmentingOperator(splitted_text[i]);
             start = i + 1;
             end++;
         }
@@ -329,16 +342,18 @@ function parse_array_d(text: string) {
     var splitted_text = text.split(" ");
     var size_idx = splitted_text.indexOf("size");
     var parsed_results = "#array #variable";
-    parsed_results += " " + convert2Camel(splitted_text.slice(0, size_idx));
+    parsed_results += " " + joinName(splitted_text.slice(0, size_idx));
     parsed_results += " #indexes #value " + splitted_text.slice(size_idx+1).join(" ") + " #indexes_end";
     
     return parsed_results;  
 }
 
 /* Returns list as [<status>, <parsed_result>] 
-<status> - "ready" or "not_ready"
+<status> - "ready" or "not ready"
 <parsed_result> - the successfully parsed result. */
 export function parse_fragment(splitted_text: string[]) {
+
+    if (splitted_text.length == 0) return ["not ready", "empty fragment"];
 
     if (splitted_text.length == 1) {
         /* Is a number! Not Not a number. */
@@ -358,7 +373,7 @@ export function parse_fragment(splitted_text: string[]) {
 
         if (!splitted_text.includes("parameter")) {
             /* Not sure if the terminator should be there. since it will be used in assign statement as well.*/
-            var function_name = convert2Camel(splitted_text.slice(2))
+            var function_name = joinName(splitted_text.slice(2))
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
             return ["ready", "#function " + function_name + "();;"];
@@ -367,15 +382,13 @@ export function parse_fragment(splitted_text: string[]) {
             /* There are parameters. */
             var parameter_blocks = splitted_text.join(" ").split("parameter");
             parameter_blocks = parameter_blocks.map(x=>x.trim());
-            var function_name = convert2Camel(parameter_blocks[0].split(" ").slice(2));
-            /* Hardcoded mapping of function name */
+            var function_name = joinName(parameter_blocks[0].split(" ").slice(2));
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
-
             var parsed_result = "#function " + function_name + "(";
             for (var i = 1; i < parameter_blocks.length; i++) {
                 var fragment = parse_fragment(parameter_blocks[i].split(" "));
-                if (fragment[0] == "not ready") return ["not ready", "parameter fragment wrong."];
+                if (fragment[0] == "not ready") return ["not ready", "parameter fragment wrong. "];
                 parsed_result += "#parameter " + fragment[1];
             }
             parsed_result += ");;";
@@ -399,13 +412,13 @@ export function parse_fragment(splitted_text: string[]) {
         if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
 
         var arrayIdx = splitted_text.indexOf("array");
-        var var_name = convert2Camel(splitted_text.slice(0, arrayIdx));
+        var var_name = joinName(splitted_text.slice(0, arrayIdx));
 
         var indexIdx = splitted_text.indexOf("index");
         var indexValue = "";
         /* If the <value> segment has a length of more than one, combine the name. */
         if (splitted_text.slice(indexIdx+1).length > 1) 
-            indexValue = convert2Camel(splitted_text.slice(indexIdx+1));
+            indexValue = joinName(splitted_text.slice(indexIdx+1));
         else indexValue = splitted_text[splitted_text.length-1];
         var indexValueType = "";
         if (!isNaN(Number(splitted_text[splitted_text.length-1]))) indexValueType = "#value";
@@ -414,5 +427,5 @@ export function parse_fragment(splitted_text: string[]) {
         return ["ready", "#array " + var_name + " #indexes " + indexValueType + " " + indexValue + " #index_end"];
     }
 
-    return ["ready", "#variable " + convert2Camel(splitted_text)];
+    return ["ready", "#variable " + joinName(splitted_text)];
 }

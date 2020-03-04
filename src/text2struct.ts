@@ -1,5 +1,7 @@
 import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
+
+var infixSegmentOperator = ["&&", "||", "&", "|"];
 /*     
 
 @ Parameters - list of commands, variable list
@@ -15,9 +17,19 @@ prev_command
 export function get_struct(input_speech_segments: string[], prev_command: string) {
 
     var input_speech = input_speech_segments.join(" ");
-    var removePrevious = checkPrevStatement(input_speech, prev_command);
-    if (removePrevious) input_speech = remakePrevDeclareSpeech(prev_command) + " " + input_speech;
 
+    var removePreviousStatement = false;
+    var removePreviousBlock = false;
+
+    var checkMsg = checkPrevStatement(input_speech, prev_command);
+    if (checkMsg == "extend declare") {
+        input_speech = remakePrevDeclareSpeech(prev_command) + " " + input_speech;
+        removePreviousStatement = true;
+    }
+    else if (checkMsg == "extend if"){
+        input_speech = remakePrevIfSpeech(prev_command) + " " + input_speech;
+        removePreviousBlock = true;
+    }
     input_speech = replace_infix_operators(input_speech);
 
     console.log("text going in: " + input_speech)
@@ -38,7 +50,8 @@ export function get_struct(input_speech_segments: string[], prev_command: string
             return struct_command;
         }
     }
-    struct_command.removePrevious = removePrevious;
+    struct_command.removePreviousStatement = removePreviousStatement;
+    struct_command.removePreviousBlock = removePreviousBlock;
     struct_command.newFunction = checkForNewFunction(struct_command);
     struct_command.newVariable = checkForNewVariable(struct_command);
     return struct_command;
@@ -62,9 +75,15 @@ function replace_infix_operators(text: string) {
 function checkPrevStatement(input_text: string, prev_command: string) {
     /* A declare statement without an assignment */
     if (prev_command.includes("#create") && prev_command.split(" ").length == 5) {
-        if (input_text.split(" ")[0] == "equal") return true;
+        if (input_text.split(" ")[0] == "equal") return "extend declare";
     }
-    return false;
+
+    else if (prev_command.includes("#if_branch_start")) {
+        if (input_text.split(" ")[0] == "and" || input_text.split(" ")[0] == "or" ||
+        input_text.split(" ")[0] == "bit_and" || input_text.split(" ")[0] == "bit_or") return "extend if"; 
+    }
+
+    return "do not extend";
 }
 
 
@@ -97,4 +116,27 @@ function checkForNewFunction(struct_command: structCommand) {
 function remakePrevDeclareSpeech(struct_command: string) {
     var splitted_text = struct_command.split(" ");
     return "declare " + splitted_text[1] + " " + splitted_text[3];
+}
+
+function remakePrevIfSpeech(struct_command: string) {
+    var splitted_text = struct_command.split(" ").slice(1);
+    var reconstructed = "begin if";
+    for(var i = 0; i < splitted_text.length; i++) {
+        if (infixSegmentOperator.includes(splitted_text[i])) 
+            reconstructed += " " + mapInfixSegmentingOperator(splitted_text[i]);
+        else if (splitted_text[i].charAt(0) != "#") {
+            reconstructed += " " + splitted_text[i];
+        }
+    }
+    return reconstructed;
+}
+
+/* Maps "or" to "||", "and" to "&&" and so on. */
+function mapInfixSegmentingOperator(operator: string) {
+    operator = operator.replace("||", "or");
+    operator = operator.replace("&&", "and");
+    operator = operator.replace("|", "bit_or");
+    operator = operator.replace("&", "bit_and");
+
+    return operator;
 }

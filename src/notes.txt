@@ -22,10 +22,5 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 todo:
 need to improve undo command.
 - probably need to create a prev index list.
-declare int equal 5 - this causes error??
-make if statement an extendable block. not sure how it will happen but yea
-dot, underscore naming.
-make it work with symbol. like ambersand or percent
 segmenter needs to do more thorough checks. maybe include another else if condition for failed parsing.
-if not parseable, dont bother bro. just remove latest command and clear the codeBuffer;
 
