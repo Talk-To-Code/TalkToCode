@@ -232,7 +232,10 @@ if #condition #access self clientThread predictionReady #access_end
 if #condition #function #access self clientThread shutdown is_set #access_end()
 #if_branch_start
 #function #access self stop #access_end();;
-#if_branch_end;;
+#if_branch_end
+#else_branch_start
+pass;;
+#else_branch_end;;
 #while_end;;
 #function_end;;
 #function_declare stop #parameter self
@@ -259,7 +262,11 @@ for #parameter #variable i #function range(#parameter #function int(#parameter #
 if #condition #variable dataByte != #value ','
 #if_branch_start
 #assign #variable checksum ^= #function ord(#parameter #variable dataByte);;
-#if_branch_end;;
+#if_branch_end
+else if #condition #variable data is #variable dataByte
+#elseIf_branch_start
+pass;;
+#elseIf_branch_end;;
 #assign #variable data += #variable dataByte;;
 if #condition #variable i == #function int(#parameter #variable length)
 #if_branch_start
@@ -326,9 +333,11 @@ if #condition #function len(#parameter #access sys argv #access_end) != #value 3
 #if_branch_end;;
 #create #variable s {#array #parameter {#list #parameter #value 1 #parameter #value 3} #parameter {#array #parameter #value 3.3 #parameter #value 4.45} #parameter {#tuple #parameter #value "hi" #parameter #value "bye"} #parameter {#dictionary #key "melon" #value #value 5 #key "tomato" #value #value 10}} #dec_end;;
 #create #variable t {#tuple #parameter #value 1 #parameter #value 'e' #parameter #value "ea" #parameter #value 3.3 #parameter #value true #parameter #value false} #dec_end;;
+#create #variable d {#dictionary #key 32 #value {#list #parameter #value 4 #parameter #value "Hello"} #key 'a' #value {#array #parameter #value 'w' #parameter #value true} #key 5.6 #value {#tuple #parameter #value 8.69 #parameter #value "bye"} #key "each" #value {#dictionary #key 4.3 #value #value 's' #key "see" #value #value true}} #dec_end;;
 #create #variable x #lambda a b #variable a - #variable b #lambda_end #dec_end;;
 #function print(#parameter #variable s);;
 #function print(#parameter #variable t);;
+#function print(#parameter #variable d);;
 #function print(#parameter #function x(#parameter #value 1));;
 #create #variable serverName #array #access sys argv #access_end #indexes #value 1 #index_end #dec_end;;
 #create #variable serverPort #function int(#parameter #array #access sys argv #access_end #indexes #value 2 #index_end) #dec_end;;

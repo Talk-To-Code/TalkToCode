@@ -1,0 +1,40 @@
+if(hello > 4) {
+	x = 2;
+}
+else if(x > 2){
+	y = 4;
+}
+
+if(hello > 4) {
+	x = 2;
+}
+else if(x > 2){
+	y = 4;
+}
+else if(q > 3){
+	z = 9;
+}
+
+if(hello > 4) {
+	x = 2;
+}
+else if(x > 2){
+	y = 4;
+}
+else if(q > 3){
+	z = 9;
+}
+else {
+	d = 0;
+}
+
+if(hello > 4) {
+	x = 2;
+}
+else if(q > 3){
+	z = 9;
+}
+else {
+	d = 0;
+}
+

@@ -21,10 +21,14 @@
  * (again with the exceptions above) to it.
  *//* WHITE SPACE */< DEFAULT >SKIP :{  " "| "\t"| "\n"| "\r"| "\f"| "/*@egen*/" : AFTER_EGEN}< AFTER_EGEN >SKIP :{  < ~[ ] > : DEFAULT}/* JAVA RESERVED WORDS AND LITERALS */< DEFAULT >TOKEN :{  < ABSTRACT : "abstract" >
 | < AS : "as" >| < ASSERT : "assert" >| < BOOLEAN : "boolean" >| < BREAK : "break" >| < BYTE : "byte" >| < CASE : "case" >| < CATCH : "catch" >| < CHAR : "char" >| < CLASS : "class" >| < CONST : "const" >| < CONTINUE : "continue" >| < _DEFAULT : "default" >| < DO : "do" >| < DOUBLE : "double" >| < ELSE : "else" >| < ENUM : "enum" >| < EXTENDS : "extends" >| < FALSE : "false" >| < FINAL : "final" >| < FINALLY : "finally" >| < FLOAT : "float" >| < FOR : "for" >
-| < FROM : "from" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
+| < FROM : "from" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >
+| < PASS : "pass" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
 | < PY_OR : "or" >
 | < PY_AND : "and" >
-| < PY_NOT : "not" >| < INCR : "++" >| < DECR : "--" >| < PLUS : "+" >| < MINUS : "-" >| < STAR : "*" >| < SLASH : "/" >| < BIT_AND : "&" >| < BIT_OR : "|" >| < XOR : "^" >| < REM : "%" >| < PLUSASSIGN : "+=" >| < MINUSASSIGN : "-=" >| < STARASSIGN : "*=" >| < SLASHASSIGN : "/=" >| < ANDASSIGN : "&=" >| < ORASSIGN : "|=" >| < XORASSIGN : "^=" >| < REMASSIGN : "%=" >| < SHIFT_LEFT : "<<" >| < SHIFT_RIGHT : ">>" >}/* keywords */TOKEN :{  < ASSIGNMENT : "#assign" >| < CREATE : "#create" >| < TYPE : "#type" >| < VARIABLE : "#variable" >| < VALUE : "#value" >| < FUNCTION : "#function" >| < WITH : "#with" >| < CONDITION : "#condition" >| < EXPRESSIONS : "#expression" >| < IF_BRANCH_START : "#if_branch_start" >| < IF_BRANCH_END : "#if_branch_end" >| < ELSE_BRANCH_START : "#else_branch_start" >| < ELSE_BRANCH_END : "#else_branch_end" >| < PRE : "#pre" >| < POST : "#post" >| < TERMINATOR : ";;" >| < PARAMETER : "#parameter" >| < STRUCT : "#struct" >| < ARRAY : "#array" >| < ACCESS : "#access" >| < ACCESS_END : "#access_end" >| < LABEL : "#label" >| < INDEX : "#indexes" >| < INDEX_END : "#index_end" >| < INCLUDE : "#include" >| < FOR_START : "#for_start" >| < FOR_END : "#for_end" >| < WHILE_START : "#while_start" >| < WHILE_END : "#while_end" >| < SWITCH_START : "#switch_start" >| < SWITCH_END : "#switch_end" >| < CASE_START : "#case_start" >| < CASE_END : "#case_end" >| < FUNCTION_DEC : "#function_declare" >| < FUNCTION_START : "#function_start" >| < FUNCTION_END : "#function_end" >| < STRUCT_DEC : "#struct_declare" >| < STRUCT_START : "#struct_start" >| < STRUCT_END : "#struct_end" >| < PROGRAM_END : "#program_end" >| < PROGRAM_C : "#c_program" >
+| < PY_NOT : "not" >
+| < IS : "is" >| < INCR : "++" >| < DECR : "--" >| < PLUS : "+" >| < MINUS : "-" >| < STAR : "*" >| < SLASH : "/" >| < BIT_AND : "&" >| < BIT_OR : "|" >| < XOR : "^" >| < REM : "%" >| < PLUSASSIGN : "+=" >| < MINUSASSIGN : "-=" >| < STARASSIGN : "*=" >| < SLASHASSIGN : "/=" >| < ANDASSIGN : "&=" >| < ORASSIGN : "|=" >| < XORASSIGN : "^=" >| < REMASSIGN : "%=" >| < SHIFT_LEFT : "<<" >| < SHIFT_RIGHT : ">>" >}/* keywords */TOKEN :{  < ASSIGNMENT : "#assign" >| < CREATE : "#create" >| < TYPE : "#type" >| < VARIABLE : "#variable" >| < VALUE : "#value" >| < FUNCTION : "#function" >| < WITH : "#with" >| < CONDITION : "#condition" >| < EXPRESSIONS : "#expression" >| < IF_BRANCH_START : "#if_branch_start" >| < IF_BRANCH_END : "#if_branch_end" >
+| < ELSEIF_BRANCH_START : "#elseIf_branch_start" >
+| < ELSEIF_BRANCH_END : "#elseIf_branch_end" >| < ELSE_BRANCH_START : "#else_branch_start" >| < ELSE_BRANCH_END : "#else_branch_end" >| < PRE : "#pre" >| < POST : "#post" >| < TERMINATOR : ";;" >| < PARAMETER : "#parameter" >| < STRUCT : "#struct" >| < ARRAY : "#array" >| < ACCESS : "#access" >| < ACCESS_END : "#access_end" >| < LABEL : "#label" >| < INDEX : "#indexes" >| < INDEX_END : "#index_end" >| < INCLUDE : "#include" >| < FOR_START : "#for_start" >| < FOR_END : "#for_end" >| < WHILE_START : "#while_start" >| < WHILE_END : "#while_end" >| < SWITCH_START : "#switch_start" >| < SWITCH_END : "#switch_end" >| < CASE_START : "#case_start" >| < CASE_END : "#case_end" >| < FUNCTION_DEC : "#function_declare" >| < FUNCTION_START : "#function_start" >| < FUNCTION_END : "#function_end" >| < STRUCT_DEC : "#struct_declare" >| < STRUCT_START : "#struct_start" >| < STRUCT_END : "#struct_end" >| < PROGRAM_END : "#program_end" >| < PROGRAM_C : "#c_program" >
 | < PROGRAM_P : "#p_program" >| < DECLARE_END : "#dec_end" >| < DIMENSION : "#dimension" >| < PARAMETER_A : "#parameter_a" >| < TREE : "#tree" >
 | < COMMENT : "#comment" >
 | < COMMENT_END : "#comment_end" >
@@ -42,7 +46,8 @@
 | < WITH_START : "#with_start" >
 | < WITH_END : "#with_end" >
 | < LAMBDA : "#lambda" >
-| < LAMBDA_END: "#lambda_end" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < LAMBDA_END: "#lambda_end" >
+| < DELETE : "#delete" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -50,6 +55,9 @@
 | n = < PY_AND >
   {
     return n.image;
+  }
+| n = < IS >
+  {    return n.image;
   }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
 | n = < PY_NOT >
   {    return n.image;
@@ -277,7 +285,7 @@ ASTExpressionUnitFunctionCall func(programType pType) :
   {    return lambda;
   }}ASTExpression term(programType pType) :{  ArrayList < String > operators = new ArrayList < String > ();  ArrayList < ASTExpression > operands = new ArrayList < ASTExpression > ();  String operator = null;  ASTExpression operand1;  ASTExpression operand2 = new ASTExpression();  ASTExpression result;}{  operand1 = fragment(pType)  (    operator = infixOperators()    {
       if (pType == programType.P && (operator == "||" || operator == "&&")) throw new ParseException("Not supported in Python!\n");
-      else if (pType != programType.P && (operator == "or" || operator == "and")) throw new ParseException("Not supported in C and Java!\n");      operators.add(operator);    }    operand2 = fragment(pType)    {      operands.add(operand2);    }  )*  {    if (operator == null || operators.isEmpty())    {      result = operand1;      return result;    }    result = new ASTExpression();    while (!operators.isEmpty())    {      result = new ASTExpressionInfixOperation(operators.remove(0), operand1, operands.remove(0));      operand1 = result;    }    return result;  }}ASTExpression infix_expression(programType pType) :{  ASTExpression result;}{  result = term(pType)  {    return result;  }}ASTExpression prefix_expression(programType pType) :{  String operator;  Token op;  ASTExpressionPrefixOperation result;  ASTExpression exp;}{
+      else if (pType != programType.P && (operator == "or" || operator == "and" || operator == "is")) throw new ParseException("Not supported in C and Java!\n");      operators.add(operator);    }    operand2 = fragment(pType)    {      operands.add(operand2);    }  )*  {    if (operator == null || operators.isEmpty())    {      result = operand1;      return result;    }    result = new ASTExpression();    while (!operators.isEmpty())    {      result = new ASTExpressionInfixOperation(operators.remove(0), operand1, operands.remove(0));      operand1 = result;    }    return result;  }}ASTExpression infix_expression(programType pType) :{  ASTExpression result;}{  result = term(pType)  {    return result;  }}ASTExpression prefix_expression(programType pType) :{  String operator;  Token op;  ASTExpressionPrefixOperation result;  ASTExpression exp;}{
   (    operator = incrDecrOperators() exp = fragment(pType)
   )
   {
@@ -323,7 +331,9 @@ ASTExpressionUnitFunctionCall func(programType pType) :
       if (!s.toSyntax().equals("\n"))
       {
         result.addStatement(s);      	//System.out.println(s.toSyntax());
-      }    }  )*  < FUNCTION_END > < TERMINATOR >  {    return result;  }}ASTIfStatement if_statement(ASTNode parent, programType pType, int indent) :{  ASTExpression condition;  ASTStatement stat1;  ASTStatement stat2;
+      }    }  )*  < FUNCTION_END > < TERMINATOR >  {    return result;  }}ASTIfStatement if_statement(ASTNode parent, programType pType, int indent) :{  ASTExpression condition;
+  ASTExpression elseIfCond;  ASTStatement stat1;  ASTStatement stat2;
+  ASTStatement stat3;
   ASTIfStatement result;}{  < IF > < CONDITION > condition = expression(pType)  {
     switch (pType) {
       case C:
@@ -336,7 +346,22 @@ ASTExpressionUnitFunctionCall func(programType pType) :
       	result = new ASTIfStatement(condition);
       	break;
     }    result.addParent(parent);
-    result.setIndent(indent);    //System.out.println(condition.toSyntax());  }  < IF_BRANCH_START >  (    stat1 = statement(result, pType, indent+1)    {      result.setIf(stat1);      //System.out.println(stat1.toSyntax());    }  )*  < IF_BRANCH_END >  (    < ELSE_BRANCH_START >    (      stat2 = statement(result, pType, indent+1)      {        result.setElse(stat2);        //System.out.println(stat2.toSyntax());      }    )*    < ELSE_BRANCH_END >  )?  < TERMINATOR >  {    return result;  }}ASTForStatement forStatement(ASTNode parent, programType pType, int indent) :
+    result.setIndent(indent);    //System.out.println(condition.toSyntax());  }  < IF_BRANCH_START >  (    stat1 = statement(result, pType, indent+1)    {      result.setIf(stat1);      //System.out.println(stat1.toSyntax());    }  )*  < IF_BRANCH_END >
+  (
+    < ELSE > < IF > < CONDITION > elseIfCond = expression(pType)
+    {
+      result.setElseIfCond(elseIfCond);
+    }
+    < ELSEIF_BRANCH_START >
+    (
+      stat2 = statement(result, pType, indent+1)
+      {
+        result.setElseIf(stat2);
+        //System.out.println(stat2.toSyntax());
+      }
+    )*
+    < ELSEIF_BRANCH_END >
+  )*  (    < ELSE_BRANCH_START >    (      stat3 = statement(result, pType, indent+1)      {        result.setElse(stat3);        //System.out.println(stat3.toSyntax());      }    )*    < ELSE_BRANCH_END >  )?  < TERMINATOR >  {    return result;  }}ASTForStatement forStatement(ASTNode parent, programType pType, int indent) :
 {  ASTForStatement result;
 }
 {  < FOR >
@@ -766,7 +791,15 @@ ASTWithStatement withStatement(ASTNode parent, programType pType, int indent) :
   }      
 }
 ASTGoToStatement gotoStatement(programType pType) :{  Token label;}{  < GOTO > label = < IDENTIFIER > < TERMINATOR >  {
-    if(pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    return new ASTGoToStatement(new ASTExpressionUnitIdentifier(label.image));  }}ASTSimpleStatement simpleStatement(programType pType) :
+    if(pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    return new ASTGoToStatement(new ASTExpressionUnitIdentifier(label.image));  }}
+
+ASTPassStatement passStatement(programType pType) :
+{ }
+{  < PASS > < TERMINATOR >
+  {
+    if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");    return new ASTPassStatement();
+  }
+}ASTSimpleStatement simpleStatement(programType pType) :
 {
   ASTExpression result;
   ASTDeclarationStatement out;
@@ -776,6 +809,7 @@ ASTWithStatement withStatement(ASTNode parent, programType pType, int indent) :
   ASTReturnStatement rs;
   ASTImportStatement is;
   ASTGoToStatement gt;
+  ASTPassStatement pass;
 }
 {
   (
@@ -822,6 +856,10 @@ ASTWithStatement withStatement(ASTNode parent, programType pType, int indent) :
 | gt = gotoStatement(pType)
   {
     return gt;
+  }
+| pass = passStatement(pType)
+  {
+    return pass;
   }
 }
 ASTBlockStatement blockStatement(ASTNode parent, programType pType, int indent) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;
