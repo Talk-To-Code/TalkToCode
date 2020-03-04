@@ -21,7 +21,6 @@ function fix_common_errors(text: string) {
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('begin is', 'begin if');
-    text = text.replace('steps out', 'step out');
     return text;
 }
 

@@ -2,12 +2,16 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
+import { initUser } from './user_specs'
 import { runTestCases } from './tester'
 const {spawn} = require('child_process');
 
 var manager = new StructCommandManager();
 var codeBuffer = "";
 var errorFlag = false;
+
+var cwd = "";
+var cred = "";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -26,22 +30,19 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		//listen();
-		console.log("testing");
-		runTestCases();
+		var userSpecs = initUser("lawrence");
+		cwd = userSpecs[0];
+		cred = userSpecs[1];
+		listen();
+		// console.log("testing");
+		// runTestCases();
 
 	});
 
 	context.subscriptions.push(disposable);
 }
 
-
 function listen() {
-
-	// cwd is the current working directory. Make sure you update this.
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\src';
-	// cred is the credential json from google you have to obtain to use their speech engine.
-	let cred = 'C:\\Users\\Lawrence\\Desktop\\fyp\\benchmarking\\test_google_cloud\\My-Project-f25f37c6fac1.json';
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
@@ -54,7 +55,7 @@ function listen() {
 
 			manager.parse_speech(transcribed_word);
 			developerMode(manager.struct_command_list, manager.speech_hist, manager.curr_speech, manager.curr_index);
-			displayCode(manager.struct_command_list);
+			// displayCode(manager.struct_command_list);
 		}
 	});
 }
@@ -84,20 +85,21 @@ function displayStructCommands(struct_command_list: string[]) {
 }
 
 function developerMode(struct_command_list: string[], speech_hist: string[][], curr_speech: string[], curr_idx: number) {
-
-	let toDisplay = "Current Speech: " + curr_speech + '\n';
+	console.log("updating");
+	
+	let toDisplay = "Current Speech: " + JSON.stringify(curr_speech) + '\n';
 	toDisplay += "Current index: " + curr_idx + '\n';
-	toDisplay += "//////////////////////////////////";
-	toDisplay += "Structured Command List: \n";
+	toDisplay += "//////////////////////////////////Structured Command List:";
+	toDisplay += "//////////////////////////////////\n";
 	
 	for (var i = 0; i < struct_command_list.length; i++) {
 		toDisplay += "[" + i + "]" + struct_command_list[i] + '\n';
 	}
-	toDisplay += "//////////////////////////////////";
-	toDisplay += "Speech History List: \n";
+	toDisplay += "//////////////////////////////////Speech History List:";
+	toDisplay += "//////////////////////////////////\n";
 
 	for (var i = 0; i < speech_hist.length; i++) {
-		toDisplay += "[" + i + "]" + speech_hist[i] + '\n';
+		toDisplay += "[" + i + "]" + JSON.stringify(speech_hist[i]) + '\n';
 	}
 
 	writeToEditor(toDisplay);
@@ -108,7 +110,6 @@ function displayCode(struct_command_list: string[]) {
 	let commands = '#c_program SampleProgram #include "stdio h";; '
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-	let cwd = 'C:\\Users\\Lawrence\\Desktop\\talktocode\\talk-to-code\\AST\\src';
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
 	other_child.stdin.setEncoding('utf8');
 
