@@ -35,6 +35,7 @@ simpleStatement():
 	| returnStatement()
 	| importStatement()
 	| gotoStatement()
+	| passStatement()
 
 importStatement() :
 	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
@@ -53,6 +54,9 @@ breakStatement() :
 
 gotoStatement() :
 	< GOTO >< IDENTIFIER > < TERMINATOR >
+
+passStatement() :
+	< PASS > < TERMINATOR >
 
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
@@ -79,7 +83,7 @@ forStatementP() :
 	(< PARAMETER > < VARIABLE > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 if_statement() :
-	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
+	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE > < IF > < CONDITION > expression() < ELSEIF_BRANCH_START > statement() < ELSEIF_BRANCH_END >)*(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
 functionStatement() :
 	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?((< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)|(< PARAMETER_A >< DIMENSION >< INTEGER_LITERAL >types_C()< ARRAY ><IDENTIFIER>))*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >

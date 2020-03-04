@@ -290,6 +290,9 @@ class Serial(threading.Thread):
 			if(self.clientThread.shutdown.is_set()):
 				self.stop()
 
+			else:
+				pass
+
 	def stop(self):
 		self.shutdown.set()
 
@@ -312,6 +315,9 @@ class Serial(threading.Thread):
 
 			if(dataByte != ','):
 				checksum ^= ord(dataByte)
+
+			elif(data is dataByte):
+				pass
 
 			data += dataByte
 
@@ -384,11 +390,15 @@ if(__name__ == "__main__"):
 
 	t = (1, 'e', "ea", 3.3, True, False)
 
+	d = {32 : [4, "Hello"], 'a' : {'w', True}, 5.6 : (8.69, "bye"), "each" : {4.3 : 's', "see" : True}}
+
 	x = lambda a, b : a - b
 
 	print(s)
 
 	print(t)
+
+	print(d)
 
 	print(x(1))
 

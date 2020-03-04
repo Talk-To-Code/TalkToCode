@@ -7,22 +7,13 @@ import java.util.*;
  * (C and Java do not support pass statement)
  *
  */
-public final class ASTPassStatement extends ASTBlockStatement {
+public final class ASTPassStatement extends ASTSimpleStatement {
 	private static final String NODE_TYPE = "Pass Statement";
-	private ArrayList<ASTStatement> statements;
 	public ASTPassStatement() {
 		super();
-		this.statements = new ArrayList<ASTStatement>();
-	}
-	public void addStatement(ASTStatement s){
-		this.statements.add(s);
-		s.addParent(this);
 	}
 	public String toSyntax(){
-		this.result ="pass:\n";
-		for(int i =0;i<this.statements.size();i++){
-			this.result+="\t"+this.statements.get(i).toSyntax();
-		}
+		this.result = "pass\n";
 		return this.result;
 	}
 	public String typeof(){
@@ -35,10 +26,6 @@ public final class ASTPassStatement extends ASTBlockStatement {
 		}
 		sb.append(this.typeof());
 		sb.append("\n");
-		for(ASTStatement s:this.statements){
-			sb.append(s.toTree(indent+1));
-			sb.append("\n");
-		}
 		return sb.toString();
 	}
 }
