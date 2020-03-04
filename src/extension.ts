@@ -2,11 +2,11 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
-import { initUser } from './user_specs'
+import { getUserSpecs } from './user_specs'
 import { runTestCases } from './tester'
 const {spawn} = require('child_process');
 
-var manager = new StructCommandManager();
+var manager: StructCommandManager;
 var codeBuffer = "";
 var errorFlag = false;
 
@@ -30,16 +30,32 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		var userSpecs = initUser("lawrence");
-		cwd = userSpecs[0];
-		cred = userSpecs[1];
+		initUser("lawrence");
+		initManager();
 		listen();
 		// console.log("testing");
 		// runTestCases();
 
 	});
-
 	context.subscriptions.push(disposable);
+}
+
+function initUser(user: string) {
+	var userSpecs = getUserSpecs(user);
+	cwd = userSpecs[0];
+	cred = userSpecs[1];
+}
+
+function initManager() {
+	let editor = vscode.window.activeTextEditor;
+	if (editor) {
+		var filename = editor.document.fileName;
+		var file_extension = filename.split(".")[1];
+		if (file_extension == "py") manager = new StructCommandManager("py");
+		else manager = new StructCommandManager("c");
+	}
+	/* Default case. */
+	else manager = new StructCommandManager("c");
 }
 
 function listen() {
@@ -54,7 +70,8 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word);
-			developerMode(manager.struct_command_list, manager.speech_hist, manager.curr_speech, manager.curr_index);
+			developerMode(manager.struct_command_list, manager.speech_hist, manager.curr_speech, 
+				manager.curr_index, manager.can_undo);
 			// displayCode(manager.struct_command_list);
 		}
 	});
@@ -84,7 +101,8 @@ function displayStructCommands(struct_command_list: string[]) {
 	}
 }
 
-function developerMode(struct_command_list: string[], speech_hist: string[][], curr_speech: string[], curr_idx: number) {
+function developerMode(struct_command_list: string[], speech_hist: string[][], curr_speech: string[], 
+	curr_idx: number, can_undo: number[]) {
 	console.log("updating");
 	
 	let toDisplay = "Current Speech: " + JSON.stringify(curr_speech) + '\n';
@@ -93,14 +111,18 @@ function developerMode(struct_command_list: string[], speech_hist: string[][], c
 	toDisplay += "//////////////////////////////////\n";
 	
 	for (var i = 0; i < struct_command_list.length; i++) {
-		toDisplay += "[" + i + "]" + struct_command_list[i] + '\n';
+		toDisplay += "[" + i + "] " + struct_command_list[i] + '\n';
 	}
 	toDisplay += "//////////////////////////////////Speech History List:";
 	toDisplay += "//////////////////////////////////\n";
 
 	for (var i = 0; i < speech_hist.length; i++) {
-		toDisplay += "[" + i + "]" + JSON.stringify(speech_hist[i]) + '\n';
+		toDisplay += "[" + i + "] " + JSON.stringify(speech_hist[i]) + '\n';
 	}
+
+	toDisplay += "//////////////////////////////////Can Undo:";
+	toDisplay += "//////////////////////////////////\n";
+	toDisplay += JSON.stringify(can_undo);
 
 	writeToEditor(toDisplay);
 }

@@ -20,7 +20,5 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 #program_end
 
 todo:
-need to improve undo command.
-- probably need to create a prev index list.
-segmenter needs to do more thorough checks. maybe include another else if condition for failed parsing.
+need to improve undo command - need to map index in struct command to speech hist.
 

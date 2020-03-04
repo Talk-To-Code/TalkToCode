@@ -124,7 +124,7 @@ function generate_test_cases(cases: string) {
 
 /* Run and compare my output and correct output using test cases. */
 function runTestCase(test_cases: string[], correct_output: string[]) {
-    var test_manager = new StructCommandManager();
+    var test_manager = new StructCommandManager("c");
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i]);

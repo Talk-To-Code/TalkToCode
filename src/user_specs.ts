@@ -1,5 +1,5 @@
 
-export function initUser(username: string) {
+export function getUserSpecs(username: string) {
     var cwd = "";
     var cred = "";
     if (username == "lawrence") {
