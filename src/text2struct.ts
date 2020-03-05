@@ -32,10 +32,10 @@ export function get_struct(input_speech_segments: string[], prev_command: string
     }
     input_speech = replace_infix_operators(input_speech);
 
-    console.log("text going in: " + input_speech)
+    console.log("text going in: " + input_speech);
     var struct_command = parse_command(input_speech);
     console.log("segmented results: " + struct_command.parsedCommand);
-    
+
     if (struct_command.hasError) {
         console.log("Error: " + struct_command.errorMessage)
         return struct_command;

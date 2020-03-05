@@ -2,11 +2,9 @@ input into the parser:
 
 list of struct commands.
 
-"#c_program SampleProgram", "#include "stdio h";;",
+"#c_program SampleProgram", "#include "stdio.h";;",
 <code>, " #program_end"
 
-E.G.:
-#c_program SampleProgram #include "stdio h";; #create int #variable count #value 5 #dec_end;; #program_end
 
 
 As of now, cannot parse integer array with assignment.
@@ -21,4 +19,12 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 
 todo:
 need to improve undo command - need to map index in struct command to speech hist.
+extend declare and assign by alot
+brackets for if block - "group" command.
+
+maybe add a spelling command.
+
+maintain code line to struct command list
+
+
 

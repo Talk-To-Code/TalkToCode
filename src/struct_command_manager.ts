@@ -7,6 +7,9 @@ var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#wh
                     "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
                     "#case_end", "#function_end"];
 
+var start_branches = ["#if_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
+                    "#function_start"]
+
 var cursor_comment = "#comment #value \" cursor here \";; #comment_end;;"
 
 export class StructCommandManager {
@@ -32,10 +35,6 @@ export class StructCommandManager {
     Think of it as a list of instances of prev curr_speech. */
     speech_hist: string[][]
 
-    /* contains list of indices of elements in speech_hist that can be undone. After any edit command is
-    used, list is cleared. */
-    can_undo: number[]
-
     constructor(language: string) {
         this.language = language;
         this.curr_index = 0;
@@ -44,7 +43,6 @@ export class StructCommandManager {
         this.variable_list = [""];
         this.functions_list = [""];
         this.speech_hist = [[""]];
-        this.can_undo = [];
     }
 
     reset() {
@@ -55,7 +53,6 @@ export class StructCommandManager {
         this.variable_list = [""];
         this.functions_list = [""];
         this.speech_hist = [[""]];
-        this.can_undo = [];
     }
 
     parse_speech(transcribed_word: string) {
@@ -78,7 +75,6 @@ export class StructCommandManager {
             this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
                 return value != "";
             });
-            if (!this.can_undo.includes(this.pointAtSpeech())) this.can_undo.push(this.pointAtSpeech());
             this.speech_hist.splice(this.pointAtSpeech(), 1, this.curr_speech); /* Update speech hist. */
         }
         var prev_struct_command = "";
@@ -87,6 +83,8 @@ export class StructCommandManager {
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
+
+        console.log(this.managerStatus());
     }
 
     /* Updating the struct command list */
@@ -96,8 +94,6 @@ export class StructCommandManager {
         if (struct_command.removePreviousStatement) {
             /* join extendable speech to prev input speech */
             var extendable_speech = this.speech_hist[this.pointAtSpeech()];
-            console.log(extendable_speech)
-            console.log(this.pointAtSpeech());
             this.speech_hist.splice(this.pointAtSpeech(), 1);
             this.speech_hist[this.pointAtSpeech()-1] = this.speech_hist[this.pointAtSpeech()-1].concat(extendable_speech);
 
@@ -127,8 +123,10 @@ export class StructCommandManager {
 
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
-            this.curr_speech = [""] // Clear curr speech to prepare for next command
-            this.speech_hist.push([""]);
+            this.curr_speech = [""] // Clear curr speech to prepare for next command.
+            /* Do not increment if the latest speech input in hist is empty. */
+            if (JSON.stringify(this.speech_hist[this.speech_hist.length-1]) != JSON.stringify([""])) 
+                this.speech_hist.push([""]);
 
             /* Block statement */
             if (struct_command.isBlock) {
@@ -148,8 +146,6 @@ export class StructCommandManager {
                 this.curr_index += 1 // Point at next index
                 this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
             }
-            /* make sure I am able to undo at next line. */
-            if (!this.can_undo.includes(this.pointAtSpeech())) this.can_undo.push(this.pointAtSpeech());
         }
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
@@ -180,22 +176,15 @@ export class StructCommandManager {
             this.curr_index = endIdx;
 
             this.curr_speech = [""];
-            this.speech_hist[this.pointAtSpeech()] = ["exit block"];
-            this.can_undo = [];
+            this.speech_hist = [[""]];
         }
     }
 
     /* The undo command. */
     scratchThatCommand() {
         /* Empty speech hist */
-        if (this.speech_hist.length == 1 && JSON.stringify(this.speech_hist[0]) == JSON.stringify([""]) ||
-        JSON.stringify(this.speech_hist[0]) == JSON.stringify([])) {
+        if (JSON.stringify(this.speech_hist) == JSON.stringify([[""]])) {
             console.log("Nothing to undo.");
-            return;
-        }
-
-        if (!this.can_undo.includes(this.pointAtSpeech())) {
-            console.log("cannot run undo commmand.");
             return;
         }
 
@@ -203,30 +192,49 @@ export class StructCommandManager {
         if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || 
         JSON.stringify(this.curr_speech) == JSON.stringify([])) {
             /* Case 1: Entered new line after finishing a block */
-            // Check if there is an end_block after curr_index
-            if (this.struct_command_list.length -1 > this.curr_index && 
-                end_branches.includes(this.struct_command_list[this.curr_index+1])) {
-                console.log("case 1");
+            // Check if there is start branch just before this one.
+            if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x))) {
+                console.log("case 1: entered new line after finishing block");
                 this.curr_index -= 1;
                 this.struct_command_list.splice(this.curr_index, 3, cursor_comment);
-                this.speech_hist[this.pointAtSpeech()].pop();
-                this.curr_speech = this.speech_hist[this.pointAtSpeech()];
+                
+                /* If the previous struct command was created with only 1 speech input. */
+                if (this.speech_hist[this.pointAtSpeech()].length == 1) {
+                    this.speech_hist.splice(this.pointAtSpeech(), 2, [""]);
+                }
+                /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
+                input and use it as curr_speech to generate new result. */
+                else {
+                    this.speech_hist[this.pointAtSpeech()].pop();
+                    this.curr_speech = this.speech_hist[this.pointAtSpeech()];
+                }
             }
             /* Case 2: Entered new line after finishing a statement */
             else {
-                console.log("case 2");
-                this.curr_index = this.curr_index - 1;
+                console.log("case 2: entered new line after finishing statement");
+                this.curr_index = this.curr_index - 1; // Bring the cursor back.
                 this.struct_command_list.splice(this.curr_index, 2, cursor_comment);
-                this.curr_speech = this.speech_hist[this.pointAtSpeech()];
-                this.curr_speech.pop();
-                this.speech_hist.splice(this.pointAtSpeech(), 1, this.curr_speech);
+
+                /* If the previous struct command was created with only 1 speech input. */
+                if (this.speech_hist[this.pointAtSpeech()].length == 1) {
+                    this.speech_hist.splice(this.pointAtSpeech(), 2, [""]);
+                }
+                /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
+                input and use it as curr_speech to generate new result. */
+                else {
+                    this.speech_hist[this.pointAtSpeech()].pop();
+                    this.curr_speech = this.speech_hist[this.pointAtSpeech()];
+                }
             }
         }
         /* User made a mistake during curr speech */
         else {
             console.log("user made a mistake during curr speech");
-            /* Update speech hist and curr speech, remove latest speech segment. */
-            this.speech_hist[this.pointAtSpeech()].pop();
+            /* Remove latest speech input. */
+            if (this.speech_hist[this.pointAtSpeech()].length == 1) 
+                this.speech_hist[this.pointAtSpeech()] = [""];
+            else this.speech_hist[this.pointAtSpeech()].pop();
+            /* Update current speech. */
             this.curr_speech = this.speech_hist[this.pointAtSpeech()];
 
             /* Remove latest struct command. It will be updated by updateStructCommand later. */
@@ -234,7 +242,7 @@ export class StructCommandManager {
         }   
     }
 
-    /* Map curr index to point at correct point at speech hist */
+    /* Map curr_index to point at correct point at speech hist. */
     pointAtSpeech() {
         /* Logic is that they are the same, but remove end branches */
         var numEndBranches = 0;
@@ -258,5 +266,24 @@ export class StructCommandManager {
                 this.variable_list.push(struct_command.newVariable);
             }
         }
+    }
+
+    managerStatus() {
+        let toDisplay = "Current Speech: " + JSON.stringify(this.curr_speech) + '\n';
+        toDisplay += "Current index: " + this.curr_index + '\n';
+        toDisplay += "//////////////////////////////////Structured Command List:";
+        toDisplay += "//////////////////////////////////\n";
+
+        for (var i = 0; i < this.struct_command_list.length; i++) {
+            toDisplay += "[" + i + "] " + this.struct_command_list[i] + '\n';
+        }
+        toDisplay += "///////////////////////////////////Speech History List:";
+        toDisplay += "///////////////////////////////////\n";
+
+        for (var i = 0; i < this.speech_hist.length; i++) {
+            toDisplay += "[" + i + "] " + JSON.stringify(this.speech_hist[i]) + '\n';
+        }
+
+        return toDisplay;
     }
 }

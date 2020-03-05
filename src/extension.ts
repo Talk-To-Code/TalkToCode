@@ -11,6 +11,7 @@ var codeBuffer = "";
 var errorFlag = false;
 
 var cwd = "";
+var ast_cwd = "";
 var cred = "";
 
 // this method is called when your extension is activated
@@ -32,9 +33,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence");
 		initManager();
-		listen();
-		// console.log("testing");
-		// runTestCases();
+		// listen();
+		runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -44,6 +44,7 @@ function initUser(user: string) {
 	var userSpecs = getUserSpecs(user);
 	cwd = userSpecs[0];
 	cred = userSpecs[1];
+	ast_cwd = userSpecs[2];
 }
 
 function initManager() {
@@ -70,8 +71,7 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word);
-			developerMode(manager.struct_command_list, manager.speech_hist, manager.curr_speech, 
-				manager.curr_index, manager.can_undo);
+			writeToEditor(manager.managerStatus());
 			// displayCode(manager.struct_command_list);
 		}
 	});
@@ -101,45 +101,20 @@ function displayStructCommands(struct_command_list: string[]) {
 	}
 }
 
-function developerMode(struct_command_list: string[], speech_hist: string[][], curr_speech: string[], 
-	curr_idx: number, can_undo: number[]) {
-	console.log("updating");
-	
-	let toDisplay = "Current Speech: " + JSON.stringify(curr_speech) + '\n';
-	toDisplay += "Current index: " + curr_idx + '\n';
-	toDisplay += "//////////////////////////////////Structured Command List:";
-	toDisplay += "//////////////////////////////////\n";
-	
-	for (var i = 0; i < struct_command_list.length; i++) {
-		toDisplay += "[" + i + "] " + struct_command_list[i] + '\n';
-	}
-	toDisplay += "//////////////////////////////////Speech History List:";
-	toDisplay += "//////////////////////////////////\n";
-
-	for (var i = 0; i < speech_hist.length; i++) {
-		toDisplay += "[" + i + "] " + JSON.stringify(speech_hist[i]) + '\n';
-	}
-
-	toDisplay += "//////////////////////////////////Can Undo:";
-	toDisplay += "//////////////////////////////////\n";
-	toDisplay += JSON.stringify(can_undo);
-
-	writeToEditor(toDisplay);
-}
-
 function displayCode(struct_command_list: string[]) {
 	/* Set up commands to insert */
-	let commands = '#c_program SampleProgram #include "stdio h";; '
+	let commands = '#c_program SampleProgram #include "stdio.h";; '
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-    const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
+    const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: ast_cwd});
 	other_child.stdin.setEncoding('utf8');
 
     other_child.stdin.write(commands);
-    other_child.stdin.end();
+	other_child.stdin.end();
 
     other_child.stdout.setEncoding('utf8');
     other_child.stdout.on('data', (data: string)=>{
+		console.log(data);
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
