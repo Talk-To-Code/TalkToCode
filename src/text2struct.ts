@@ -2,6 +2,7 @@ import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
 
 var infixSegmentOperator = ["&&", "||", "&", "|"];
+var arithmetic_operator = ["plus", "divide", "multiply", "minus"];
 /*     
 
 @ Parameters - list of commands, variable list
@@ -15,7 +16,7 @@ prev_command
 
 @ Returns the structCommand obj*/
 export function get_struct(input_speech_segments: string[], prev_command: string) {
-
+    console.log(prev_command)
     var input_speech = input_speech_segments.join(" ");
 
     var removePreviousStatement = false;
@@ -76,9 +77,15 @@ function replace_infix_operators(text: string) {
 
 /* Check if previous statement is extendable with the current statement. */
 function checkPrevStatement(input_text: string, prev_command: string) {
+    
     /* A declare statement without an assignment */
-    if (prev_command.includes("#create") && prev_command.split(" ").length == 5) {
-        if (input_text.split(" ")[0] == "equal") return "extend declare";
+    if (prev_command.includes("#create")) {
+        if (prev_command.split(" ").length == 5 && input_text.split(" ")[0] == "equal") {
+            return "extend declare";
+        }
+        if (prev_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+            return "extend declare";
+        }
     }
 
     else if (prev_command.includes("#if_branch_start")) {
@@ -118,7 +125,9 @@ function checkForNewFunction(struct_command: structCommand) {
 
 function remakePrevDeclareSpeech(struct_command: string) {
     var splitted_text = struct_command.split(" ");
-    return "declare " + splitted_text[1] + " " + splitted_text[3];
+    if (splitted_text.length <= 5)
+        return "declare " + splitted_text[1] + " " + splitted_text[3];
+
 }
 
 function remakePrevIfSpeech(struct_command: string) {

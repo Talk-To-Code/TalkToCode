@@ -6,6 +6,7 @@
 // export function correct_words
 export function clean(input_speech: string) {
     input_speech = input_speech.toLowerCase();
+    input_speech = spellOutArithmeticOperator(input_speech);
     input_speech = fix_common_errors(input_speech);
     input_speech = correct_variables(input_speech);
     input_speech = word_2_num(input_speech);
@@ -20,6 +21,14 @@ function fix_common_errors(text: string) {
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('begin is', 'begin if');
+    return text;
+}
+
+function spellOutArithmeticOperator(text: string) {
+    text = text.replace("+", "plus");
+    text = text.replace("-", "minus");
+    text = text.replace("*", "multiply");
+    text = text.replace("/", "divide");
     return text;
 }
 

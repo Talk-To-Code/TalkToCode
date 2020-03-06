@@ -160,14 +160,14 @@ function parse_declare(text: string) {
         return statement;
     } 
     /* Check if var type is the last word mentioned. */
-    if (variable_types.includes(splitted_text[splitted_text.length-1])) {
+    if (splitted_text.length == 2) {
         statement.logError("var type is the last word mentioned.");
         return statement;
     }
     
     else statement.parsedStatement += " " + splitted_text[1]; // Add var_tpye. 
     /* Check for array declaration. */
-    if (splitted_text.includes("array")) {
+    if (splitted_text.includes("array") && !splitted_text.includes("equal")) {
         if (!splitted_text.includes("size")) {
             statement.logError("Size was not mentioned.");
             return statement;
@@ -189,8 +189,13 @@ function parse_declare(text: string) {
             var fragment1 = fragment_segmenter(splitted_text.slice(2, equal_idx));
             var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
 
-            if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
+            if (fragment1[0] == "not ready") {
                 statement.logError(fragment1[1]);
+                return statement;
+            }
+
+            if (fragment2[0] == "not ready") {
+                statement.logError(fragment2[1]);
                 return statement;
             }
             statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
@@ -493,7 +498,7 @@ export function fragment_segmenter(splitted_text: string[]) {
             final_fragment += " " + segments[segment_positions[i]];
         }
     }
-
+    final_fragment = final_fragment.replace(/  +/g, ' ').trim();
     return ["ready", final_fragment];
 }
 
@@ -524,7 +529,7 @@ function parse_fragment(splitted_text: string[]) {
             var function_name = joinName(splitted_text.slice(2))
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
-            return ["ready", "#function " + function_name + "();;"];
+            return ["ready", "#function " + function_name + "()"];
         }
         else {
             /* There are parameters. */
@@ -540,7 +545,7 @@ function parse_fragment(splitted_text: string[]) {
                     return ["not ready", "parameter fragment wrong. " + fragment[1]];
                 parsed_result += "#parameter " + fragment[1];
             }
-            parsed_result += ");;";
+            parsed_result += ")";
             return ["ready", parsed_result];
         }
     }
@@ -549,10 +554,10 @@ function parse_fragment(splitted_text: string[]) {
         /* string literal has to include ["string", <actual string>, "end", "string"], which requires
         a minimum of 4 words. */
         if (splitted_text.length < 4) return ["not ready", "no value mentioned."];
-        if (splitted_text.slice(splitted_text.length-2).join(" ") != "end string")
+        if (splitted_text[splitted_text.length-1] != "end_string")
             return ["not ready", "last 2 words are not end string"];
 
-        return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-2).join(" ") + "\""];
+        return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-1).join(" ") + "\""];
     }
     else if (splitted_text.includes("array")) {
         /* array fragment has to include [<var_name>, "array", "index", <value>] which requires a minimum

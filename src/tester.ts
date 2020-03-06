@@ -1,5 +1,5 @@
 import { StructCommandManager } from './struct_command_manager'
-import { fragment_segmenter } from './parse_statements'
+import { fragment_segmenter, parse_statement } from './parse_statements'
 
 export function runTestCases() {
 
@@ -35,8 +35,8 @@ export function runTestCases() {
 }
 
 export function test_function() {
-    var test_fragment = "(hello array index 5) plus (hello) plus call function scanf end function";
-    console.log(fragment_segmenter(test_fragment.split(" ")));
+    var test_fragment = "declare int hello equal call function scan f parameter hello array index call function scan f end function end function";
+    console.log(parse_statement(test_fragment));
 }
 
 function generate_test_cases(cases: string) {
