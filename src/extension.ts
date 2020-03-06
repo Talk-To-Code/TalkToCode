@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { getUserSpecs } from './user_specs'
-import { runTestCases } from './tester'
+import { runTestCases, test_function } from './tester'
 const {spawn} = require('child_process');
 
 var manager: StructCommandManager;
@@ -34,7 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("lawrence");
 		initManager();
 		// listen();
-		runTestCases();
+		test_function();
+		// runTestCases();
 
 	});
 	context.subscriptions.push(disposable);

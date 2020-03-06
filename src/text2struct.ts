@@ -66,6 +66,9 @@ function replace_infix_operators(text: string) {
         text = text.replace(/less than equal/g, '<=');
         text = text.replace(/not equal/g, '!=');
         text = text.replace(/equal/g, '==');
+    }
+
+    if (text.includes("begin loop")) {
         text = text.replace("plus plus", "++");
     }
     return text;

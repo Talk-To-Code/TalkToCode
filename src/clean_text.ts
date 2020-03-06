@@ -7,7 +7,6 @@
 export function clean(input_speech: string) {
     input_speech = input_speech.toLowerCase();
     input_speech = fix_common_errors(input_speech);
-    input_speech = replace_math_operators(input_speech);
     input_speech = correct_variables(input_speech);
     input_speech = word_2_num(input_speech);
     input_speech = find_symbol(input_speech);
@@ -21,15 +20,6 @@ function fix_common_errors(text: string) {
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('begin is', 'begin if');
-    return text;
-}
-
-/* Replace all math operators like '+', '-' and '*' with 'plus', 'minus' and 'multiply'.*/
-function replace_math_operators(text: string) {
-    text = text.replace('+', 'plus');
-    text = text.replace('-', 'minus');
-    text = text.replace('*', 'multiply');
-    text = text.replace('/', 'divide');
     return text;
 }
 

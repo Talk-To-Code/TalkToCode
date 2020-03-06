@@ -49,6 +49,8 @@ import { simpleStatement } from './struct_command'
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
+var arithmetic_operator = ["plus", "divide", "multiply", "minus"];
+
 var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
 var infix_segmenting_operator = ["or", "and", "bit_and", "bit_or"]; // user speech input.
 var postfix_prefix_operator = ["++", "--"];
@@ -77,6 +79,16 @@ function mapInfixSegmentingOperator(operator: string) {
     operator = operator.replace("and", "&&");
     operator = operator.replace("bit_or", "|");
     operator = operator.replace("bit_and", "&");
+
+    return operator;
+}
+
+/* Maps "or" to "||", "and" to "&&" and so on. */
+function mapArithmeticOperator(operator: string) {
+    operator = operator.replace("plus", "+");
+    operator = operator.replace("divide", "/");
+    operator = operator.replace("minus", "-");
+    operator = operator.replace("multiply", "*");
 
     return operator;
 }
@@ -174,8 +186,8 @@ function parse_declare(text: string) {
                 statement.logError("equal was last word mentioned.");
                 return statement;
             }
-            var fragment1 = parse_fragment(splitted_text.slice(2, equal_idx));
-            var fragment2 = parse_fragment(splitted_text.slice(equal_idx + 1));
+            var fragment1 = fragment_segmenter(splitted_text.slice(2, equal_idx));
+            var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
 
             if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
                 statement.logError(fragment1[1]);
@@ -184,7 +196,7 @@ function parse_declare(text: string) {
             statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
         }
         else {
-            var fragment = parse_fragment(splitted_text.slice(2));
+            var fragment = fragment_segmenter(splitted_text.slice(2));
             if (fragment[0] == "not ready") {
                 statement.logError(fragment[1]);
                 return statement;
@@ -209,7 +221,7 @@ function parse_return(text: string) {
     }
     /* returning a variable or literal */
     else {
-        var fragment = parse_fragment(splitted_text.slice(1));
+        var fragment = fragment_segmenter(splitted_text.slice(1));
         if (fragment[0] == "not ready") {
             statement.logError(fragment[1]);
             return statement;
@@ -230,8 +242,8 @@ function parse_assignment(text: string) {
         return statement;
     }
 
-    var fragment1 = parse_fragment(splitted_text.slice(0, equal_idx));
-    var fragment2 = parse_fragment(splitted_text.slice(equal_idx + 1));
+    var fragment1 = fragment_segmenter(splitted_text.slice(0, equal_idx));
+    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
 
     if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
         statement.logError(fragment1[1]);
@@ -271,7 +283,7 @@ function parse_infix(text: string) {
             awaiting_frag1 = false;
             awaiting_frag2 = true;
             awaiting_segment = true;
-            var fragment = parse_fragment(splitted_text.slice(start, i));
+            var fragment = fragment_segmenter(splitted_text.slice(start, i));
             if (fragment[0] == "not ready") {
                 statement.logError(fragment[1]);
                 return statement;
@@ -287,7 +299,7 @@ function parse_infix(text: string) {
             awaiting_frag1 = true;
             awaiting_frag2 = false;
             awaiting_segment = false;
-            var fragment = parse_fragment(splitted_text.slice(start, i));
+            var fragment = fragment_segmenter(splitted_text.slice(start, i));
             if (fragment[0] == "not ready") {
                 statement.logError(fragment[1]);
                 return statement;
@@ -299,7 +311,7 @@ function parse_infix(text: string) {
         /* Last element */
         else if (i == splitted_text.length - 1) {
             awaiting_frag2 = false;
-            var fragment = parse_fragment(splitted_text.slice(start));
+            var fragment = fragment_segmenter(splitted_text.slice(start));
             if (fragment[0] == "not ready") {
                 statement.logError(fragment[1]);
                 return statement;
@@ -326,7 +338,7 @@ function parse_postfix(test: string) {
 function parse_function(text: string) {
     var statement = new simpleStatement();
     statement.isFunction = true;
-    var fragment = parse_fragment(text.split(" "));
+    var fragment = fragment_segmenter(text.split(" "));
     if (fragment[0] == "not ready") {
         statement.logError(fragment[1]);
         return statement;
@@ -348,10 +360,147 @@ function parse_array_d(text: string) {
     return parsed_results;  
 }
 
+/* Fragments can appear within parenthesis or separated by arithmetic operations. 
+Before parsing can be done, first segment them then parse each individual segments.
+
+Returns list as [<status>, <parsed_result>] 
+<status> - "ready" or "not ready"
+<parsed_result> - the successfully parsed result. */
+export function fragment_segmenter(splitted_text: string[]) {
+    if (splitted_text.length == 0) return ["not ready", "empty fragment."];
+    if (JSON.stringify(splitted_text) == JSON.stringify([""])) return ["not ready", "empty fragment."];
+
+    /* Begin processing to separate fragments based on arithmetic operators. */
+    var text = splitted_text.join(" ");
+    /* Add spaces around parenthesis. Parenthesis can now be separated by split(" ") */
+    text = text.replace(/\(/g, " ( ").replace(/\)/g, " ) ").trim();
+    text = text.replace(/end string/g, "end_string");
+    text = text.replace(/  +/g, ' ');
+    splitted_text = text.split(" ");
+    
+    /* List to keep track of segments. Same length as splitted_text. 
+    "(" are marked by -1, ")" are marked by -2 and arithmetic operators are marked by -3.
+    The fragments are grouped by number. 
+    For e.g. ["(", "hello", ")", "+", "(", "hello", "world", ")"] -> [-1, 0, -1, -1, -1, 1, 1, -1]
+    "hello" is grouped by 0, while "hello world" is grouped by 1. */
+    var segment_positions = [];
+    var within_string = false; // flag to make sure "()" and "+ - * /" within strings are ignored.
+    var segment_counter = 0;
+    var stack = [];
+    /* 
+    Check for the validity of () and arithmetic operators.
+    arithmetic operators cannot be to the right of "(" or to the left of ")". E.g. (+hello) is wrong.
+    arithmetic operators cannot be at the start or end of segments.
+    */
+    if (arithmetic_operator.includes(splitted_text[0]) || 
+        arithmetic_operator.includes(splitted_text[splitted_text.length-1])) {
+            return ["not ready", "arithmetic operators at either start or end of fragment."];
+        }
+    for (var i = 0; i < splitted_text.length; i++) {
+        /* Setting within_string flag. */
+        if (splitted_text[i] == "string") {
+            segment_positions.push(segment_counter);
+            within_string = true;
+        }
+        else if (splitted_text[i] == "end_string") {
+            segment_positions.push(segment_counter);
+            within_string = false;
+        }
+        /* Handle parenthesis. */
+        else if (splitted_text[i] == "(") {
+
+            if (within_string) segment_positions.push(segment_counter);
+            else {
+                stack.push(splitted_text[i]);
+                segment_positions.push(-1);
+            }
+        }
+        else if (splitted_text[i] == ")") {
+            if (within_string) segment_positions.push(segment_counter);
+            if (stack.length == 0 || stack[stack.length-1] != "(") 
+                return ["not ready", "grouping error. unbalanced parenthesis."];
+
+            /* Ensure not at the last element. */
+            if (i != splitted_text.length-1) {
+                if (splitted_text[i+1] != ")" && !arithmetic_operator.includes(splitted_text[i+1])) 
+                    return ["not ready", "grouping error. Closing bracket or arithmetic operation expected."];
+            }
+            stack.pop();
+            segment_positions.push(-2);
+        }
+        /* Handle arithmetic positions and segmenting of fragments */
+        else if (arithmetic_operator.includes(splitted_text[i])) {
+            if (within_string) segment_positions.push(segment_counter);
+            else {
+                /* Check if arithmetic position is legal. */
+                if (splitted_text[i-1] == "(") ["not ready", "arithmetic operators at either start or end of fragment."];
+                if (splitted_text[i+1] == ")") ["not ready", "arithmetic operators at either start or end of fragment."];
+                segment_counter += 1;
+                segment_positions.push(-3);
+            }
+        }
+        else segment_positions.push(segment_counter);
+    }
+    if (stack.length > 0) return ["not ready", "grouping error. Unbalanced parenthesis."];
+
+    /* Divide into segments of fragments. */
+    var segments = []; /* List of fragments. Type: string[] */
+    var curr_counter = -4; /* Position groupings are from -3 to positive numbers. Starting number
+    should not match any of them. */
+    var expect_var = false; /* True when expecting a variable within a bracket. */
+    for (var i = 0; i < segment_positions.length; i++) {
+        /* Same group number. */
+        if (segment_positions[i] == curr_counter) {
+            segments[segments.length-1] += " " + splitted_text[i];
+        }
+        /* Do not include parenthesis or arithmetic operators. */
+        else if (segment_positions[i] == -1) {
+            expect_var = true;
+            continue;
+        }
+        else if (segment_positions[i] == -2) {
+            if (expect_var) return ["not ready", "empty fragment."];
+        }
+        else if (segment_positions[i] == -3) continue;
+        /* segment_positions[i] != curr_counter. New group. */
+        else {
+            expect_var = false;
+            curr_counter = segment_positions[i];
+            segments.push(splitted_text[i]);
+        }
+    }
+
+    /* Parse segments */
+    for (var i = 0; i < segments.length; i++) {
+        var fragment: string[] = parse_fragment(segments[i].split(" "));
+        if (fragment[0] == "not ready") return ["not ready", "fragment error. " + fragment[1]];
+        segments[i] = fragment[1];
+    }
+
+    /* Putting it all together */
+    var final_fragment = "";
+    var segment_add = -1;
+    for (var i = 0; i < segment_positions.length; i++) {
+        /* arithmetic operator. */
+        if (segment_positions[i] == -3) {
+            final_fragment += " " + mapArithmeticOperator(splitted_text[i]);
+        }
+        else if (segment_positions[i] < 0) {
+            final_fragment += " " + splitted_text[i];
+        }
+        else if (segment_positions[i] != segment_add) {
+            segment_add = segment_positions[i];
+            final_fragment += " " + segments[segment_positions[i]];
+        }
+    }
+
+    return ["ready", final_fragment];
+}
+
 /* Returns list as [<status>, <parsed_result>] 
 <status> - "ready" or "not ready"
 <parsed_result> - the successfully parsed result. */
-export function parse_fragment(splitted_text: string[]) {
+function parse_fragment(splitted_text: string[]) {
 
     if (splitted_text.length == 0) return ["not ready", "empty fragment"];
 
@@ -360,7 +509,6 @@ export function parse_fragment(splitted_text: string[]) {
         if (!isNaN(Number(splitted_text[0]))) return ["ready", "#value " + splitted_text[0]];
         else return ["ready", "#variable " + splitted_text[0]];
     }
-
     /* Look out for "end function". */
     else if (splitted_text[0] == "call") {
         if (splitted_text[1] != "function") return ["not ready", "function not mentioned."];
@@ -387,8 +535,9 @@ export function parse_fragment(splitted_text: string[]) {
             if (function_name == "scanF") function_name = "scanf";
             var parsed_result = "#function " + function_name + "(";
             for (var i = 1; i < parameter_blocks.length; i++) {
-                var fragment = parse_fragment(parameter_blocks[i].split(" "));
-                if (fragment[0] == "not ready") return ["not ready", "parameter fragment wrong. "];
+                var fragment: string[] = parse_fragment(parameter_blocks[i].split(" "));
+                if (fragment[0] == "not ready") 
+                    return ["not ready", "parameter fragment wrong. " + fragment[1]];
                 parsed_result += "#parameter " + fragment[1];
             }
             parsed_result += ");;";
@@ -410,22 +559,18 @@ export function parse_fragment(splitted_text: string[]) {
         of 4 words. */
         if (splitted_text.length < 4) return ["not ready", "array fragment missing some values."];
         if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
+        if (splitted_text.indexOf("array") == 0) return ["not ready", "no variable name mentioned."];
 
         var arrayIdx = splitted_text.indexOf("array");
         var var_name = joinName(splitted_text.slice(0, arrayIdx));
 
         var indexIdx = splitted_text.indexOf("index");
-        var indexValue = "";
-        /* If the <value> segment has a length of more than one, combine the name. */
-        if (splitted_text.slice(indexIdx+1).length > 1) 
-            indexValue = joinName(splitted_text.slice(indexIdx+1));
-        else indexValue = splitted_text[splitted_text.length-1];
-        var indexValueType = "";
-        if (!isNaN(Number(splitted_text[splitted_text.length-1]))) indexValueType = "#value";
-        else indexValueType = "#variable";
+        if (indexIdx != arrayIdx + 1) return ["not ready", "index is wrong position."];
+        var fragment: string[] = parse_fragment(splitted_text.slice(indexIdx+1));
+        if (fragment[0] == "not ready") 
+            return ["not ready", "parameter fragment wrong. " + fragment[1]];
 
-        return ["ready", "#array " + var_name + " #indexes " + indexValueType + " " + indexValue + " #index_end"];
+        return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
     }
-
     return ["ready", "#variable " + joinName(splitted_text)];
 }

@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, joinName, parse_fragment } from './parse_statements'
+import { parse_statement, joinName, fragment_segmenter } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -263,7 +263,7 @@ function parse_switch(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = parse_fragment(splitted_text);
+    var fragment = fragment_segmenter(splitted_text);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;
@@ -279,7 +279,7 @@ function parse_case(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = parse_fragment(splitted_text);
+    var fragment = fragment_segmenter(splitted_text);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;

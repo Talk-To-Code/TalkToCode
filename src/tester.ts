@@ -1,4 +1,5 @@
 import { StructCommandManager } from './struct_command_manager'
+import { fragment_segmenter } from './parse_statements'
 
 export function runTestCases() {
 
@@ -33,6 +34,11 @@ export function runTestCases() {
 
 }
 
+export function test_function() {
+    var test_fragment = "(hello array index 5) plus (hello) plus call function scanf end function";
+    console.log(fragment_segmenter(test_fragment.split(" ")));
+}
+
 function generate_test_cases(cases: string) {
     
     /* First element is the test cases. second element is the correct outputs. */
@@ -45,7 +51,7 @@ function generate_test_cases(cases: string) {
         "declare float", "count", "equals hello world",
         "declare integer first equals 10"];
 
-        test_cases[0] = ["begin if hello greater than 5", "and hello less than 10", "scratch that"];
+        test_cases[0] = ["hello array index 5 equal 5"];
         
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 
