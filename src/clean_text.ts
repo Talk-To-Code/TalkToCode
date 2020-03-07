@@ -20,6 +20,7 @@ function fix_common_errors(text: string) {
     text = text.replace('equals', 'equal');
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
+    text = text.replace('and function', 'end function');
     text = text.replace('begin is', 'begin if');
     return text;
 }

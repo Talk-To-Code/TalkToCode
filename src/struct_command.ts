@@ -96,3 +96,86 @@ export class simpleStatement {
         return command;
     }
 }
+
+export class speech_hist {
+    hist: speech_item[];
+
+    constructor() {
+        this.hist = [];
+        this.hist.push(new speech_item(0, [""]));
+    }
+
+    add_item(index: number, speech_input: string[]) {
+        this.hist.push(new speech_item(index, speech_input));
+    }
+
+    update_item(index: number, speech_input: string[]) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) {
+                this.hist[i].speech_input = speech_input;
+                break;
+            }
+        }   
+    }
+
+    get_item(index: number) {
+        var speech_input = [""];
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) speech_input = this.hist[i].speech_input;
+        }
+        return speech_input;
+    }
+
+    remove_item(index: number) {
+        var idxToRemove = -1;
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) idxToRemove = i;
+        }
+
+        if (idxToRemove != -1) this.hist.splice(idxToRemove, 1);
+    }
+
+    concat_item(index: number, concat_item: string) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) {
+                this.hist[i].speech_input = this.hist[i].speech_input.concat(concat_item);
+            }
+        }
+    }
+
+    popFromSpeechItem(index: number) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) {
+                this.hist[i].speech_input.pop();
+            }
+        }
+    }
+
+    update_item_index(index: number, newIndex: number) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index == index) {
+                this.hist[i].index = newIndex;
+            }
+        }
+    }
+
+    length() {
+        return this.hist.length;
+    }
+
+    getAllItems() {
+        return this.hist;
+    }
+
+}
+
+
+class speech_item {
+    speech_input: string[];
+    index: number;
+
+    constructor(index: number, speech_input: string[]) {
+        this.speech_input = speech_input;
+        this.index = index;
+    }
+}

@@ -51,7 +51,7 @@ function generate_test_cases(cases: string) {
         "declare float", "count", "equals hello world",
         "declare integer first equals 10"];
 
-        test_cases[0] = ["hello array index 5 equal 5"];
+        test_cases[0] = ["declare integer", "hello", "scratch that", "scratch that", "declare integer hello", "scratch that", "declare integer hello", "equal 5", "scratch that"];
         
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 

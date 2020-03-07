@@ -34,8 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("lawrence");
 		initManager();
 		// listen();
-		test_function();
-		// runTestCases();
+		// test_function();
+		runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -115,7 +115,6 @@ function displayCode(struct_command_list: string[]) {
 
     other_child.stdout.setEncoding('utf8');
     other_child.stdout.on('data', (data: string)=>{
-		console.log(data);
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
