@@ -4,7 +4,6 @@ import { fragment_segmenter, parse_statement } from './parse_statements'
 export function runTestCases() {
 
     var test_cases = [[""], [""]];
-
     test_cases = generate_test_cases("declare_assign");
     runTestCase(test_cases[0], test_cases[1]);
 
@@ -35,8 +34,8 @@ export function runTestCases() {
 }
 
 export function test_function() {
-    var test_fragment = "(hello world < 5) && hello";
-    console.log(parse_statement(test_fragment, "infix"));
+    var test_fragment = "declare hello world equal 7";
+    console.log(parse_statement(test_fragment, "normal", "py"));
 }
 
 function generate_test_cases(cases: string) {
@@ -50,8 +49,6 @@ function generate_test_cases(cases: string) {
         test_cases[0] = ["declare integer", "hello world", "equal 5", "hello world equals 4",
         "declare float", "count", "equals hello world",
         "declare integer first equals 10"];
-
-        test_cases[0] = ["declare integer", "hello", "scratch that", "scratch that", "declare integer hello", "scratch that", "declare integer hello", "equal 5", "scratch that"];
         
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 
@@ -130,7 +127,7 @@ function generate_test_cases(cases: string) {
 
 /* Run and compare my output and correct output using test cases. */
 function runTestCase(test_cases: string[], correct_output: string[]) {
-    var test_manager = new StructCommandManager("c");
+    var test_manager = new StructCommandManager("py");
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i]);

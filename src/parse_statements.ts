@@ -1,50 +1,3 @@
-/* simpleStatement():
-	expression() < TERMINATOR >
-	| create_variable()
-	| breakStatement()
-	| continueStatement()
-	| labelStatement()
-	| returnStatement()
-	| importStatement()
-
-importStatement() : < INCLUDE >< STRING_LITERAL > < TERMINATOR >
-labelStatement() : < LABEL >< IDENTIFIER > < TERMINATOR >
-returnStatement() : < RETURN >(< PARAMETER > expressionC())*< TERMINATOR >
-continueStatement() : < CONTINUE >< IDENTIFIER > < TERMINATOR >
-breakStatement() : < BREAK > (< IDENTIFIER >)? < TERMINATOR >
-gotoStatement() : < GOTO >< IDENTIFIER > < TERMINATOR >
-
-create_variable() :
-	< CREATE >(catchModifier())*(types_C())?
-	((<VARIABLE><IDENTIFIER>(expression())?<DECLARE_END>)
-	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>value()<INDEX_END>)+<DECLARE_END>))+
-    < TERMINATOR >
-
-expression():
-	prefix_expression()
-	| infix_expression()
-	| postfix_expression()
-	| assignment()
-
-assignment() : < ASSIGNMENT > fragment()(< WITH >| compoundOperators())expression()
-postfix_expression() : < POST > < VARIABLE > < IDENTIFIER > incrDecrOperators()
-prefix_expression() :
-	incrDecrOperators() < VARIABLE > < IDENTIFIER >
-	| prefixOperators() fragment()
-	| < MINUS >expression()
-
-infix_expression() : term()
-term() : fragment()(infixOperators()fragment())*
-fragment() :
-	< VALUE >value()
-	| < VARIABLE >< IDENTIFIER >
-	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
-	| < LPAREN > expression() < RPAREN >
-	| < LBRACE > (< ARRAY > (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
-	| < ARRAY > < IDENTIFIER > ( < INDEX > value() < INDEX_END >)+
-	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
-*/
-
 import { simpleStatement } from './struct_command'
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
@@ -73,16 +26,6 @@ export function joinName(name_arr: string[]) {
 }
 
 /* Maps "or" to "||", "and" to "&&" and so on. */
-function mapInfixSegmentingOperator(operator: string) {
-    operator = operator.replace("or", "||");
-    operator = operator.replace("and", "&&");
-    operator = operator.replace("bit_or", "|");
-    operator = operator.replace("bit_and", "&");
-
-    return operator;
-}
-
-/* Maps "or" to "||", "and" to "&&" and so on. */
 function mapArithmeticOperator(operator: string) {
     operator = operator.replace("plus", "+");
     operator = operator.replace("divide", "/");
@@ -94,11 +37,12 @@ function mapArithmeticOperator(operator: string) {
 
 /* Purpose of this function is to parse any potential statement into the structured command. */
 /* Returns class statement. */
-export function parse_statement(text: string, typeOfStatement: string) {
+export function parse_statement(text: string, typeOfStatement: string, language: string) {
     var statementType = determine_type(text, typeOfStatement);
     switch(statementType) {
         case "declare":
-            return parse_declare(text);
+            if (language == "c") return parse_declare_c(text);
+            else return parse_declare_py(text);
         case "assign":
             return parse_assignment(text);
         case "infix":
@@ -147,7 +91,13 @@ function parse_break() {
     return statement;
 }
 
-function parse_declare(text: string) {
+/* E.g. 
+declare <var_type> <var name>
+declare <var_type> array <var name> size <literal>
+declare <var_type> <var name> equal <var_name>
+declare <var_type> <var name> equal <literal>
+declare <var_type> <var name> equal <complex fragment> */
+function parse_declare_c(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
     statement.parsedStatement = "#create";
@@ -208,7 +158,53 @@ function parse_declare(text: string) {
             statement.parsedStatement += " " + fragment[1];
         }
     }
-    statement.parsedStatement +=  " #dec_end;;";
+    statement.parsedStatement += " #dec_end;;";
+    return statement;
+}
+
+/* Parse array when doing daclaration.
+E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
+*/
+function parse_array_d(text: string) {
+    var splitted_text = text.split(" ");
+    var size_idx = splitted_text.indexOf("size");
+    var parsed_results = "#array #variable";
+    parsed_results += " " + joinName(splitted_text.slice(0, size_idx));
+    parsed_results += " #indexes #value " + splitted_text.slice(size_idx+1).join(" ") + " #indexes_end";
+    
+    return parsed_results;  
+}
+
+/* E.g. Have to initialise, so "equal" is a must.
+declare <var name> equal <var_name>
+declare <var name> equal <literal>
+declare <var name> equal <complex fragment>
+declare list <var name> with (<parameter> <literal>)? */
+function parse_declare_py(text: string) {
+    var statement = new simpleStatement();
+    statement.isDeclare = true;
+    statement.parsedStatement = "#create";
+
+    var splitted_text = text.split(" ");
+
+    /* Equal not mentioned or is the last word mentioned. */
+    if (!splitted_text.includes("equal") || splitted_text[splitted_text.length-1] == "equal") {
+        statement.logError("variable not initialised");
+        return statement;
+    }
+
+    var equal_idx = splitted_text.indexOf("equal");
+    var fragment1 = fragment_segmenter(splitted_text.slice(1, equal_idx));
+    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
+    if (fragment1[0] == "not ready") {
+        statement.logError(fragment1[1]);
+        return statement;
+    }
+    if (fragment2[0] == "not ready") {
+        statement.logError(fragment2[1]);
+        return statement;
+    }
+    statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
     return statement;
 }
 
@@ -450,19 +446,6 @@ function parse_function(text: string) {
     }
     statement.parsedStatement = fragment[1];
     return statement;
-}
-
-/* Parse array when doing daclaration.
-E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
-*/
-function parse_array_d(text: string) {
-    var splitted_text = text.split(" ");
-    var size_idx = splitted_text.indexOf("size");
-    var parsed_results = "#array #variable";
-    parsed_results += " " + joinName(splitted_text.slice(0, size_idx));
-    parsed_results += " #indexes #value " + splitted_text.slice(size_idx+1).join(" ") + " #indexes_end";
-    
-    return parsed_results;  
 }
 
 /* Fragments can appear within parenthesis or separated by arithmetic operations. 

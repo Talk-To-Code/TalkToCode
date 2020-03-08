@@ -14,7 +14,16 @@ prev_command
     For e.g. Else block can on be created if prev_command is "#if_branch_end"
 
 @ Returns the structCommand obj*/
-export function get_struct(input_speech_segments: string[], prev_input_speech: string, prev_struct_command: string) {
+
+/* Differences btw C and Python
+
+Declaration: Python requires that variable be declared with something. Variable type is not needed as well.
+
+
+*/
+
+export function get_struct(input_speech_segments: string[], prev_input_speech: string, prev_struct_command: string,
+    language: string) {
     console.log("prev input speech: " + prev_input_speech)
     console.log("prev struct command: " + prev_struct_command)
 
@@ -35,7 +44,7 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     input_speech = replace_infix_operators(input_speech);
 
     console.log("text going in: " + input_speech);
-    var struct_command = parse_command(input_speech);
+    var struct_command = parse_command(input_speech, language);
     console.log("segmented results: " + struct_command.parsedCommand);
 
     if (struct_command.hasError) {

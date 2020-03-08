@@ -9,6 +9,7 @@ const {spawn} = require('child_process');
 var manager: StructCommandManager;
 var codeBuffer = "";
 var errorFlag = false;
+var language = "";
 
 var cwd = "";
 var ast_cwd = "";
@@ -34,8 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("lawrence");
 		initManager();
 		// listen();
-		test_function();
-		// runTestCases();
+		// test_function();
+		runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -53,11 +54,13 @@ function initManager() {
 	if (editor) {
 		var filename = editor.document.fileName;
 		var file_extension = filename.split(".")[1];
-		if (file_extension == "py") manager = new StructCommandManager("py");
-		else manager = new StructCommandManager("c");
+		if (file_extension == "py") language = "py";
+		else language = "c";
 	}
 	/* Default case. */
-	else manager = new StructCommandManager("c");
+	else language = "c";
+
+	manager = new StructCommandManager(language);
 }
 
 function listen() {
@@ -78,33 +81,12 @@ function listen() {
 	});
 }
 
-function displayStructCommands(struct_command_list: string[]) {
-	let editor = vscode.window.activeTextEditor;
-
-	/* Set up commands to insert */
-	let commands = ""
-	let i
-	for (i=0; i<struct_command_list.length; i++) {
-		commands += struct_command_list[i] + "\r"
-	}
-
-	if (editor) {
-		/* Get range to delete */
-		var lineCount = editor.document.lineCount
-		var start_pos = new vscode.Position(0, 0)
-		var end_pos = new vscode.Position(lineCount, 0)
-		var range = new vscode.Range(start_pos, end_pos)
-
-		editor.edit(editBuilder => {
-			editBuilder.delete(range)
-			editBuilder.insert(start_pos, commands)
-		});
-	}
-}
-
 function displayCode(struct_command_list: string[]) {
 	/* Set up commands to insert */
-	let commands = '#c_program SampleProgram #include "stdio.h";; '
+	let commands = '#c_program SampleProgram #include "stdio.h";; ';
+	if (language == "c") commands = '#c_program SampleProgram #include "stdio.h";; ';
+	else if (language == "py") commands = '#p_program SampleProgram #include "sys";; ';
+
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: ast_cwd});

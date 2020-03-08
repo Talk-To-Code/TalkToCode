@@ -43,7 +43,6 @@ export class StructCommandManager {
     }
 
     reset() {
-        this.language = "c";
         this.curr_index = 0;
         this.struct_command_list = [cursor_comment];
         this.curr_speech = [""];
@@ -55,7 +54,6 @@ export class StructCommandManager {
     parse_speech(transcribed_word: string) {
         console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
-
         /* Check if it is undo command */
         if (cleaned_speech == "scratch that" || cleaned_speech == "go back") {
             this.scratchThatCommand();
@@ -74,13 +72,15 @@ export class StructCommandManager {
             });
             this.speech_hist.update_item(this.curr_index, this.curr_speech); /* Update speech hist. */
         }
+        /* Get prev input speech and struct command. */
         var prev_input_speech = "";
         var prev_struct_command = "";
         if (this.curr_index > 0) {
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
-        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command);
+        console.log("before get struct")
+        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
@@ -90,7 +90,6 @@ export class StructCommandManager {
 
     /* Updating the struct command list */
     updateStructCommandList(struct_command: structCommand) {
-
         /* Previous statement is extendable. */
         if (struct_command.removePreviousStatement) {
             /* join extendable speech to prev input speech */
@@ -250,13 +249,11 @@ export class StructCommandManager {
     }
     
     updateVariableAndFunctionList(struct_command: structCommand) {
-
         if (struct_command.newFunction != "") {
             if (!this.functions_list.includes(struct_command.newFunction)) {
                 this.functions_list.push(struct_command.newFunction);
             }
         }
-
         if (struct_command.newVariable != "") {
             if (!this.variable_list.includes(struct_command.newVariable)) {
                 this.variable_list.push(struct_command.newVariable);
@@ -280,7 +277,6 @@ export class StructCommandManager {
             toDisplay += "[" + this.speech_hist.hist[i].index + "] " + 
                 JSON.stringify(this.speech_hist.hist[i].speech_input) + '\n';
         }
-
         return toDisplay;
     }
 }

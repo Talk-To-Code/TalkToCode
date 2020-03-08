@@ -26,7 +26,7 @@ function fix_common_errors(text: string) {
 }
 
 function spellOutArithmeticOperator(text: string) {
-    text = text.replace(/+/g, "plus");
+    text = text.replace(/\+/g, "plus");
     text = text.replace(/-/g, "minus");
     text = text.replace(/\*/g, "multiply");
     text = text.replace(/\//g, "divide");
