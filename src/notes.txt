@@ -25,7 +25,6 @@ Make an Edit stack
 struct_command_manager
 - have its own manuevering commands - go left, right, up, down.
 
-make infix segmenter.
 brackets for if block - "group" command
 
 infix conditions still not really extendable yet.

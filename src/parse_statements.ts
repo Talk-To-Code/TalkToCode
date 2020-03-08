@@ -457,6 +457,7 @@ Returns list as [<status>, <parsed_result>]
 export function fragment_segmenter(splitted_text: string[]) {
     if (splitted_text.length == 0) return ["not ready", "empty fragment."];
     if (JSON.stringify(splitted_text) == JSON.stringify([""])) return ["not ready", "empty fragment."];
+    if (splitted_text.some(x=>c_infix_operator.includes(x))) return ["not ready", "infix operator detected"];
 
     /* Begin processing to separate fragments based on arithmetic operators. */
     var text = splitted_text.join(" ");

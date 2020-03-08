@@ -34,8 +34,8 @@ export function runTestCases() {
 }
 
 export function test_function() {
-    var test_fragment = "declare hello world equal 7";
-    console.log(parse_statement(test_fragment, "normal", "py"));
+    var test_fragment = "declare int hello world equal 7 < 6";
+    console.log(parse_statement(test_fragment, "normal", "c"));
 }
 
 function generate_test_cases(cases: string) {

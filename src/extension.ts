@@ -32,11 +32,11 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence");
+		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
+		listen();
 		// test_function();
-		runTestCases();
+		// runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -126,16 +126,6 @@ function writeToEditor(code: string) {
 		});
 	}
 }
-
-
-
-function showTextDocument() {
-	let editor = vscode.window.activeTextEditor;
-	if (editor) {
-		console.log(editor.document.getText())
-	}
-}
-
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
