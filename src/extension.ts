@@ -4,11 +4,13 @@ import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { runTestCases } from './tester'
 import { EditCommandManager } from './edit_command_manager';
+import { compress_name } from './compress_name';
 const {spawn} = require('child_process');
 
 var code_segments = [""];
+var count_lines = [];
 var manager = new StructCommandManager();
-var editManager = new EditCommandManager(manager, code_segments);
+var editManager = new EditCommandManager(manager, code_segments, count_lines);
 var codeBuffer = "";
 var errorFlag = false;
 
@@ -116,7 +118,6 @@ function displayCode(struct_command_list: string[]) {
 
 	console.log(commands)
 
-	console.log("GOT THIS FAR");
 	let cwd = '/Users/Archana/Desktop/TalkToCode/AST/src';
 
     const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: cwd});
@@ -143,33 +144,52 @@ function displayCode(struct_command_list: string[]) {
 	});
 }
 
-function compareCommands(command1: string, command2: string){
-	if (command1.length!=command2.length && (command1.startsWith("if") || command1.startsWith("else"))) return false;
-	var count = 0;
-	for (var i=0;i<command1.length;i++){
-		if (command1.charAt(i)!=command2.charAt(i)){
+function checkIfFunctionPrototype(text1: string, text2: string){
+	if (text2.endsWith(";")){
+		text2 = text2.substring(0,text2.length-1); 
+	} 
+	if (text1.indexOf(text2)!=-1){
+		return true;
+	}
+}
+
+function map_lines_to_code(){
+	var count =0;
+	var j =0;
+	for (var i=0;i<code_segments.length;i++){
+		if (code_segments[i].startsWith("#include") || code_segments[i]==""){
 			count++;
 		}
+		else if (i< code_segments.length-1 && checkIfFunctionPrototype(code_segments[i+1], code_segments[i])){
+			count++;
+		}
+		else {
+			count++;
+			count_lines[j]=count;
+			j++;
+		}
 	}
-	return count<=1;
 }
 
 function writeToEditor(code: string) {
 	var commands = code.split("\n");
-    code_segments = [""];
-    var i;
-    for (i = 1;i < commands.length; i++) {
-		if (compareCommands(commands[i],commands[i-1])) continue;
-        if (!commands[i].toString().startsWith("#include") && commands[i]!="") {
-            code_segments.push(commands[i]);
-        }
+	code_segments=[];
+    for (var i = 0;i < commands.length; i++) {
+        code_segments.push(commands[i]);
 	}
-	code_segments.splice(0,1);
-	
-	var i;
-	for (i=0;i<code_segments.length;i++){
+	for (var i=0;i<code_segments.length;i++){
 		console.log("DEBUG IN CODE SEGMENT: "+i)
 		console.log(code_segments[i]);
+	}
+	for (var j=0;j<manager.struct_command_list.length;j++){
+		console.log("DEBUG STRUCT COMMANDS: "+j);
+		console.log(manager.struct_command_list[j]);
+	}
+	map_lines_to_code();
+
+	for (var k=0;k<count_lines.length;k++){
+		console.log("DEBUG THE LINE COUNTS: "+k);
+		console.log(count_lines[k]);
 	}
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {

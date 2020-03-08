@@ -4,15 +4,17 @@ import * as vscode from 'vscode';
 export class EditCommandManager {
     manager: StructCommandManager
     code_segments: string[]
+    line_counts: []
 
-    constructor(manager: StructCommandManager, code_segments: string[]) {
+    constructor(manager: StructCommandManager, code_segments: string[], line_counts: []) {
         this.manager = manager;
         this.code_segments = code_segments;
-
+        this.line_counts = line_counts;
     }
 
-    checkAll(transcribedWord: String, code_segments:string[]){
+    checkAll(transcribedWord: String, code_segments:string[], count_lines: []){
         this.code_segments = code_segments;
+        this.line_counts  = count_lines;
         this.check_if_delete_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
         this.check_if_delete_block(transcribedWord);
@@ -183,24 +185,49 @@ export class EditCommandManager {
         }
     }
 
+    //WORKS
     check_if_rename_function(text: String) {
         var arr = text.toLowerCase().split(" ");
         if (arr[0]=="rename" && arr[1]=="function") {
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                var functionToReplace = arr[2];
-                var replaceWith = arr[4];
-                for (var i=0;i<document.lineCount;i++){
-                    let line = document.lineAt(i).text;
-                    let text = line.split(" ");
-                    for (var j=1;j<text.length;j++){
-                        if (text[j]==functionToReplace && text[j-1]=="#function_declare"){
-                            text[j] = replaceWith;
-                            
-                        }   
-                    }
+            console.log("RENAMING THE FUNCTION")
+            var functionToReplace = arr[2];
+            var replaceWith = arr[4];
+            for (var i=0;i<this.manager.struct_command_list.length;i++){
+                let line = this.manager.struct_command_list[i];
+                let text = line.split(" ");
+                var changed = false;
+                for (var j=1;j<text.length;j++){
+                    if (text[j].startsWith(functionToReplace) && (text[j-1]=="#function_declare" || text[j-1]=="#function")){
+                        text[j] = text[j].replace(functionToReplace,replaceWith);
+                        changed = true;
+                    } 
                 }
+                if (changed){
+                    this.manager.struct_command_list[i] = text.join(" ");
+                }  
+            }
+        }
+    }
+
+    //WORKS: need to work on scope
+    check_if_rename_variable(text:String) {
+        var arr = text.split(" ");
+        if (arr[0]=="rename" && (arr[1]=="variable" || arr[1]=="variables")){
+            var wordToReplace = arr[2];
+            var replaceWith = arr[4];
+            for (var i=0;i<this.manager.struct_command_list.length;i++){
+                let line = this.manager.struct_command_list[i];
+                let text = line.split(" ");
+                var changed = false;
+                for (var j=1;j<text.length;j++){
+                    if (text[j].startsWith(wordToReplace) && text[j-1]=="#variable"){
+                        text[j] = text[j].replace(wordToReplace,replaceWith);
+                        changed = true;
+                    } 
+                }
+                if (changed){
+                    this.manager.struct_command_list[i] = text.join(" ");
+                }  
             }
         }
     }
@@ -230,39 +257,7 @@ export class EditCommandManager {
                 editor.selection = newSelection;
                 temp = this.manager.curr_index;
                 this.manager.curr_index=line_num;
-                //this.manager.curr_speech.splice(line_num,0,"");
                 
-            }
-        }
-    }
-
-    check_if_rename_variable(text:String) {
-        var arr = text.split(" ");
-        if (arr[0]=="rename" && (arr[1]=="variable" || arr[1]=="variables")){
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                for (var i=0;i<this.manager.struct_command_list.length;i++){
-                    let line = this.manager.struct_command_list[i];
-                    let documentLine = document.lineAt(i);
-                    let nameToReplace = arr[2];
-                    let replaceWith = arr[4];
-                    var temp = line.split(" ");
-                    var flag = false;
-                    for (var j=0;j<temp.length-1;j++){
-                        if (temp[j]=="#variable" && (temp[j+1]==nameToReplace|| temp[j+1].startsWith(nameToReplace))){
-                            temp[j+1]=replaceWith;
-                            flag= true;
-                        }
-                    }
-                    if (flag){
-                        this.manager.struct_command_list[i] = temp.join(" ");
-                        editor.edit (editBuilder =>{
-                            editBuilder.delete(documentLine.range);
-                            editBuilder.insert(documentLine.range.start, temp.join(" "));
-                        });
-                    }
-                }
             }
         }
     }    
