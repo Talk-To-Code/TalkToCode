@@ -28,6 +28,8 @@ struct_command_manager
 make infix segmenter.
 brackets for if block - "group" command
 
+infix conditions still not really extendable yet.
+
 maybe add a spelling command.
 
 

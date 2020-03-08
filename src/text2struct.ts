@@ -73,8 +73,8 @@ function replace_infix_operators(text: string) {
         /* Infix segmenting operator */
         text = text.replace(/and/g, "&&");
         text = text.replace(/or/g, "||");
-        text = text.replace(/bit and/g, "&");
-        text = text.replace(/bit or/g, "|");
+        text = text.replace(/bit_and/g, "&");
+        text = text.replace(/bit_or/g, "|");
     }
 
     if (text.includes("begin loop")) {

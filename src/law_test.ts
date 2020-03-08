@@ -1,4 +1,2 @@
-
-
-var a = [1, 2, 3]
-console.log(a.slice(0, 1))
+var text = "*  *  * "
+console.log(text.replace(/\*/g, "multiply"));

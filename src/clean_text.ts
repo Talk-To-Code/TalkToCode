@@ -17,7 +17,7 @@ export function clean(input_speech: string) {
 
 /* Perform basic cleaning for common errors */
 function fix_common_errors(text: string) {
-    text = text.replace('equals', 'equal');
+    text = text.replace(/equals/g, 'equal');
     text = text.replace('Eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('and function', 'end function');
@@ -26,10 +26,13 @@ function fix_common_errors(text: string) {
 }
 
 function spellOutArithmeticOperator(text: string) {
-    text = text.replace("+", "plus");
-    text = text.replace("-", "minus");
-    text = text.replace("*", "multiply");
-    text = text.replace("/", "divide");
+    text = text.replace(/+/g, "plus");
+    text = text.replace(/-/g, "minus");
+    text = text.replace(/\*/g, "multiply");
+    text = text.replace(/\//g, "divide");
+
+    text = text.replace(/bit and/g, "bit_and");
+    text = text.replace(/bit or/g, "bit_or");
     return text;
 }
 
@@ -90,7 +93,3 @@ function word_2_num(text: string) {
 
     return text;
 }
-
-// if (require.main === module) {
-//     console.log(clean("declare integer first equal one and declare"));
-// }
