@@ -26,7 +26,7 @@ struct_command_manager
 - have its own manuevering commands - go left, right, up, down.
 
 make infix segmenter.
-brackets for if block - "group" command, go left and go right.
+brackets for if block - "group" command
 
 maybe add a spelling command.
 

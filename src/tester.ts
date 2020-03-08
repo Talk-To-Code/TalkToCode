@@ -35,8 +35,8 @@ export function runTestCases() {
 }
 
 export function test_function() {
-    var test_fragment = "declare int hello equal call function scan f parameter hello array index call function scan f end function end function";
-    console.log(parse_statement(test_fragment));
+    var test_fragment = "(hello world < 5) && hello";
+    console.log(parse_statement(test_fragment, "infix"));
 }
 
 function generate_test_cases(cases: string) {

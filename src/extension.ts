@@ -34,8 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("lawrence");
 		initManager();
 		// listen();
-		// test_function();
-		runTestCases();
+		test_function();
+		// runTestCases();
 
 	});
 	context.subscriptions.push(disposable);

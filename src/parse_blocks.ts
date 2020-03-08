@@ -3,6 +3,7 @@ var variable_types = ["int", "long", "float", "double", "boolean", "char", "stri
 // var parsy = require("./parse_statements.ts");
 import { parse_statement, joinName, fragment_segmenter } from './parse_statements'
 import { structCommand } from './struct_command'
+import { parse } from 'path';
 
 
 /* Main function of segmenter.ts is to perform checks on the commands and segment out long var names.
@@ -54,7 +55,7 @@ export function parse_command(text: string) {
         case "case":
             return parse_case(splitted_text);
         default:
-            var statement = parse_statement(text);
+            var statement = parse_statement(text, "normal");
             return statement.convert2StructCommand();
     }
 }
@@ -81,7 +82,7 @@ function parse_if(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix");
     if (statement.hasError) {
         command.logError("incomplete condition, " + statement.errorMessage);
         return command;
@@ -108,7 +109,7 @@ I used the exact same code as If block. Will be much more different when If bloc
 function parse_while(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix");
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -125,7 +126,7 @@ function parse_while(splitted_text: string[]) {
 function parse_do(splitted_text: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "do #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix");
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -157,22 +158,32 @@ function parse_for_loop(splitted_text: string[]) {
         command.logError("need to have 3 conditions.");
         return command;
     }
-    for (var i = 0; i < condition_blocks.length; i++) {
-        
-        /* Do not confuse first condition block for an infix condition. it is an assign statement. */
-        if ( i == 0) condition_blocks[0] = condition_blocks[0].replace("==", "equal");
-        var statement = parse_statement(condition_blocks[i]);
-        if (statement.hasError) {
-            command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
-            return command;
-        }
-        if (!statement.isInfix && i == 1) {
-            command.logError("infix is required.");
-            return command;
-        }
-        statement.removeTerminator();
-        command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    condition_blocks[0] = condition_blocks[0].replace("==", "equal");
+    var statement = parse_statement(condition_blocks[0], "normal");
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
     }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    statement = parse_statement(condition_blocks[1], "infix");
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
+    }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    statement = parse_statement(condition_blocks[2], "normal");
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
+    }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
     command.parsedCommand += " #for_start"
     command.endCommand = "#for_end;;";
     return command;

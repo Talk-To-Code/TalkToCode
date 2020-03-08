@@ -49,10 +49,9 @@ import { simpleStatement } from './struct_command'
 
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
+var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
 var arithmetic_operator = ["plus", "divide", "multiply", "minus"];
-
-var infix_comparison_operator = [">", ">=", "<", "<=", "!=", "=="];
-var infix_segmenting_operator = ["or", "and", "bit_and", "bit_or"]; // user speech input.
+var c_infix_operator = [">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"];
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
@@ -95,8 +94,8 @@ function mapArithmeticOperator(operator: string) {
 
 /* Purpose of this function is to parse any potential statement into the structured command. */
 /* Returns class statement. */
-export function parse_statement(text: string) {
-    var statementType = determine_type(text);
+export function parse_statement(text: string, typeOfStatement: string) {
+    var statementType = determine_type(text, typeOfStatement);
     switch(statementType) {
         case "declare":
             return parse_declare(text);
@@ -121,15 +120,15 @@ export function parse_statement(text: string) {
     }
 }
 
-function determine_type(text: string) {
+function determine_type(text: string, typeOfStatement: string) {
     var splitted_text = text.split(" ");
-    if (splitted_text[0] == "declare") return "declare";
+    if (typeOfStatement == "infix") return "infix";
+    else if (splitted_text[0] == "declare") return "declare";
     else if (splitted_text[0] == "return") return "return";
     else if (splitted_text[0] == "continue") return "continue";
     else if (splitted_text[0] == "break") return "break";
     else if (splitted_text[0] == "call") return "function";
     else if (splitted_text.includes("equal")) return "assign";
-    else if (splitted_text.some(x=>infix_comparison_operator.includes(x))) return "infix";
     else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
     else return "not ready.";
 }
@@ -258,84 +257,185 @@ function parse_assignment(text: string) {
     return statement;
 }
 
-/* splitted_text e.g: ['hello', '<', '5'] or ['hello', '<', '5', '&&', 'g' '==', '5']*/
+
+/* Infix can simply be a fragment. E.g. if (flag) {}
+Infix can accept continuous comparison and segmenting operators. E.g. if (5 < hello < 4) {} or
+if (hello && goodbye) {}
+Infix includes arithmetic, segmenting and comparison operators.
+It can also come in parenthesis as well.*/
 function parse_infix(text: string) {
     var statement = new simpleStatement();
     statement.isInfix = true;
     var splitted_text = text.split(" ");
-    if (!splitted_text.some(x=>infix_comparison_operator.includes(x))) {
-        statement.logError("not ready. infix operator missing.");
-        return statement;
-    }
-    var i = 0;
-    var start = 0;
-    var end = 0;
-    /* <frag_1> <comparison> <frag_2> <segment> <frag_1> <comparison> <frag_2> 
-    <comparison> e.g. "==", "<=" etc. 
-    <segment>    e.g. "&&", "||" etc.
-    <frag>       e.g. "hello". */
 
-    var awaiting_frag1 = false;
-    var awaiting_frag2 = false;
-    var awaiting_segment = false;
-    for (i; i < splitted_text.length; i++) {
-        end++;
-        if (infix_comparison_operator.includes(splitted_text[i])) {
-            if (end - start <= 1 || awaiting_segment) {
-                statement.logError("Incomplete infix statement");
-                return statement;
-            }
-            awaiting_frag1 = false;
-            awaiting_frag2 = true;
-            awaiting_segment = true;
-            var fragment = fragment_segmenter(splitted_text.slice(start, i));
-            if (fragment[0] == "not ready") {
-                statement.logError(fragment[1]);
-                return statement;
-            }
-            statement.parsedStatement += " " + fragment[1] + " " + splitted_text[i];
-            start = i + 1;
-        }
-        else if (infix_segmenting_operator.includes(splitted_text[i])) {
-            if (end - start <= 1) {
-                statement.logError("Incomplete infix statement");
-                return statement;
-            }
-            awaiting_frag1 = true;
-            awaiting_frag2 = false;
-            awaiting_segment = false;
-            var fragment = fragment_segmenter(splitted_text.slice(start, i));
-            if (fragment[0] == "not ready") {
-                statement.logError(fragment[1]);
-                return statement;
-            }
-            statement.parsedStatement += " " + fragment[1] + " " + mapInfixSegmentingOperator(splitted_text[i]);
-            start = i + 1;
-            end++;
-        }
-        /* Last element */
-        else if (i == splitted_text.length - 1) {
-            awaiting_frag2 = false;
-            var fragment = fragment_segmenter(splitted_text.slice(start));
-            if (fragment[0] == "not ready") {
-                statement.logError(fragment[1]);
-                return statement;
-            }
-            statement.parsedStatement += " " + fragment[1];
-        }
-    }
-    if (awaiting_frag1 || awaiting_frag2) {
-        statement.logError("Incomplete.");
+    /* Add spaces around parenthesis. Parenthesis can now be separated by split(" ") */
+    text = text.replace(/\(/g, " ( ").replace(/\)/g, " ) ").trim();
+    text = text.replace(/end string/g, "end_string");
+    text = text.replace(/  +/g, ' ');
+    var splitted_text = text.split(" ");
+
+    /* List to keep track of segments. Same length as splitted_text. 
+    "(" are marked by -1, ")" are marked by -2, arithmetic operators are marked by -3 and infix operators
+    are marked by -4.
+    The fragments are grouped by number. 
+    For e.g. ["(", "hello", ")", ">", "(", "hello", "world", ")"] -> [-1, 0, -2, -4, -1, 1, 1, -2]
+    "hello" is grouped by 0, while "hello world" is grouped by 1. */
+    var segment_positions = [];
+    var within_string = false; // flag to make sure "()" and "+ - * /" within strings are ignored.
+    var operator_flag = false;
+    var segment_counter = 0;
+    var stack = [];
+    /* 
+    Check for the validity of () and segmenting and comparison operators.
+    arithmetic and infix operators cannot be to the right of "(" or to the left of ")". E.g. (<hello) is wrong.
+    arithmetic and infix operators cannot be at the start or end of segments.
+    */
+    if (arithmetic_operator.includes(splitted_text[0]) || 
+    arithmetic_operator.includes(splitted_text[splitted_text.length-1]) ||
+    c_infix_operator.includes(splitted_text[0]) || 
+    c_infix_operator.includes(splitted_text[splitted_text.length-1])) {
+            
+        statement.logError("arithmetic, comparison or segmenting operators at either start or end of fragment.");
         return statement;
     }
-    statement.parsedStatement = statement.parsedStatement.trim();
+    
+    for (var i = 0; i < splitted_text.length; i++) {
+        /* Setting within_string flag. */
+        if (splitted_text[i] == "string") {
+            segment_positions.push(segment_counter);
+            within_string = true;
+            operator_flag = false;
+        }
+        else if (splitted_text[i] == "end_string") {
+            segment_positions.push(segment_counter);
+            within_string = false;
+            operator_flag = false;
+        }
+        /* Handle parenthesis. */
+        else if (splitted_text[i] == "(") {
+            operator_flag = false;
+            if (within_string) segment_positions.push(segment_counter);
+            else {
+                stack.push(splitted_text[i]);
+                segment_positions.push(-1);
+            }
+        }
+        else if (splitted_text[i] == ")") {
+            operator_flag = false;
+            if (within_string) segment_positions.push(segment_counter);
+            if (stack.length == 0 || stack[stack.length-1] != "(")  {
+                statement.logError("grouping error. unbalanced parenthesis.");
+                return statement;
+            }
+
+            /* Ensure not at the last element. */
+            if (i != splitted_text.length-1) {
+                if (splitted_text[i+1] != ")" && !operators.includes(splitted_text[i+1])) {
+                    statement.logError("grouping error. Closing bracket or operator expected.");
+                    return statement;
+                }
+            }
+            stack.pop();
+            segment_positions.push(-2);
+        }
+        /* Handle arithmetic, comparison and segmenting positions and segmenting of fragments */
+        else if (arithmetic_operator.includes(splitted_text[i]) || c_infix_operator.includes(splitted_text[i])) {
+            if (within_string) segment_positions.push(segment_counter);
+            else {
+                if (operator_flag) {
+                    statement.logError("Operators cannot be in continuous order.");
+                    return statement;
+                }
+                /* Check if arithmetic position is legal. */
+                if (splitted_text[i-1] == "(") {
+                    statement.logError("Operators at either start or end of fragment.");
+                    return statement;
+                } 
+                if (splitted_text[i+1] == ")") {
+                    statement.logError("Operators at either start or end of fragment.");
+                    return statement;
+                }
+                segment_counter += 1;
+                if (arithmetic_operator.includes(splitted_text[i])) segment_positions.push(-3);
+                else segment_positions.push(-4);
+                operator_flag = true;
+            }
+        }
+        else {
+            operator_flag = false;
+            segment_positions.push(segment_counter);
+        }
+    }
+    if (stack.length > 0) {
+        statement.logError("grouping error. Unbalanced parenthesis.");
+        return statement;
+    }
+
+    /* Divide into segments of fragments. */
+    var segments = []; /* List of fragments. Type: string[] */
+    var curr_counter = -5; /* Position groupings are from -4 to positive numbers. Starting number
+    should not match any of them. */
+    var expect_var = false; /* True when expecting a variable within a bracket. */
+    for (var i = 0; i < segment_positions.length; i++) {
+        /* Same group number. */
+        if (segment_positions[i] == curr_counter) {
+            segments[segments.length-1] += " " + splitted_text[i];
+        }
+        /* Do not include parenthesis or arithmetic operators. */
+        else if (segment_positions[i] == -1) {
+            expect_var = true;
+            continue;
+        }
+        else if (segment_positions[i] == -2) {
+            if (expect_var) {
+                statement.logError("Empty fragment.");
+                return statement;
+            }
+        }
+        else if (segment_positions[i] == -3 || segment_positions[i] == -4) continue;
+        /* segment_positions[i] != curr_counter. New group. */
+        else {
+            expect_var = false;
+            curr_counter = segment_positions[i];
+            segments.push(splitted_text[i]);
+        }
+    }
+
+    /* Parse segments */
+    for (var i = 0; i < segments.length; i++) {
+        var fragment: string[] = parse_fragment(segments[i].split(" "));
+        if (fragment[0] == "not ready") {
+            statement.logError("fragment error. " + fragment[1]);
+            return statement;
+        }
+        segments[i] = fragment[1];
+    }
+
+    /* Putting it all together */
+    var final_fragment = "";
+    var segment_add = -1;
+    for (var i = 0; i < segment_positions.length; i++) {
+        /* arithmetic operator. */
+        if (segment_positions[i] == -3) {
+            final_fragment += " " + mapArithmeticOperator(splitted_text[i]);
+        }
+        else if (segment_positions[i] < 0) {
+            final_fragment += " " + splitted_text[i];
+        }
+        else if (segment_positions[i] != segment_add) {
+            segment_add = segment_positions[i];
+            final_fragment += " " + segments[segment_positions[i]];
+        }
+    }
+    final_fragment = final_fragment.replace(/  +/g, ' ').trim();
+    statement.parsedStatement = final_fragment;
     return statement;
 }
 
-function parse_postfix(test: string) {
+function parse_postfix(text: string) {
     var statement = new simpleStatement();
     statement.isPostfix = true;
-    var splitted_text = test.split(" ");
+    var splitted_text = text.split(" ");
     statement.parsedStatement = "#post #variable " + splitted_text[0] + " " + splitted_text[1] + ";;";
     return statement;
 }
@@ -386,10 +486,11 @@ export function fragment_segmenter(splitted_text: string[]) {
     /* List to keep track of segments. Same length as splitted_text. 
     "(" are marked by -1, ")" are marked by -2 and arithmetic operators are marked by -3.
     The fragments are grouped by number. 
-    For e.g. ["(", "hello", ")", "+", "(", "hello", "world", ")"] -> [-1, 0, -1, -1, -1, 1, 1, -1]
+    For e.g. ["(", "hello", ")", "+", "(", "hello", "world", ")"] -> [-1, 0, -2, -3, -1, 1, 1, -2]
     "hello" is grouped by 0, while "hello world" is grouped by 1. */
     var segment_positions = [];
     var within_string = false; // flag to make sure "()" and "+ - * /" within strings are ignored.
+    var operator_flag = false;
     var segment_counter = 0;
     var stack = [];
     /* 
@@ -404,16 +505,18 @@ export function fragment_segmenter(splitted_text: string[]) {
     for (var i = 0; i < splitted_text.length; i++) {
         /* Setting within_string flag. */
         if (splitted_text[i] == "string") {
+            operator_flag = false;
             segment_positions.push(segment_counter);
             within_string = true;
         }
         else if (splitted_text[i] == "end_string") {
+            operator_flag = false;
             segment_positions.push(segment_counter);
             within_string = false;
         }
         /* Handle parenthesis. */
         else if (splitted_text[i] == "(") {
-
+            operator_flag = false;
             if (within_string) segment_positions.push(segment_counter);
             else {
                 stack.push(splitted_text[i]);
@@ -421,6 +524,7 @@ export function fragment_segmenter(splitted_text: string[]) {
             }
         }
         else if (splitted_text[i] == ")") {
+            operator_flag = false;
             if (within_string) segment_positions.push(segment_counter);
             if (stack.length == 0 || stack[stack.length-1] != "(") 
                 return ["not ready", "grouping error. unbalanced parenthesis."];
@@ -437,14 +541,21 @@ export function fragment_segmenter(splitted_text: string[]) {
         else if (arithmetic_operator.includes(splitted_text[i])) {
             if (within_string) segment_positions.push(segment_counter);
             else {
+                if (operator_flag) {
+                    return ["not ready", "arithmetic operators are not continuous."];
+                }
                 /* Check if arithmetic position is legal. */
-                if (splitted_text[i-1] == "(") ["not ready", "arithmetic operators at either start or end of fragment."];
-                if (splitted_text[i+1] == ")") ["not ready", "arithmetic operators at either start or end of fragment."];
+                if (splitted_text[i-1] == "(") return ["not ready", "arithmetic operators at either start or end of fragment."];
+                if (splitted_text[i+1] == ")") return ["not ready", "arithmetic operators at either start or end of fragment."];
                 segment_counter += 1;
                 segment_positions.push(-3);
+                operator_flag = true;
             }
         }
-        else segment_positions.push(segment_counter);
+        else {
+            segment_positions.push(segment_counter);
+            operator_flag = false;
+        }
     }
     if (stack.length > 0) return ["not ready", "grouping error. Unbalanced parenthesis."];
 

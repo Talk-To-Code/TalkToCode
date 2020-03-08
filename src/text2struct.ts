@@ -62,12 +62,19 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string) {
     if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while")) {
+        /* Infix comparison operator. */
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
         text = text.replace(/less than/g, '<');
         text = text.replace(/less than equal/g, '<=');
         text = text.replace(/not equal/g, '!=');
         text = text.replace(/equal/g, '==');
+
+        /* Infix segmenting operator */
+        text = text.replace(/and/g, "&&");
+        text = text.replace(/or/g, "||");
+        text = text.replace(/bit and/g, "&");
+        text = text.replace(/bit or/g, "|");
     }
 
     if (text.includes("begin loop")) {
@@ -103,6 +110,7 @@ function checkPrevBlock(struct_command: structCommand, prev_command: string) {
 
     if (prev_command == "#if_branch_end;;" && struct_command.isElse) return true;
     if (prev_command == "#case_end;;" && struct_command.isCase) return true;
+    if (prev_command == "#case_end" && struct_command.isCase) return true;
     if (prev_command.includes("switch #condition #variable") && struct_command.isCase) return true;
 
     else return false;
