@@ -12,7 +12,22 @@
 	respective AST nodes in parsing respective structural commands 
 */public class ASTParser{
   public enum programType { C, P, J }
-    private static ASTNode current = new ASTNode();  private static ASTNode program = new ASTNode();  public static void main(String args []) throws ParseException  {    ASTParser parser = new ASTParser(System.in);    //while (true)    //{      //System.out.println("Reading from standard input...");      //System.out.print("Enter an program:\n");      try      {        program();        System.out.println("AST construction complete.");      }      catch (Exception e)      {        System.out.println("Not Supported Syntax Format");        System.out.println(e.getMessage());        ASTParser.ReInit(System.in);      }      catch (Error e)      {
+    private static ASTNode current = new ASTNode();  private static ASTNode program = new ASTNode();
+
+  private static boolean isDebug;  public static void main(String args []) throws ParseException  {    ASTParser parser = new ASTParser(System.in);    //while (true)    //{      //System.out.println("Reading from standard input...");      //System.out.print("Enter an program:\n");
+
+      if(args.length != 1) {
+        System.out.println("INVALID INPUT!\nEnter 1 to print output once at the end.\nEnter 0 to print output both at the end and after completion of each statement.\nSystem exiting...");
+        System.exit(1);
+      }
+      
+      if(args[0].compareTo("1") == 0) ASTParser.isDebug = false;
+      else if(args[0].compareTo("0") == 0) ASTParser.isDebug = true;
+      else {
+        System.out.println("INVALID INPUT!\nEnter 1 to print output once at the end.\nEnter 0 to print output both at the end and after completion of each statement.\nSystem exiting...");
+        System.exit(1);
+      }
+            try      {        program();        System.out.println("AST construction complete.");      }      catch (Exception e)      {        System.out.println("Not Supported Syntax Format");        System.out.println(e.getMessage());        ASTParser.ReInit(System.in);      }      catch (Error e)      {
         System.out.println("Special Reject Sequence @#$%^&*()!");        System.out.println("Unknown Error Occurs.");        System.out.println(e.getMessage());        //break;      }    //}  }  private static void getStructure(ASTNode current)  {    Stack < ASTNode > stack = new Stack < ASTNode > ();    ASTNode temp = current;    stack.push(temp);    while (temp.parent != null)    {      if (temp.isAblock())      {        stack.push(temp);      }      temp = temp.getParent();    }    int counter = 0;    while (!stack.isEmpty())    {      String indent = "";      for (int i = 0; i < counter; i++)      {        indent += "\t";      }      System.out.println(indent + stack.pop().typeof());      counter++;    }  }  private static void getTree(ASTNode current)  {    ASTNode temp = current;    while (temp.parent != null)    {      temp = temp.getParent();    }    System.out.println(temp.toTree(0));  }}PARSER_END(ASTParser)/**********************************************
  * THE JAVACC TOKEN SPECIFICATION STARTS HERE *
  **********************************************//* JAVACC RESERVED WORDS: These are the only tokens in JavaCC but not in Java */< DEFAULT >TOKEN :{  < _LOOKAHEAD : "LOOKAHEAD" >| < _IGNORE_CASE : "IGNORE_CASE" >| < _PARSER_BEGIN : "PARSER_BEGIN" >| < _PARSER_END : "PARSER_END" >| < _JAVACODE : "JAVACODE" >| < _TOKEN : "TOKEN" >| < _SPECIAL_TOKEN : "SPECIAL_TOKEN" >| < _MORE : "MORE" >| < _SKIP : "SKIP" >| < _TOKEN_MGR_DECLS : "TOKEN_MGR_DECLS" >| < _EOF : "EOF" >}/*
@@ -58,7 +73,11 @@
   }
 | n = < IS >
   {    return n.image;
-  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
+  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{
+  n = < STAR >
+  {    return n.image;
+  }
+|   n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
 | n = < PY_NOT >
   {    return n.image;
   }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value(programType pType) :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
@@ -97,7 +116,7 @@
             	((ASTDeclarationStatementC) result).addVariableWithoutDeclaration(new ASTExpressionUnitIdentifier(id));
             	break;
             case P:
-            	throw new ParseException("Python variables have to be declared!\n");
+            	throw new ParseException("Python variables have to be initialised!\n");
             	break;
           }        }        else        {
           switch (pType) {
@@ -930,7 +949,7 @@ ASTCompilationUnit compilationUnit() :
         current = statement;
         //current.addStatement(statement);
         // important : Outputs to final program
-        System.out.println(statement.toSyntax());
+        if(isDebug) System.out.println(statement.toSyntax());
       }
     }
   )+

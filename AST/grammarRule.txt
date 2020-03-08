@@ -192,7 +192,8 @@ incrDecrOperators() :
 	| < DECR >
 
 prefixOperators() :
-	< BANG >
+	< STAR >
+	| < BANG >
 	| < TILDE >
 	| < BIT_AND >
 	| < PY_NOT >
