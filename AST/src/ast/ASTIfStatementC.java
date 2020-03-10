@@ -22,6 +22,18 @@ public final class ASTIfStatementC extends ASTIfStatement {
 		}
 		for(int i = 0; i < this.indent; i++) result+="\t";
 		result += "}\n";
+		if(!this.elseIfBranch.isEmpty()){
+			for(int index = 0; index < this.elseIfBranch.size(); index++){
+				for(int i = 0; i < this.indent; i++) result+="\t";
+				result += "else if("+this.elseIfCond.get(index).toSyntax()+"){\n";
+				for(int j = 0; j<this.elseIfBranch.get(index).size();j++){
+					for(int i = 0; i < this.indent; i++) result+="\t";
+					result+=("\t"+this.elseIfBranch.get(index).get(j).toSyntax());
+				}
+				for(int i = 0; i < this.indent; i++) result+="\t";
+				result += "}\n";
+			}
+		}
 		if(!this.elseBranch.isEmpty()){
 			for(int i = 0; i < this.indent; i++) result+="\t";
 			result += "else {\n";

@@ -54,7 +54,6 @@ class Client(threading.Thread):
 
 		self.moveCounter = 0
 
-
 	def run(self):
 		prediction = []
 
@@ -62,9 +61,6 @@ class Client(threading.Thread):
 			#to remove; timing check
 			if(self.dataQueue.empty()):
 				queue_start_time = time.time()
-
-
-
 
 			if(self.dataQueue.full()):
 				print("---Queue took %s seconds to fill ---" % (time.time() - queue_start_time))
@@ -83,17 +79,11 @@ class Client(threading.Thread):
 							if(self.moveCounter > 38):
 								self.predictedAction = "logout"
 
-
 							else:
 								continue
 
-
-
-
 						else:
 							self.moveCounter += 1
-
-
 
 						volCurPow = self.volCurPowQueue.get()
 
@@ -103,21 +93,10 @@ class Client(threading.Thread):
 
 						print("Dance Move is: " + str(self.predictedAction) + "\n")
 
-
-
-
-
-
-
-
-
-
-
 	def stop(self):
 		self.clientSocket.close()
 
 		self.shutdown.set()
-
 
 	def sendData(self, data):
 		iv = Random.get_random_bytes(16)
@@ -126,7 +105,6 @@ class Client(threading.Thread):
 
 		for i in range(4):
 			message += str(data[i]) + "|"
-
 
 		message += str(data[4])
 
@@ -139,12 +117,8 @@ class Client(threading.Thread):
 		if(padding == AES.block_size):
 			padding = 0
 
-
-
-
 		for i in range(padding):
 			message += " "
-
 
 		encryptedMsg = iv + aesCipher.encrypt(message)
 
@@ -162,13 +136,8 @@ class Client(threading.Thread):
 		finally:
 			print("FINALLY!")
 
-
 		if(self.predictedAction == "logout"):
 			self.stop()
-
-
-
-
 
 	def predictAction(self):
 		predict_start_time = time.time()
@@ -179,7 +148,6 @@ class Client(threading.Thread):
 			data_points = self.dataQueue.get()
 
 			data_packet_list.append(data_points)
-
 
 		data_df = pd.DataFrame(data_packet_list, columns=X_columns)
 
@@ -264,16 +232,10 @@ class Client(threading.Thread):
 
 				predictionReady = True
 
-
-
 			'''
-
 
 		else:
 			print("Prediction Not Ready.")
-
-
-
 
 		self.predictedAction = mode
 
@@ -282,7 +244,6 @@ class Client(threading.Thread):
 		print("---Setting prediction ready took %s seconds ---" % (time.time() - set_pre_start_time))
 
 		print("------------------")
-
 
 
 class Serial(threading.Thread):
@@ -303,7 +264,6 @@ class Serial(threading.Thread):
 
 		self.cumPower = 0
 
-
 	def run(self):
 		while (not self.isHandShakeDone):
 			self.port.write(bytes("H", "utf-8"))
@@ -315,13 +275,8 @@ class Serial(threading.Thread):
 
 				self.port.write(bytes("A", "utf-8"))
 
-
-
-
 		else:
 			print("Handshake Done!\n")
-
-
 
 		while (not self.shutdown.is_set()):
 			self.getData()
@@ -332,29 +287,20 @@ class Serial(threading.Thread):
 
 				self.clientThread.predictionReady = False
 
-
-
-
 			if(self.clientThread.shutdown.is_set()):
 				self.stop()
 
-
-
-
-
-
+			else:
+				pass
 
 	def stop(self):
 		self.shutdown.set()
-
 
 	def getData(self):
 		length = ""
 
 		while (length == ""):
 			length = self.port.read().decode("utf-8")
-
-
 
 		length += self.port.read().decode("utf-8")
 
@@ -370,35 +316,26 @@ class Serial(threading.Thread):
 			if(dataByte != ','):
 				checksum ^= ord(dataByte)
 
-
-
+			elif(data is dataByte):
+				pass
 
 			data += dataByte
 
 			if(i == int(length)):
 				break
 
-
-
-
 		else:
 			print("Checksum initialised!\n")
-
 
 		if(checksum == ord(self.port.read().decode("utf-8"))):
 			self.port.write(bytes("A", "utf-8"))
 
 			self.deserialize(data)
 
-
 		else:
 			self.port.write(bytes("N", "utf-8"))
 
 			self.getData()
-
-
-
-
 
 	def deserialize(self, data):
 		if(data.split(',')[0] == 'D'):
@@ -410,19 +347,12 @@ class Serial(threading.Thread):
 			if(self.dataQueue.full()):
 				self.dataQueue.get()
 
-
-
 			self.dataQueue.put(deserializedData)
-
 
 		else:
 			self.setVolCurPowQueue(round(float(data.split(',')[1]), 1), round(float(data.split(',')[2]), 1))
 
 			self.getData()
-
-
-
-
 
 	def setVolCurPowQueue(self, sensorValue, vdValue):
 		sensorValue = (sensorValue * 5) / 1023
@@ -445,11 +375,7 @@ class Serial(threading.Thread):
 			with self.volCurPowQueue.mutex as m:
 				self.volCurPowQueue.queue.clear()
 
-
-
-
 		self.volCurPowQueue.put(volCurPow)
-
 
 
 if(__name__ == "__main__"):
@@ -460,15 +386,21 @@ if(__name__ == "__main__"):
 
 		sys.exit()
 
-
-
 	s = {[1, 3], {3.3, 4.45}, ("hi", "bye"), {"melon" : 5, "tomato" : 10}}
 
 	t = (1, 'e', "ea", 3.3, True, False)
 
+	d = {32 : [4, "Hello"], 'a' : {'w', True}, 5.6 : (8.69, "bye"), "each" : {4.3 : 's', "see" : True}}
+
+	x = lambda a, b : a - b
+
 	print(s)
 
 	print(t)
+
+	print(d)
+
+	print(x(1))
 
 	serverName = sys.argv[1]
 
@@ -485,7 +417,5 @@ if(__name__ == "__main__"):
 	myClient.start()
 
 	mySerial.start()
-
-
 
 

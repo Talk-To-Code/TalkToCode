@@ -20,7 +20,18 @@ public class ASTIfStatementP extends ASTIfStatement {
 			result+= ("\t"+this.ifBranch.get(i).toSyntax());
 			if(this.ifBranch.get(i) instanceof ASTSimpleStatement || this.ifBranch.get(i) instanceof ASTComment) result += "\n";
 		}
-		result += "\n";
+		if(!this.elseIfBranch.isEmpty()){
+			for(int index = 0; index < this.elseIfBranch.size(); index++){
+				for(int i = 0; i < this.indent; i++) result+="\t";
+				result += "elif("+this.elseIfCond.get(index).toSyntax()+"):\n";
+				for(int j = 0; j<this.elseIfBranch.get(index).size();j++){
+					for(int i = 0; i < this.indent; i++) result+="\t";
+					result+=("\t"+this.elseIfBranch.get(index).get(j).toSyntax());
+					if(this.elseIfBranch.get(index).get(j) instanceof ASTSimpleStatement || this.elseIfBranch.get(index).get(j) instanceof ASTComment) result += "\n";
+				}
+			}
+				
+		}
 		if(!this.elseBranch.isEmpty()){
 			for(int i = 0; i < this.indent; i++) result+="\t";
 			result += "else:\n";
@@ -29,9 +40,8 @@ public class ASTIfStatementP extends ASTIfStatement {
 				result+=("\t"+this.elseBranch.get(j).toSyntax());
 				if(this.elseBranch.get(j) instanceof ASTSimpleStatement || this.elseBranch.get(j) instanceof ASTComment) result += "\n";
 			}
-			result +="\n";
 		}
-		this.result = result + "\n";
+		this.result = result;
 		return this.result;
 	}
 }

@@ -27,7 +27,7 @@ public class ASTTryCatchStatementP extends ASTTryCatchStatement {
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";
 			this.result += this.tryBlock.get(i).toSyntax();
-			this.result += "\n";
+			if(this.tryBlock.get(i) instanceof ASTSimpleStatement || this.tryBlock.get(i) instanceof ASTComment) this.result += "\n";
 		}
 		for(int i = 0; i <= this.numCatchBlocks; i++) {
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
@@ -47,7 +47,7 @@ public class ASTTryCatchStatementP extends ASTTryCatchStatement {
 				for(int j = 0; j < this.indent; j++) this.result+="\t";
 				this.result += "\t";
 				this.result += s.toSyntax();
-				this.result += "\n";
+				if(s instanceof ASTSimpleStatement || s instanceof ASTComment) this.result += "\n";
 			}
 		}
 		if(!this.elseBlock.isEmpty()){
@@ -57,7 +57,7 @@ public class ASTTryCatchStatementP extends ASTTryCatchStatement {
 				for(int j = 0; j < this.indent; j++) this.result+="\t";
 				this.result += "\t";
 				this.result += this.elseBlock.get(i).toSyntax();
-				this.result += "\n";
+				if(this.elseBlock.get(i) instanceof ASTSimpleStatement || this.elseBlock.get(i) instanceof ASTComment) this.result += "\n";
 			}
 		}
 		if(!this.finallyBlock.isEmpty()){
@@ -67,7 +67,7 @@ public class ASTTryCatchStatementP extends ASTTryCatchStatement {
 				for(int j = 0; j < this.indent; j++) this.result+="\t";
 				this.result += "\t";
 				this.result += this.finallyBlock.get(i).toSyntax();
-				this.result += "\n";
+				if(this.finallyBlock.get(i) instanceof ASTSimpleStatement || this.finallyBlock.get(i) instanceof ASTComment) this.result += "\n";
 			}
 		}
 		return this.result;

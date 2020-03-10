@@ -1,7 +1,7 @@
 var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
 
 // var parsy = require("./parse_statements.ts");
-import { parse_statement, convert2Camel, parse_fragment } from './parse_statements'
+import { parse_statement, joinName, fragment_segmenter } from './parse_statements'
 import { structCommand } from './struct_command'
 
 
@@ -23,7 +23,7 @@ list of struct commands
 variable list
     list of new variables declared by the user. This is only updated when a declare command is given. */
 
-export function parse_command(text: string) {
+export function parse_command(text: string, language: string) {
     var starting_command = determine_user_command(text);
 
     if (starting_command[0] == "not ready") {
@@ -38,23 +38,24 @@ export function parse_command(text: string) {
 
     switch(starting_command[0]) {
         case "if":
-            return parse_if(splitted_text);
+            return parse_if(splitted_text, language);
         case "else":
             return parse_else(splitted_text);
         case "loop":
-            return parse_for_loop(splitted_text);
+            if (language == "c") return parse_for_loop_c(splitted_text, language);
+            else return parse_for_loop_py(splitted_text, language);
         case "function":
             return parse_function(splitted_text);
         case "while":
-            return parse_while(splitted_text);
+            return parse_while(splitted_text, language);
         case "switch":
             return parse_switch(splitted_text);
         case "do":
-            return parse_do(splitted_text);
+            return parse_do(splitted_text, language);
         case "case":
             return parse_case(splitted_text);
         default:
-            var statement = parse_statement(text);
+            var statement = parse_statement(text, "normal", language);
             return statement.convert2StructCommand();
     }
 }
@@ -77,11 +78,11 @@ function determine_user_command(text: string) {
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] */
-function parse_if(splitted_text: string[]) {
+function parse_if(splitted_text: string[], language: string) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix", language);
     if (statement.hasError) {
         command.logError("incomplete condition, " + statement.errorMessage);
         return command;
@@ -105,10 +106,10 @@ function parse_else(splitted_text: string[]) {
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
-function parse_while(splitted_text: string[]) {
+function parse_while(splitted_text: string[], language: string) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix", language);
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -122,10 +123,10 @@ function parse_while(splitted_text: string[]) {
     return command;
 }
 
-function parse_do(splitted_text: string[]) {
+function parse_do(splitted_text: string[], language: string) {
     var command = new structCommand("block");
     command.parsedCommand = "do #condition"
-    var statement = parse_statement(splitted_text.join(" "));
+    var statement = parse_statement(splitted_text.join(" "), "infix", language);
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
         return command;
@@ -140,7 +141,7 @@ function parse_do(splitted_text: string[]) {
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
-function parse_for_loop(splitted_text: string[]) {
+function parse_for_loop_c(splitted_text: string[], language: string) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
@@ -157,26 +158,105 @@ function parse_for_loop(splitted_text: string[]) {
         command.logError("need to have 3 conditions.");
         return command;
     }
-    for (var i = 0; i < condition_blocks.length; i++) {
-        
-        /* Do not confuse first condition block for an infix condition. it is an assign statement. */
-        if ( i == 0) condition_blocks[0] = condition_blocks[0].replace("==", "equal");
-        var statement = parse_statement(condition_blocks[i]);
-        if (statement.hasError) {
-            command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
-            return command;
+    condition_blocks[0] = condition_blocks[0].replace("==", "equal");
+    var statement = parse_statement(condition_blocks[0], "normal", language);
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
+    }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    statement = parse_statement(condition_blocks[1], "infix", language);
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
+    }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    statement = parse_statement(condition_blocks[2], "normal", language);
+    if (statement.hasError) {
+        command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
+        return command;
+    }
+    statement.removeTerminator();
+    command.parsedCommand += " #condition " + statement.parsedStatement;
+
+    command.parsedCommand += " #for_start"
+    command.endCommand = "#for_end;;";
+    return command;
+}
+
+/* parameter <var name> in <var name>
+parameter <var name> parameter <var name> in <var name>  
+* parameter <var name> can be declared multiple times
+
+struct_command E.g.:
+for #parameter #variable item #parameter #variable item2 #variable item_list #for_start #for_end;;*/
+function parse_for_loop_py(splitted_text: string[], language: string) {
+    var command = new structCommand("block");
+    command.parsedCommand = "for";
+
+    /* For loop must have 'condition' key word. */
+    if (splitted_text[0] != "parameter") {
+        command.logError("parameter should be first word said.");
+        return command;
+    }
+    if (splitted_text[splitted_text.length-1] == "parameter") {
+        command.logError("parameter was last word mentioned.");
+        return command;
+    }
+    /* For loop must have 'in' key word. */
+    if (!splitted_text.includes("in")) {
+        command.logError("in was not mentioned.");
+        return command;
+    }
+    if (splitted_text[splitted_text.length-1] == "in") {
+        command.logError("in was last word mentioned.");
+        return command;
+    }
+
+    /* E.g. 
+    "parameter hello in hellolist" -> [ '', ' hello in hellolist' ]
+    "parameter hello parameter yolo in hellolist" -> [ '', ' hello ', ' yolo in hellolist' ]*/
+    var parameter_block = splitted_text.join(" ").split("parameter");
+    parameter_block.splice(0, 1); // remove ''.
+    parameter_block = parameter_block.map((val) => { return val.trim(); }); // trim each element
+    
+    for (var i = 0; i < parameter_block.length; i++) {
+        command.parsedCommand += " #parameter";
+        /* Expected syntax: <var name> in <var name>*/
+        var splitted_parameter_block = parameter_block[i].split(" ");
+        if (splitted_parameter_block.includes("in")) {
+            var inIdx = splitted_parameter_block.indexOf("in");
+            var frag1 = fragment_segmenter(splitted_parameter_block.slice(0, inIdx));
+            var frag2 = fragment_segmenter(splitted_parameter_block.slice(inIdx+1));
+
+            if (frag1[0] == "not ready") {
+                command.logError("Error in fragment. " + frag1[1]);
+                return command;
+            }
+            if (frag2[0] == "not ready") {
+                command.logError("Error in fragment. " + frag2[1]);
+                return command;
+            }
+            command.parsedCommand += " " + frag1[1] + " " + frag2[1];
         }
-        if (!statement.isInfix && i == 1) {
-            command.logError("infix is required.");
-            return command;
+        else {
+            var frag = fragment_segmenter(splitted_parameter_block);
+            if (frag[0] == "not ready") {
+                command.logError("Error in fragment. " + frag[1]);
+                return command;
+            }
+            command.parsedCommand += " " + frag[1];
         }
-        statement.removeTerminator();
-        command.parsedCommand += " #condition " + statement.parsedStatement;
     }
     command.parsedCommand += " #for_start"
     command.endCommand = "#for_end;;";
     return command;
 }
+
 /* splitted_text e.g: ['main', 'with', 'return', 'type', 'int', 'begin'] or 
 ['main', 'with', 'return', 'type', 'int', 'with', 'parameter', 'int', 'length', 
 'with', 'parameter', 'int', 'array', 'numbers', 'begin'] */
@@ -210,9 +290,10 @@ function parse_function(splitted_text: string[]) {
         return command;
     }
 
-    command.parsedCommand += " " + convert2Camel(with_blocks[0].split(" ")); /* Add function name. */    
+    command.parsedCommand += " " + joinName(with_blocks[0].split(" ")); /* Add function name. */    
     command.parsedCommand += " " +  with_blocks[1].slice(12); /* Add var type. */
 
+    /* No parameter declared. */
     if (with_blocks.length == 2) {
         command.endCommand = "#function_end;;";
         command.parsedCommand += " #function_start";
@@ -263,7 +344,7 @@ function parse_switch(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = parse_fragment(splitted_text);
+    var fragment = fragment_segmenter(splitted_text);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;
@@ -279,7 +360,7 @@ function parse_case(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = parse_fragment(splitted_text);
+    var fragment = fragment_segmenter(splitted_text);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;

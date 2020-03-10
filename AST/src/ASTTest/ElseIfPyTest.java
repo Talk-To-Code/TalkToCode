@@ -20,30 +20,19 @@ import ast.ASTParser;
 
 import junit.framework.TestCase;
 
-public class IfPyTest extends TestCase {
+public class ElseIfPyTest extends TestCase {
 	private static ASTParser parser;
 	@Test
-	public void testIf() {
+	public void testElseIf() {
 		try {
-			InputStream in = new FileInputStream(new File("./input/IfInputPy.txt"));
-			BufferedReader inBR = new BufferedReader(new InputStreamReader(in));
-			FileChannel inChannel = ((FileInputStream) in).getChannel();
-			InputStream out = new FileInputStream(new File("./output/IfoutputPy.txt"));
+			InputStream in = new FileInputStream(new File("./input/ElseIfInput.txt"));
+			InputStream out = new FileInputStream(new File("./output/ElseIfOutputPy.txt"));
 			BufferedReader br = new BufferedReader(new InputStreamReader(out));
 			ArrayList<String> expectedOutput = new ArrayList<String>();
 			String temp;
 			int count = 0;
-			int[] pos = new int[10000];
-			int currentPos = 0;
-			while((temp=inBR.readLine())!=null){
-				currentPos += temp.length() + 2;
-				pos[count] = currentPos;
-				count++;
-			}
-			inChannel.position(0);
 			//parser = new ASTParser(in);
 			ASTParser.ReInit(in);
-			count = 0;
 			String currentTemp = "";
 			if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");
 			while((temp=br.readLine())!=null){
@@ -52,9 +41,7 @@ public class IfPyTest extends TestCase {
 					currentTemp = "";
 					count++;
 				}
-				if((temp.trim().length() >= 3 && temp.trim().substring(0,3).compareTo("if(") == 0) || (temp.trim().length() >= 5 && temp.trim().substring(0,5).compareTo("else:") == 0)) currentTemp = currentTemp.concat(temp + "\n");
-				else if(temp.compareTo("") == 0) continue;
-				else currentTemp = currentTemp.concat(temp + "\n\n");
+				currentTemp = currentTemp.concat(temp + "\n");
 			}
 			count++;
 			expectedOutput.add(currentTemp);
@@ -65,10 +52,6 @@ public class IfPyTest extends TestCase {
 					testNo++;
 				} catch (Exception ex){
 					//ex.printStackTrace();
-					assertThat(ex.getMessage(), containsString("Not supported in Python"));
-					inChannel.position(pos[testNo]);
-					ASTParser.ReInit(in);
-					testNo++;
 				}
 			}
 		} catch(IOException e){

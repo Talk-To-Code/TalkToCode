@@ -1,0 +1,3 @@
+#lambda #function print(#parameter #value "Hi!\n") #lambda_end;;
+#lambda a #variable a + #value 1 #lambda_end;;
+#lambda a b #variable a - #variable b #lambda_end;;

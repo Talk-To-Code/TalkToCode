@@ -35,7 +35,7 @@ public class ASTClassP extends ASTClass {
 			for(int j = 0; j < this.indent; j++) this.result+="\t";
 			this.result += "\t";
 			this.result += s.toSyntax();
-			this.result += "\n";
+			if(s instanceof ASTSimpleStatement || s instanceof ASTComment) this.result += "\n";
 		}
 		return this.result;
 	}
