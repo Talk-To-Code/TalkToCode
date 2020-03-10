@@ -3,9 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-import { compress_name } from './compress_name';
 import { getUserSpecs } from './user_specs'
-import { runTestCases, test_function } from './tester'
 const {spawn} = require('child_process');
 
 var code_segments = [""];
