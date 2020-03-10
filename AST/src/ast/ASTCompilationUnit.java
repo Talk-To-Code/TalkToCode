@@ -20,14 +20,7 @@ public class ASTCompilationUnit extends ASTNode {
 		this.statements.add(s);
 		s.addParent(this);
 	}
-
-	public List<String> getStatements(){
-		List<String> stringStatements = new ArrayList<>();
-		for (ASTStatement s: statements){
-			stringStatements.add(s.toSyntax());
-		}
-		return stringStatements;
-	}
+	
 	//virtual method
 	public String toSyntax(){
 		this.result = "";

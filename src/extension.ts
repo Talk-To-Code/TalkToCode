@@ -71,7 +71,7 @@ function initManager() {
 }
 
 function listen() {
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
@@ -159,6 +159,10 @@ function map_lines_to_code(){
 function writeToEditor(code: string) {
 	code_segments = code.split("\n");
 	map_lines_to_code();
+	for (var i=0;i<count_lines.length;i++){
+		console.log("DEBUG LINE COUNTS: ");
+		console.log(count_lines[i]);
+	}
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {

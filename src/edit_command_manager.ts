@@ -5,11 +5,13 @@ export class EditCommandManager {
     manager: StructCommandManager
     code_segments: string[]
     line_counts: number[]
+    cut_copy_buffer: string[]
 
     constructor(manager: StructCommandManager, code_segments: string[], line_counts: number[]) {
         this.manager = manager;
         this.code_segments = code_segments;
         this.line_counts = line_counts;
+        this.cut_copy_buffer = [""];
     }
 
     checkAll(transcribedWord: String, code_segments:string[], line_counts: number[]){
@@ -23,12 +25,13 @@ export class EditCommandManager {
         this.check_if_comment_block(transcribedWord);
         this.check_if_rename_function(transcribedWord);
         this.check_if_rename_variable(transcribedWord);
+        this.check_if_cut_block(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
         var arr = text.toLowerCase().split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"){
             return true;
         }
         return false;
@@ -139,7 +142,7 @@ export class EditCommandManager {
         }
     }
 
-    //WORKS
+    //WORKS NOT ON BLOCKS
      check_if_comment_line(text: String) {
         var arr = text.split(" ");
         if (arr[0]== "comment" && arr[1] == "line"){
@@ -152,22 +155,26 @@ export class EditCommandManager {
         }      
     }
 
+    //WORKS
     check_if_comment_block(text:String){
         var arr = text.split(" ");
         if (arr[0]=="comment" && arr[1]=="block"){
+            console.log("IN HERE TO COMMENT BLOCK: "+text);
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 let document = editor.document;
-                var line_num = parseInt(arr[5])-1;
-                var line = document.lineAt(line_num).text.trimLeft();
+                var line_num = parseInt(arr[5]);
+                var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
                 var count_block = 0;
-                 if (line.startsWith(block_name)){
-                    var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                if (line.startsWith(block_name)){
+                    var index = this.binarySearch(line_num,0,this.line_counts.length);
+                    if (index==-1) return;
+
                     start = index;
                     for (var i=index;i<this.manager.struct_command_list.length;i++){
                         if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
@@ -183,13 +190,12 @@ export class EditCommandManager {
                                 count_block--;
                             }
                         }
-
                     }
-                  
-                    if (!this.manager.struct_command_list[start].startsWith("#comment")){
-                            this.manager.struct_command_list[start] = "#comment " + line 
-                            this.manager.struct_command_list[end] = line + " #comment_end;;";  
-                    }
+                    console.log("START: "+start+" END: "+end);
+                    this.manager.struct_command_list[start] = "#comment " +  this.manager.struct_command_list[start]
+                    this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + " #comment_end;;";  
+                    console.log("START OF BLOCK: "+this.manager.struct_command_list[start]);
+                    console.log("END OF BLOCK: "+this.manager.struct_command_list[end]);
                 }
             }
         }
@@ -242,8 +248,54 @@ export class EditCommandManager {
         }
     }
 
+    check_if_paste(text:String){
 
+    }
 
+    check_if_cut_block(text: String) {
+        var arr = text.split(" ");
+        if (arr[0]=="cut" && arr[1]=="block"){
+            this.cut_copy_buffer = [""];
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                let document = editor.document;
+                var line_num = parseInt(arr[5]);
+                var line = document.lineAt(line_num-1).text.trimLeft();
+                var start = -1;
+                var end = -1;
+                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            
+                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
+                var count_block = 0;
+                 if (line.startsWith(block_name)){
+                    var index = this.binarySearch(line_num,0,this.line_counts.length);
+                    if (index==-1) return;
+
+                    start = index;
+                    for (var i=index;i<this.manager.struct_command_list.length;i++){
+                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
+                            count_block++;
+                        }
+
+                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
+                            if (count_block==0){
+                                end = i;
+                                break;
+                            }
+                            else if (count_block>0){
+                                count_block--;
+                            }
+                        }
+                    }
+
+                    for (var j=start;j<=end;j++){
+                        this.cut_copy_buffer[j-start]=this.manager.struct_command_list[j];
+                    }
+                    this.manager.struct_command_list.splice(start,(end-start)+1);
+                }
+            }
+        }
+    }
     check_if_insert_before_block(text: String) {
         var arr = text.split(" ");
         var temp = 0;
@@ -270,5 +322,9 @@ export class EditCommandManager {
                 
             }
         }
-    }    
+    }
+    
+    compute_start_end(){
+
+    }
 }
