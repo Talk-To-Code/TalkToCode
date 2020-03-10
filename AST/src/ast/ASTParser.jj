@@ -73,11 +73,7 @@
   }
 | n = < IS >
   {    return n.image;
-  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{
-  n = < STAR >
-  {    return n.image;
-  }
-|   n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
+  }| n = < BIT_AND >  {    return n.image;  }| n = < BIT_OR >  {    return n.image;  }| n = < XOR >  {    return n.image;  }| n = < REM >  {    return n.image;  }| n = < SHIFT_LEFT >  {    return n.image;  }| n = < SHIFT_RIGHT >  {    return n.image;  }}String compoundOperators() :{  Token n;}{  n = < PLUSASSIGN >  {    return n.image;  }| n = < MINUSASSIGN >  {    return n.image;  }| n = < STARASSIGN >  {    return n.image;  }| n = < SLASHASSIGN >  {    return n.image;  }| n = < REMASSIGN >  {    return n.image;  }| n = < ORASSIGN >  {    return n.image;  }| n = < ANDASSIGN >  {    return n.image;  }| n = < XORASSIGN >  {    return n.image;  }}String prefixOperators() :{  Token n;}{  n = < BANG >  {    return n.image;  }| n = < TILDE >  {    return n.image;  }| n = < BIT_AND >  {    return n.image;  }
 | n = < PY_NOT >
   {    return n.image;
   }}String incrDecrOperators() :{  Token n;}{  n = < INCR >  {    return n.image;  }| n = < DECR >  {    return n.image;  }}String catchModifier() :{  Token n;}{  n = < ABSTRACT >  {    return n.image;  }| n = < PRIVATE >  {    return n.image;  }| n = < PROTECTED >  {    return n.image;  }| n = < PUBLIC >  {    return n.image;  }| n = < STATIC >  {    return n.image;  }| n = < FINAL >  {    return n.image;  }| n = < SYNCHRONIZED >  {    return n.image;  }| n = < VOLATILE >  {    return n.image;  }| n = < CONST >  {    return n.image;  }}ASTExpressionUnitLiteral value(programType pType) :{  Token n;  Token sign;  ASTExpressionUnitLiteral valueNode;}{  n = < INTEGER_LITERAL >  {    valueNode = new ASTExpressionUnitLiteral(n.image);    //System.out.println(valueNode.print());
@@ -89,7 +85,8 @@
   	{
   	  return n.image;
   	}  )}String types_C() :{  String token;  String result = "";  Token n;}{  (< STRUCT >)? n = < IDENTIFIER >  {    return n.image + " ";  }|  (    token = primitive_typesC()    {      result += token + " ";    }  )+  {    return result;  }}String typesJ() :{  String type;  Token n;}{  n = < IDENTIFIER >  {    return n.image;  }| type = primitive_typesJ()  {    return type;  }}ASTDeclarationStatement create_variable(programType pType) :{  String type_token = "";  Token name;  String id;
-  ASTExpressionUnitAccess access;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
+  ASTExpressionUnitAccess access;
+  ASTExpressionUnitPointer p;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
   (    type_token = types_C()
   )?  {
     switch (pType) {
@@ -105,6 +102,11 @@
 	  	break;
 	 }  }  (    (
       (        id = variable()
+      | p = pointer(pType)
+      	{
+      	  if(pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");
+      	  id = p.toSyntax();
+      	}
       | access = access(pType)
       	{
       	  if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
@@ -224,11 +226,34 @@ ASTExpressionUnitFunctionCall func(programType pType) :
     return call;
   }
 }
+
+ASTExpressionUnitPointer pointer(programType pType) :
+{
+  ASTExpression exp;
+}
+{
+  (
+    < STAR >
+    {
+      if(pType != programType.C) throw new ParseException("Not supported in Java and Python!");
+    }
+    exp = fragment(pType)
+    {
+      return new ASTExpressionUnitPointer((ASTExpressionUnit) exp);
+    }
+  )
+}
 ASTExpression fragment(programType pType) :{  Token var = new Token();  String id;  Token check = new Token();  ASTExpressionUnitLiteral v = new ASTExpressionUnitLiteral();  ASTExpression parameters = new ASTExpression();  ASTExpression result = new ASTExpression();
   Token identifier = new Token();
   ASTExpressionUnitAccess access;
   ASTExpressionUnitFunctionCall call;
-  ASTExpressionUnitLambda lambda;}{  (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
+  ASTExpressionUnitLambda lambda;
+  ASTExpressionUnitPointer p;}{
+  p = pointer(pType)
+  {
+    return p;
+  }
+|   (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
     return v;  }| id = variable()  {    return new ASTExpressionUnitIdentifier(id);  }|  call = func(pType)  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
     ASTExpressionUnitLiteral key;
     ASTExpression value;  }
@@ -316,7 +341,8 @@ ASTExpressionUnitFunctionCall func(programType pType) :
     return result;  }}ASTExpression postfix_expression(programType pType) :{  String operator;  Token var;}{  < POST > < VARIABLE > var = < IDENTIFIER > operator = incrDecrOperators()  {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(var.image);    ASTExpressionPostfixOperation result = new ASTExpressionPostfixOperation(operator, i);    return result;  }}ASTExpression expression(programType pType) :{  ASTExpression result1;  ASTExpression result2;  ASTExpression result3;  ASTExpression result4;}{  (    result1 = prefix_expression(pType)    {      return result1;    }  | result2 = infix_expression(pType)    {      return result2;    }  | result3 = postfix_expression(pType)    {      return result3;    }  )| result4 = assignment(pType)  {    return result4;  }}ASTExpression assignment(programType pType) :{  ASTExpression term;  Token operator;  ASTExpression exp;  String op;}{  < ASSIGNMENT > term = fragment(pType)  {}  (    token = < WITH >    {      op = "=";    }  | op = compoundOperators()  )  exp = expression(pType)  {    ASTExpressionAssignment result = new ASTExpressionAssignment(term, exp, op);    return result;  }}/*Block Statement*/ASTStructDeclaration structDeclareStatement(ASTNode parent, programType pType, int indent) :{  Token name;  ASTDeclarationStatement attribute;}{  < STRUCT_DEC > name = < IDENTIFIER >  {
     if (pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    ASTStructDeclaration result = new ASTStructDeclaration(name.image);
-    result.setIndent(indent);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatement(ASTNode parent, programType pType, int indent) :{  String modifier;  String returnType;  Token name;  String parameterType = "";  Token parameterName;  ASTStatement s;  Token dimension;
+    result.setIndent(indent);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatement(ASTNode parent, programType pType, int indent) :{  String modifier;  String returnType;  Token name;  String parameterType = "";  Token parameterName;
+  ASTExpressionUnitPointer p;  ASTStatement s;  Token dimension;
   ASTFunction result;}{  < FUNCTION_DEC > name = < IDENTIFIER >  {
     switch (pType) {
       case C:
@@ -337,16 +363,41 @@ ASTExpressionUnitFunctionCall func(programType pType) :
 	      if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
 	    }
       )?
-      parameterName = < IDENTIFIER >      {
-        if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");        ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);        ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);		switch (pType) {
-	      case C:
-        	((ASTFunctionC) result).addParameter(t, i);
-	      	break;
-	      case P:
-	      	((ASTFunctionP) result).addParameter(i);
-	      	break;
-	    }      }    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY > parameterName = < IDENTIFIER >      {
-        if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));        ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);        ((ASTFunctionC) result).addParameter(type, id);      }    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {
+      (        parameterName = < IDENTIFIER >
+        {
+          if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");
+          ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);
+          ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);
+          switch (pType) {
+            case C:
+            	((ASTFunctionC) result).addParameter(t, i);
+	      		break;
+	      	case P:
+	      		((ASTFunctionP) result).addParameter(i);
+	      		break;
+	     }
+	   }
+	 | p = pointer(pType)
+	   {
+	     if(pType != programType.C) throw new ParseException("Not Supported in Java and Python!\n");
+	     if(parameterType == "") throw new ParseException("Must declare type in C!\n");
+	     t = new ASTExpressionUnitTypes(parameterType);
+         i = new ASTExpressionUnitIdentifier(p.toSyntax());
+         ((ASTFunctionC) result).addParameter(t, i);
+       }
+	 )    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY >      {
+        if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));      }
+      (        parameterName = < IDENTIFIER >
+        {
+          ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);
+          ((ASTFunctionC) result).addParameter(type, id);
+        }
+      | p = pointer(pType)
+      	{
+      	  id = new ASTExpressionUnitIdentifier(p.toSyntax());
+          ((ASTFunctionC) result).addParameter(type, id);
+        }
+      )    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {
       if (!s.toSyntax().equals("\n"))
       {
         result.addStatement(s);      	//System.out.println(s.toSyntax());
