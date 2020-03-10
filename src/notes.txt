@@ -7,7 +7,6 @@ list of struct commands.
 As of now, cannot parse integer array with assignment.
 e.g. int mark[5] = {19, 10, 8, 17, 9}
 
-
 #c_program SampleProgram #include "stdio h";; #create int #variable hello #value 5 #dec_end;;
 for #condition #assign #variable I #with #value 0 #condition #variable is < #value 5 #condition #post #variable I ++ #for_start
 #create int #variable first #value 0 #dec_end;;
@@ -30,6 +29,4 @@ brackets for if block - "group" command
 infix conditions still not really extendable yet.
 
 maybe add a spelling command.
-
-
 

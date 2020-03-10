@@ -2,11 +2,15 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
+import { EditCommandManager } from './edit_command_manager';
 import { getUserSpecs } from './user_specs'
-import { runTestCases, test_function } from './tester'
 const {spawn} = require('child_process');
 
+var code_segments = [""];
+var count_lines= [0];
 var manager: StructCommandManager;
+var editManager: EditCommandManager;
+
 var codeBuffer = "";
 var errorFlag = false;
 var language = "";
@@ -32,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
 		// test_function();
@@ -61,14 +65,23 @@ function initManager() {
 	else language = "c";
 
 	manager = new StructCommandManager(language);
+	editManager =  new EditCommandManager(manager, code_segments, count_lines);
 }
 
 function listen() {
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
+
+		else if (editManager.check_if_edit_command(transcribed_word)){
+			console.log("IN HERE TO EDIT");
+			editManager.checkAll(transcribed_word, code_segments,count_lines);
+			writeToEditor(manager.managerStatus());
+			displayCode(manager.struct_command_list);
+		}
+
 		else {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 			errorFlag = false;
@@ -76,7 +89,7 @@ function listen() {
 
 			manager.parse_speech(transcribed_word);
 			writeToEditor(manager.managerStatus());
-			// displayCode(manager.struct_command_list);
+			displayCode(manager.struct_command_list);
 		}
 	});
 }
@@ -100,7 +113,8 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-            var data_segments = codeBuffer.split("#include");
+			var data_segments = codeBuffer.split("#include");
+			console.log("DEBUG IN EXTENSION: "+data_segments);
 			var idxOfAST = data_segments[1].indexOf("ASTNode");
 			codeBuffer = ""; // clear code stream
 			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
@@ -112,7 +126,42 @@ function displayCode(struct_command_list: string[]) {
 	});
 }
 
+function checkIfFunctionPrototype(text1: string, text2: string){
+	if (text2.endsWith(";")){
+		text2 = text2.substring(0,text2.length-1); 
+	} 
+	if (text1.indexOf(text2)!=-1){
+		return true;
+	}
+}
+
+function map_lines_to_code(){
+	count_lines = [];
+	var count =0;
+	var j =0;
+	for (var i=0;i<code_segments.length;i++){
+		if (code_segments[i].startsWith("#include") || code_segments[i]==""){
+			count++;
+		}
+		else if (i< code_segments.length-1 && checkIfFunctionPrototype(code_segments[i+1], code_segments[i])){
+			count++;
+		}
+		else {
+			count++;
+			count_lines[j]=count;
+			j++;
+		}
+	}
+}
+
 function writeToEditor(code: string) {
+	code_segments = code.split("\n");
+	map_lines_to_code();
+	for (var i=0;i<count_lines.length;i++){
+		console.log("DEBUG LINE COUNTS: ");
+		console.log(count_lines[i]);
+	}
+
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
 		/* Get range to delete */
