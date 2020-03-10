@@ -11,9 +11,9 @@ int  main(){
 
 	p.y = 2;
 
-	printf("%d\n",p.x);
+	printf("%d\n", p.x);
 
-	printf("%d\n",p.y);
+	printf("%d\n", p.y);
 
 	return 0;
 

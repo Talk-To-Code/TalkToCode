@@ -5,6 +5,7 @@ def my_function():
 
 	return 
 
+
 def main():
 	print("Main function.\n")
 
@@ -13,4 +14,5 @@ def main():
 	print("Back in function main.\n")
 
 	return 
+
 

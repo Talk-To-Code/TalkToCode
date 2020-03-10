@@ -9,7 +9,6 @@ def main():
 	else:
 		print("x is not equal to one.\n")
 
-
-
 	return 
+
 

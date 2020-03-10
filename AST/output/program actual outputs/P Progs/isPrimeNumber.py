@@ -1,7 +1,7 @@
 import sys
 
 def main():
-	n,c = 0,2
+	n, c = 0, 2
 
 	print("Enter an integer\n")
 
@@ -11,11 +11,9 @@ def main():
 		print("Prime number.\n")
 
 	else:
-		for c in range(2,n):
+		for c in range(2, n):
 			if(n % c == 0):
 				break
-
-
 
 		if(c != n):
 			print("Not prime.\n")
@@ -23,9 +21,6 @@ def main():
 		else:
 			print("Prime number.\n")
 
-
-
-
-
 	return 
+
 

@@ -1,0 +1,36 @@
+if(hello > 4):
+	x = 2
+
+elif(x > 2):
+	y = 4
+
+if(hello > 4):
+	x = 2
+
+elif(x > 2):
+	y = 4
+
+elif(q > 3):
+	z = 9
+
+if(hello > 4):
+	x = 2
+
+elif(x > 2):
+	y = 4
+
+elif(q > 3):
+	z = 9
+
+else:
+	d = 0
+
+if(hello > 4):
+	x = 2
+
+elif(q > 3):
+	z = 9
+
+else:
+	d = 0
+

@@ -3,19 +3,21 @@ import java.util.*;
 
 /**
  * @author GAO RISHENG A0101891L
- * This class is mainly for construction of AST nodes representing a constant array in C/Java/Python
+ * This class is mainly for construction of AST nodes representing a constant array in C/Java
+ * or a list/set/tuple in Python
  * Program and its respective syntax generation
  *
  */
 public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
+	public enum bracketType { CURLY, SQUARE, ROUND };
+	
 	private static final String NODE_TYPE = "Array";
 	private ArrayList<ASTExpression> entries;
-	private int size;
+	private bracketType bType;
 	
-	
-	public ASTExpressionUnitLiteralArray(){
+	public ASTExpressionUnitLiteralArray(bracketType bTyp){
 		super();
-		initialize();
+		initialize(bTyp);
 	}
 
 	public void addValue(String value){
@@ -27,47 +29,64 @@ public class ASTExpressionUnitLiteralArray extends ASTExpressionUnitLiteral{
 		this.entries.add(exp);
 		exp.parent = this;
 	}
-	private void initialize() {
+	private void initialize(bracketType bTyp) {
 		this.entries = new ArrayList<ASTExpression>();
-		this.size = entries.size();
+		this.bType = bTyp;
 	}
 	public String typeof(){
 		return super.typeof()+"->"+NODE_TYPE;
 	}
 	
-	public String toSyntax(int programmingLanguageSyntax) throws Exception{
-		switch(programmingLanguageSyntax){
-		case INDEX_C:
-		case INDEX_JAVA:
+	public String toSyntax() {
+		return toSyntax(this.bType);
+	}
+	
+	public String toSyntax(bracketType bTyp) {
+		switch(bType){
+		case CURLY:
 		{
 			this.result = "";
 			this.result += "{";
 			int index = 0;
-			for(;index<size-1;index++){
+			for(;index<this.entries.size()-1;index++){
 				this.result+= this.entries.get(index).toSyntax();
 				this.result+= ", ";
 			}
-			this.result+= this.entries.get(index).toSyntax();
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
 			this.result += "}";
 			if(this.isQuoted) quote();
 			return this.result;
 		}
-		case INDEX_PYTHON:
+		case SQUARE:
 		{
 			this.result = "";
 			this.result += "[";
 			int index = 0;
-			for(;index<size-1;index++){
+			for(;index<this.entries.size()-1;index++){
 				this.result+= this.entries.get(index).toSyntax();
 				this.result+= ", ";
 			}
-			this.result+= this.entries.get(index).toSyntax();
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
 			this.result += "]";
 			if(this.isQuoted) quote();
 			return this.result;
 		}
+		case ROUND:
+		{
+			this.result = "";
+			this.result += "(";
+			int index = 0;
+			for(;index<this.entries.size()-1;index++){
+				this.result+= this.entries.get(index).toSyntax();
+				this.result+= ", ";
+			}
+			if(this.entries.size() > 0) this.result+= this.entries.get(index).toSyntax();
+			this.result += ")";
+			if(this.isQuoted) quote();
+			return this.result;
+		}
 		default:
-			throw new Exception("Not supported Programming Language.");
+			return "";
 		}
 		
 	}

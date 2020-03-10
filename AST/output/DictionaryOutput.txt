@@ -1,0 +1,3 @@
+{}
+{1 : "Egg", 2.2 : 'e', True : 2, 'a' : 2.3, "tom" : False}
+{32 : [4, "Hello"], 'a' : {'w', True}, 5.6 : (8.69, "bye"), "each" : {4.3 : 's', "see" : True}}

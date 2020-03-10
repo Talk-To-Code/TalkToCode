@@ -1,0 +1,20 @@
+with MyClass("Hi"):
+	print(i)
+
+	y += 1
+
+with MyClass("Hi") as c:
+	print(i)
+
+	y += 1
+
+with MyClass("Hi"), self.otherObj as o:
+	print(i)
+
+	y += 1
+
+with MyClass("Hi") as c, self.otherObj as o:
+	print(i)
+
+	y += 1
+

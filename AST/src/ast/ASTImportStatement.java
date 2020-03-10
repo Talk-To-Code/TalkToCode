@@ -7,7 +7,7 @@ package ast;
 public class ASTImportStatement extends ASTSimpleStatement{
 	private static final String NODE_TYPE = "Import Statement";
 	protected ASTExpression packageName;
-	public ASTImportStatement(ASTExpression p){
+	public ASTImportStatement(ASTExpressionUnitLiteral p){
 		super();
 		this.packageName = p;
 		p.addParent(this);

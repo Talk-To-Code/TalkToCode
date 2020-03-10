@@ -1,0 +1,4 @@
+for #parameter #variable i #function range(#parameter #value 3) #for_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #for_end;;
+for #parameter #variable i #function range(#parameter #value 3) #else_branch_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #else_branch_end #for_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #for_end;;
+for #parameter #variable i #variable list #for_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #for_end;;
+for #parameter #variable j #parameter #variable i #function #access dict items #access_end () #for_start #function print (#parameter #variable i);; #assign #variable y += #value 1;; #for_end;;

@@ -1,0 +1,351 @@
+#p_program SampleCode
+#include "sys";;
+#include "socket";;
+from "Crypto" #include "Random";;
+from "Crypto.Cipher" #include "AES";;
+#include "base64";;
+#include "serial";;
+#include "threading";;
+#include "time";;
+#include "queue";;
+#include "pandas" as pd #include "numpy" as np;;
+from "sklearn.externals" #include "joblib";;
+#include "pickle";;
+from "scipy" #include "stats";;
+#create #variable mlp_model #function #access joblib load #access_end (#parameter #value "ML_Models/mlp_10move_updated.pkl") #dec_end;;
+#create #variable windowSize #value 54 #dec_end;;
+#create #variable X_columns {#list #parameter #value "accLH_x" #parameter #value "accLH_y" #parameter #value "accLH_z" #parameter #value "gyrLH_x" #parameter #value "gyrLH_y" #parameter #value "gyrLH_z" #parameter #value "accRH_x" #parameter #value "accRH_y" #parameter #value "accRH_z" #parameter #value "gyrRH_x" #parameter #value "gyrRH_y" #parameter #value "gyrRH_z" #parameter #value "accRL_x" #parameter #value "accRL_y" #parameter #value "accRL_z"} #dec_end;;
+#create #variable feature_columns {#list #parameter #value "accLH_x_mean" #parameter #value "accLH_y_mean" #parameter #value "accLH_z_mean" #parameter #value "gyrLH_x_mean" #parameter #value "gyrLH_y_mean" #parameter #value "gyrLH_z_mean" #parameter #value "accRH_x_mean" #parameter #value "accRH_y_mean" #parameter #value "accRH_z_mean" #parameter #value "gyrRH_x_mean" #parameter #value "gyrRH_y_mean" #parameter #value "gyrRH_z_mean" #parameter #value "accRL_x_mean" #parameter #value "accRL_y_mean" #parameter #value "accRL_z_mean"} #dec_end;;
+#create #variable data_packet_list {#list} #dec_end;;
+class Client #parent #access threading Thread #access_end
+#class_start
+#function_declare __init__ #parameter self #parameter serverName #parameter serverPort #parameter dataQueue #parameter volCurPowQueue
+#function_start
+#function #access threading Thread __init__ #access_end (#parameter #variable self);;
+#create #access self shutdown #access_end #function #access threading Event #access_end() #dec_end;;
+#create #access self clientSocket #access_end #function #access socket socket #access_end (#parameter #access socket AF_INET #access_end #parameter #access socket SOCK_STREAM #access_end) #dec_end;;
+#function #access self clientSocket connect #access_end (#parameter {#tuple #parameter #variable serverName #parameter #variable serverPort});;
+#create #access self predictionReady #access_end #value false #dec_end;;
+#create #access self predictedAction #access_end #value "" #dec_end;;
+#create #access self dataQueue #access_end #variable dataQueue #dec_end;;
+#create #access self volCurPowQueue #access_end #variable volCurPowQueue #dec_end;;
+#create #access self moveCounter #access_end #value 0 #dec_end;;
+#function_end;;
+#function_declare run #parameter self
+#function_start
+#create #variable prediction {#list} #dec_end;;
+while #condition not #function #access self shutdown is_set #access_end()
+#while_start
+#comment
+#value "to remove; timing check";;
+#comment_end;;
+if #condition #function #access self dataQueue empty #access_end()
+#if_branch_start
+#create #variable queue_start_time #function #access time time #access_end() #dec_end;;
+#if_branch_end;;
+if #condition #function #access self dataQueue full #access_end()
+#if_branch_start
+#function print(#parameter #value "---Queue took %s seconds to fill ---" % (#function #access time time #access_end() - #variable queue_start_time));;
+#function print(#parameter #value "------------------");;
+#function #access prediction append #access_end (#parameter #function #access self predictAction #access_end());;
+#function #access self setPredictionReady #access_end (#parameter #variable prediction);;
+if #condition #access self predictionReady #access_end
+#if_branch_start
+#function #access prediction clear #access_end();;
+if #condition #access self predictedAction #access_end != #value "neutral"
+#if_branch_start
+if #condition #access self predictedAction #access_end == #value "endmove"
+#if_branch_start
+if #condition #access self moveCounter #access_end > #value 38
+#if_branch_start
+#assign #access self predictedAction #access_end #with #value "logout";;
+#if_branch_end
+#else_branch_start
+continue;;
+#else_branch_end;;
+#if_branch_end
+#else_branch_start
+#assign #access self moveCounter #access_end += #value 1;;
+#else_branch_end;;
+#assign #variable volCurPow #with #function #access self volCurPowQueue get #access_end();;
+#create #variable data {#list #parameter #access self predictedAction #access_end #parameter #array volCurPow #indexes #value 0 #index_end #parameter #array volCurPow #indexes #value 1 #index_end #parameter #array volCurPow #indexes #value 2 #index_end #parameter #array volCurPow #indexes #value 3 #index_end} #dec_end;;
+#function #access self sendData #access_end (#parameter #variable data);;
+#function print(#parameter #value "Dance Move is: " + #function str(#parameter #access self predictedAction #access_end) + #value "\n");;
+#if_branch_end;;
+#if_branch_end;;
+#if_branch_end;;
+#while_end;;
+#function_end;;
+#function_declare stop #parameter self
+#function_start
+#function #access self clientSocket close #access_end();;
+#function #access self shutdown set #access_end();;
+#function_end;;
+#function_declare sendData #parameter self #parameter data
+#function_start
+#create #variable iv #function #access Random get_random_bytes #access_end (#parameter #value 16) #dec_end;;
+#create #variable message #value "#" #dec_end;;
+for #parameter #variable i #function range(#parameter #value 4)
+#for_start
+#assign #variable message += #function str(#parameter #array data #indexes #variable i #index_end) + #value "|";;
+#for_end;;
+#assign #variable message += #function str(#parameter #array data #indexes #value 4 #index_end);;
+#create #variable secret_key #function bytes(#parameter #value "1234567890abcdef" #parameter #value "utf-8") #dec_end;;
+#create #variable aesCipher #function #access AES new #access_end (#parameter #variable secret_key #parameter #access AES MODE_CBC #access_end #parameter #variable iv) #dec_end;;
+#create #variable padding #access AES block_size #access_end - (#function len(#parameter #variable message) % #access AES block_size #access_end) #dec_end;;
+if #condition #variable padding == #access AES block_size #access_end
+#if_branch_start
+#assign #variable padding #with #value 0;;
+#if_branch_end;;
+for #parameter #variable i #function range(#parameter #variable padding)
+#for_start
+#assign #variable message += #value " ";;
+#for_end;;
+#create #variable encryptedMsg #variable iv + #function #access aesCipher encrypt #access_end (#parameter #variable message) #dec_end;;
+#create #variable b64CipherMsg #function #access base64 b64encode #access_end (#parameter #variable encryptedMsg) #dec_end;;
+try
+#function #access self clientSocket sendall #access_end (#parameter #variable b64CipherMsg);;
+catch
+#catch_start
+#function print(#parameter #value "Request timed out");;
+#catch_end
+else
+#function print(#parameter #value "Request didn't time out");;
+#else_branch_end
+finally
+#function print(#parameter #value "FINALLY!");;
+#finally_end;;
+if #condition #access self predictedAction #access_end == #value "logout"
+#if_branch_start
+#function #access self stop #access_end();;
+#if_branch_end;;
+#function_end;;
+#function_declare predictAction #parameter self
+#function_start
+#create #variable predict_start_time #function #access time time #access_end() #dec_end;;
+#function #access data_packet_list clear #access_end();;
+for #parameter #variable i #function range(#parameter #value 100)
+#for_start
+#create #variable data_points #function #access self dataQueue get #access_end() #dec_end;;
+#function #access data_packet_list append #access_end (#parameter #variable data_points);;
+#for_end;;
+#create #variable data_df #function #access pd DataFrame #access_end (#parameter #variable data_packet_list #parameter #variable X_columns columns) #dec_end;;
+#create #variable feature_df #function #access pd DataFrame #access_end (#parameter #variable feature_columns columns) #dec_end;;
+#assign #array feature_df #indexes #value "accLH_x_mean" #index_end #with #function #access #array data_df #indexes #value "accLH_x" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accLH_y_mean" #index_end #with #function #access #array data_df #indexes #value "accLH_y" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accLH_z_mean" #index_end #with #function #access #array data_df #indexes #value "accLH_z" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrLH_x_mean" #index_end #with #function #access #array data_df #indexes #value "gyrLH_x" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrLH_y_mean" #index_end #with #function #access #array data_df #indexes #value "gyrLH_y" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrLH_z_mean" #index_end #with #function #access #array data_df #indexes #value "gyrLH_z" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRH_x_mean" #index_end #with #function #access #array data_df #indexes #value "accRH_x" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRH_y_mean" #index_end #with #function #access #array data_df #indexes #value "accRH_y" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRH_z_mean" #index_end #with #function #access #array data_df #indexes #value "accRH_z" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrRH_x_mean" #index_end #with #function #access #array data_df #indexes #value "gyrRH_x" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrRH_y_mean" #index_end #with #function #access #array data_df #indexes #value "gyrRH_y" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "gyrRH_z_mean" #index_end #with #function #access #array data_df #indexes #value "gyrRH_z" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRL_x_mean" #index_end #with #function #access #array data_df #indexes #value "accRL_x" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRL_y_mean" #index_end #with #function #access #array data_df #indexes #value "accRL_y" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#assign #array feature_df #indexes #value "accRL_z_mean" #index_end #with #function #access #array data_df #indexes #value "accRL_z" #index_end #function rolling(#parameter #variable windowSize window) mean #access_end();;
+#function #access feature_df dropna #access_end (#parameter #value true inplace);;
+#create #variable prediction #function #access mlp_model predict #access_end (#parameter #variable feature_df) #dec_end;;
+#comment #value "For immediate prediction";; #comment_end;;
+#create #variable prediction_list #function list(#parameter #variable prediction) #dec_end;;
+#create #variable final_prediction #function max(#parameter #function set(#parameter #variable prediction_list) #parameter #access prediction_list count #access_end key) #dec_end;;
+#function print(#parameter #value "Initial prediction is: " + #function str(#parameter #variable final_prediction));;
+#function print(#parameter #value "---Prediction took %s seconds ---" % (#function #access time time #access_end() - #variable predict_start_time));;
+#function print(#parameter #value "------------------");;
+#comment #value "return prediction";; #comment_end;;
+return #parameter #variable final_prediction;;
+#function_end;;
+#function_declare setPredictionReady #parameter self #parameter prediction
+#function_start
+#create #variable set_pre_start_time #function #access time time #access_end() #dec_end;;
+#create #variable predictionReady #value false #dec_end;;
+#create #variable mode #value "neutral" #dec_end #variable count #value 0 #dec_end;;
+if #condition #function len(#parameter #variable prediction) >= #value 3
+#if_branch_start
+#assign #variable mode #with #function max(#parameter #function set(#parameter #variable prediction) #parameter #access prediction count #access_end key);;
+#function print(#parameter #value "Prediction Ready!");;
+#function print(#parameter #value "Prediction List is: " + #function str(#parameter #variable prediction));;
+#assign #variable predictionReady #with #value true;;
+#comment #value "for prediction after many counts";; #comment_end;;
+#comment #create #variable combined_arr #function #access np concatenate #access_end (#parameter #variable prediction #parameter #value 0 axis) #dec_end;; #comment_end;;
+#comment #create #variable mode_res #function #access stats mode #access_end (#parameter #variable combined_arr) #dec_end;; #comment_end;;
+#comment #assign #variable count #with #array mode_res #indexes #value 1 #index_end;; #comment_end;;
+#comment
+if #condition #variable count > #value 50
+#if_branch_start
+#function print(#parameter #value "Prediction Ready!");;
+#assign #variable mode #with #array mode_res #indexes #value 0 #index_end;;
+#assign #variable predictionReady #with #value true;;
+#if_branch_end;;
+#comment_end;;
+#if_branch_end
+#else_branch_start
+#function print(#parameter #value "Prediction Not Ready.");;
+#else_branch_end;;
+#assign #access self predictedAction #access_end #with #variable mode;;
+#assign #access self predictionReady #access_end #with #variable predictionReady;;
+#function print(#parameter #value "---Setting prediction ready took %s seconds ---" % (#function #access time time #access_end() - #variable set_pre_start_time));;
+#function print(#parameter #value "------------------");;
+#function_end;;
+#class_end;;
+class Serial #parent #access threading Thread #access_end
+#class_start
+#function_declare __init__ #parameter self #parameter clientThread #parameter dataQueue #parameter volCurPowQueue
+#function_start
+#function #access threading Thread __init__ #access_end (#parameter #variable self);;
+#create #access self shutdown #access_end #function #access threading Event #access_end() #dec_end;;
+#create #access self isHandShakeDone #access_end #value false #dec_end;;
+#create #access self port #access_end #function #access serial Serial #access_end (#parameter #value "/dev/ttyAMA0" #parameter #value 115200 baudrate #parameter #value 1.0 timeout) #dec_end;;
+#create #access self dataQueue #access_end #variable dataQueue #dec_end;;
+#create #access self volCurPowQueue #access_end #variable volCurPowQueue #dec_end;;
+#create #access self clientThread #access_end #variable clientThread #dec_end;;
+#create #access self cumPower #access_end #value 0 #dec_end;;
+#function_end;;
+#function_declare run #parameter self
+#function_start
+while #condition not #access self isHandShakeDone #access_end
+#else_branch_start
+#function print(#parameter #value "Handshake Done!\n");;
+#else_branch_end
+#while_start
+#function #access self port write #access_end (#parameter #function bytes(#parameter #value "H" #parameter #value "utf-8"));;
+#create #variable ack #function #access #function #access self port read #access_end() decode #access_end() #dec_end;;
+if #condition #variable ack == #value 'A'
+#if_branch_start
+#assign #access self isHandShakeDone #access_end #with #value true;;
+#function #access self port write #access_end (#parameter #function bytes(#parameter #value "A" #parameter #value "utf-8"));;
+#if_branch_end;;
+#while_end;;
+while #condition not #function #access self shutdown is_set #access_end()
+#while_start
+#function #access self getData #access_end();;
+if #condition #access self clientThread predictionReady #access_end
+#if_branch_start
+#with #access self dataQueue mutex #access_end
+#with_start
+#function #access self dataQueue queue clear #access_end();;
+#with_end;;
+#assign #access self clientThread predictionReady #access_end #with #value false;;
+#if_branch_end;;
+if #condition #function #access self clientThread shutdown is_set #access_end()
+#if_branch_start
+#function #access self stop #access_end();;
+#if_branch_end
+#else_branch_start
+pass;;
+#else_branch_end;;
+#while_end;;
+#function_end;;
+#function_declare stop #parameter self
+#function_start
+#function #access self shutdown set #access_end();;
+#function_end;;
+#function_declare getData #parameter self
+#function_start
+#create #variable length #value "" #dec_end;;
+while #condition #variable length == #value ""
+#while_start
+#assign #variable length #with #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8");;
+#while_end;;
+#assign #variable length += #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8");;
+#assign #variable length += #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8");;
+#create #variable data #value "" #dec_end;;
+#create #variable checksum #function ord(#parameter #value '\0') #dec_end;;
+for #parameter #variable i #function range(#parameter #function int(#parameter #variable length))
+#else_branch_start
+#function print(#parameter #value "Checksum initialised!\n");;
+#else_branch_end
+#for_start
+#create #variable dataByte #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8") #dec_end;;
+if #condition #variable dataByte != #value ','
+#if_branch_start
+#assign #variable checksum ^= #function ord(#parameter #variable dataByte);;
+#if_branch_end
+else if #condition #variable data is #variable dataByte
+#elseIf_branch_start
+pass;;
+#elseIf_branch_end;;
+#assign #variable data += #variable dataByte;;
+if #condition #variable i == #function int(#parameter #variable length)
+#if_branch_start
+break;;
+#if_branch_end;;
+#for_end;;
+if #condition #variable checksum == #function ord(#parameter #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8"))
+#if_branch_start
+#function #access self port write #access_end (#parameter #function bytes(#parameter #value "A" #parameter #value "utf-8"));;
+#function #access self deserialize #access_end (#parameter #variable data);;
+#if_branch_end
+#else_branch_start
+#function #access self port write #access_end (#parameter #function bytes(#parameter #value "N" #parameter #value "utf-8"));;
+#function #access self getData #access_end();;
+#else_branch_end;;
+#function_end;;
+#function_declare deserialize #parameter self #parameter data
+#function_start
+if #condition #array #function #access data split #access_end (#parameter #value ',') #indexes #value 0 #index_end == #value 'D'
+#if_branch_start
+#create #variable deserializedData {#list} #dec_end;;
+for #parameter #variable i #function range(#parameter #function len(#parameter #function #access data split #access_end (#parameter #value ',')) - #value 1)
+#for_start
+#function #access deserializedData append #access_end (#parameter #function float(#parameter #array #function #access data split #access_end (#parameter #value ',') #indexes #variable i + #value 1 #index_end));;
+#for_end;;
+if #condition #function #access self dataQueue full #access_end()
+#if_branch_start
+#function #access self dataQueue get #access_end();;
+#if_branch_end;;
+#function #access self dataQueue put #access_end (#parameter #variable deserializedData);;
+#if_branch_end
+#else_branch_start
+#function #access self setVolCurPowQueue #access_end (#parameter #function round(#parameter #function float(#parameter #array #function #access data split #access_end (#parameter #value ',') #indexes #value 1 #index_end) #parameter #value 1) #parameter #function round(#parameter #function float(#parameter #array #function #access data split #access_end (#parameter #value ',') #indexes #value 2 #index_end) #parameter #value 1));;
+#function #access self getData #access_end();;
+#else_branch_end;;
+#function_end;;
+#function_declare setVolCurPowQueue #parameter self #parameter sensorValue #parameter vdValue
+#function_start
+#assign #variable sensorValue #with (#variable sensorValue * #value 5) / #value 1023;;
+#assign #variable vdValue #with (#variable vdValue * #value 5) / #value 1023;;
+#create #variable voltage #function round(#parameter #variable vdValue * #value 2 #parameter #value 4) #dec_end;;
+#create #variable current #function round(#parameter ((#variable sensorValue / (#value 10 * #value 0.1)) / #value 10) #parameter #value 4) #dec_end;;
+#create #variable power #function round(#parameter #variable voltage * #variable current #parameter #value 4) #dec_end;;
+#assign #access self cumPower #access_end += #variable power * #value 5;;
+#assign #access self cumPower #access_end #with #function round(#parameter #access self cumPower #access_end #parameter #value 4);;
+#create #variable volCurPow {#list #parameter #variable voltage #parameter #variable current #parameter #variable power #parameter #access self cumPower #access_end} #dec_end;;
+if #condition not #function #access self volCurPowQueue empty #access_end()
+#if_branch_start
+#with #access self volCurPowQueue mutex #access_end m
+#with_start
+#function #access self volCurPowQueue queue clear #access_end();;
+#with_end;;
+#if_branch_end;;
+#function #access self volCurPowQueue put #access_end(#parameter #variable volCurPow);;
+#function_end;;
+#class_end;;
+if #condition #variable __name__ == #value "__main__"
+#if_branch_start
+if #condition #function len(#parameter #access sys argv #access_end) != #value 3
+#if_branch_start
+#function print(#parameter #value "Invalid number of arguments");;
+#function print(#parameter #value "python client.py [IP address] [Port]");;
+#function #access sys exit #access_end();;
+#if_branch_end;;
+#create #variable s {#array #parameter {#list #parameter #value 1 #parameter #value 3} #parameter {#array #parameter #value 3.3 #parameter #value 4.45} #parameter {#tuple #parameter #value "hi" #parameter #value "bye"} #parameter {#dictionary #key "melon" #value #value 5 #key "tomato" #value #value 10}} #dec_end;;
+#create #variable t {#tuple #parameter #value 1 #parameter #value 'e' #parameter #value "ea" #parameter #value 3.3 #parameter #value true #parameter #value false} #dec_end;;
+#create #variable d {#dictionary #key 32 #value {#list #parameter #value 4 #parameter #value "Hello"} #key 'a' #value {#array #parameter #value 'w' #parameter #value true} #key 5.6 #value {#tuple #parameter #value 8.69 #parameter #value "bye"} #key "each" #value {#dictionary #key 4.3 #value #value 's' #key "see" #value #value true}} #dec_end;;
+#create #variable x #lambda a b #variable a - #variable b #lambda_end #dec_end;;
+#function print(#parameter #variable s);;
+#function print(#parameter #variable t);;
+#function print(#parameter #variable d);;
+#function print(#parameter #function x(#parameter #value 1));;
+#create #variable serverName #array #access sys argv #access_end #indexes #value 1 #index_end #dec_end;;
+#create #variable serverPort #function int(#parameter #array #access sys argv #access_end #indexes #value 2 #index_end) #dec_end;;
+#create #variable dataQueue #function #access queue Queue #access_end (#parameter #value 100 maxsize) #dec_end;;
+#create #variable volCurPowQueue #function #access queue Queue #access_end() #dec_end;;
+#create #variable myClient #function Client(#parameter #variable serverName #parameter #variable serverPort #parameter #variable dataQueue #parameter #variable volCurPowQueue) #dec_end;;
+#create #variable mySerial #function Serial(#parameter #variable myClient #parameter #variable dataQueue #parameter #variable volCurPowQueue) #dec_end;;
+#function #access myClient start #access_end();;
+#function #access mySerial start #access_end();;
+#if_branch_end;;
+#program_end

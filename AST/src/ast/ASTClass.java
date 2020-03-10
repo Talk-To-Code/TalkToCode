@@ -15,6 +15,7 @@ public class ASTClass extends ASTBlockStatement {
 	public ASTClass(String name) {
 		super();
 		ASTExpressionUnitIdentifier className = new ASTExpressionUnitIdentifier(name);
+		this.statements = new ArrayList<ASTStatement>();
 		this.name = className;
 		className.addParent(this);
 	}

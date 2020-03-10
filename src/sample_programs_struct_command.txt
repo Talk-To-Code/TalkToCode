@@ -5,7 +5,7 @@
 #assign #variable first #with #variable second;;
 #assign #variable second #with #variable temporary;;
 ======================= Find max integer from array ================
-#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter int length #function_start 
+#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter #type int length #function_start 
 #create int #variable max #array numbers #indexes #value 0 #index_end #dec_end;; 
 #create int #variable i #dec_end;; 
 for #condition #assign #variable i #with #value 1 #condition #variable i < #variable length #condition #post #variable i ++ #for_start 
@@ -13,7 +13,7 @@ if #condition #array numbers #indexes #variable i #index_end > #variable max #if
 #assign #variable max #with #array numbers #indexes #variable i #index_end;;
 #if_branch_end;; 
 #for_end;; 
-return #variable max;; 
+return #parameter #variable max;; 
 #function_end;;
 ====================== multiply two Floating Point Numbers  ================
 #function_declare main int #function_start 
@@ -24,7 +24,7 @@ return #variable max;;
 #function scanf(#parameter #value "%lf %lf" #parameter & #variable firstNumber #parameter & #variable secondNumber);; 
 #assign #variable product #with #variable firstNumber * #variable secondNumber;; 
 #function printf(#parameter #value "product =%.2lf" #parameter #variable product);; 
-return #value 0;; 
+return #parameter #value 0;; 
 #function_end;;
 ========================= GCD ==========================
 #function_declare main int #function_start 
@@ -48,7 +48,7 @@ return #value 0;;
 for #condition #assign #variable c #with #value \'a\' #condition #variable c <= #value \'z\' #condition ++ #variable c #for_start 
 #function printf(#parameter #value "%c" #parameter #variable c);; 
 #for_end;; 
-return #value 0;; 
+return #parameter #value 0;; 
 #function_end;;
 ===================== Count number of digits in a long number =====================
 #create long #variable number #dec_end;; 
@@ -108,7 +108,7 @@ return #variable number + #function addNumbers(#parameter #variable number - #va
 #function printf(#parameter #value "enter a positive integer : ");; 
 #function scanf(#parameter #value "%d" #parameter & #variable number);; 
 #function printf(#parameter #value "sum = %d" #parameter #function addNumbers(#parameter #variable number));; 
-return #value 0;; 
+return #parameter #value 0;; 
 #function_end;;
 ===================== Calculate average using arrays ======================
 #create int #variable numberElements #dec_end;; 

@@ -1,0 +1,1 @@
+for #condition #assign #variable i #with #value 1 #condition #variable i <= #value 3 #condition #post #variable i ++ #for_start #function printf (#parameter #value "i = %d" #parameter #variable i);; #post #variable y ++;; #for_end;; 

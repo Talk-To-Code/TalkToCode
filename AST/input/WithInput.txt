@@ -1,0 +1,4 @@
+#with #function MyClass(#parameter #value "Hi") #with_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #with_end;;
+#with #function MyClass(#parameter #value "Hi") c #with_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #with_end;;
+#with #function MyClass(#parameter #value "Hi") #access self otherObj #access_end o #with_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #with_end;;
+#with #function MyClass(#parameter #value "Hi") c #access self otherObj #access_end o #with_start #function print(#parameter #variable i);; #assign #variable y += #value 1;; #with_end;;

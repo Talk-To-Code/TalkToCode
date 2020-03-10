@@ -1,0 +1,10 @@
+#include "sys";;
+#include "sys" as s;;
+#include "sys" #include "math";;
+#include "sys" #include "math" as m;;
+#include "sys" as s #include "math" as m;;
+from "math" #include "pi";;
+from "math" #include "pi" as p;;
+from "math" #include "pi" #include "e";;
+from "math" #include "pi" as p #include "e";;
+from "math" #include "pi" as p #include "e" as e;;

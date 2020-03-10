@@ -37,12 +37,12 @@ public class ASTExpressionUnitAccess extends ASTExpressionUnit {
 		child.addParent(this.accessParent);
 	}
 	
-	public static ASTExpressionUnitAccess generateNestedAccess(ArrayList<String> ids){
-		ASTExpressionUnitIdentifier parent = new ASTExpressionUnitIdentifier(ids.get(0));
+	public static ASTExpressionUnitAccess generateNestedAccess(ArrayList<ASTExpressionUnit> ids){
+		ASTExpressionUnit parent = ids.get(0);
 		ASTExpressionUnitAccess output = new ASTExpressionUnitAccess(parent);
 		ASTExpressionUnitAccess current = output;
 		for(int i = 1;i<ids.size();i++){
-			ASTExpressionUnitIdentifier attributes = new ASTExpressionUnitIdentifier(ids.get(i));
+			ASTExpressionUnit attributes = ids.get(i);
 			if(i!=ids.size()-1){
 				ASTExpressionUnitAccess temp = new ASTExpressionUnitAccess(attributes);
 				current.addChild(temp);

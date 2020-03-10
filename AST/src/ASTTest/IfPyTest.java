@@ -25,7 +25,7 @@ public class IfPyTest extends TestCase {
 	@Test
 	public void testIf() {
 		try {
-			InputStream in = new FileInputStream(new File("./input/IfinputPy.txt"));
+			InputStream in = new FileInputStream(new File("./input/IfInputPy.txt"));
 			BufferedReader inBR = new BufferedReader(new InputStreamReader(in));
 			FileChannel inChannel = ((FileInputStream) in).getChannel();
 			InputStream out = new FileInputStream(new File("./output/IfoutputPy.txt"));
@@ -52,7 +52,9 @@ public class IfPyTest extends TestCase {
 					currentTemp = "";
 					count++;
 				}
-				currentTemp = currentTemp.concat(temp + "\n");
+				if((temp.trim().length() >= 3 && temp.trim().substring(0,3).compareTo("if(") == 0) || (temp.trim().length() >= 5 && temp.trim().substring(0,5).compareTo("else:") == 0)) currentTemp = currentTemp.concat(temp + "\n");
+				else if(temp.compareTo("") == 0) continue;
+				else currentTemp = currentTemp.concat(temp + "\n\n");
 			}
 			count++;
 			expectedOutput.add(currentTemp);

@@ -7,11 +7,15 @@ import java.util.*;
 public class ASTIfStatement extends ASTBlockStatement {
 	private static final String NODE_TYPE = "If Statement";
 	protected ASTExpression condition;
+	protected ArrayList<ASTExpression> elseIfCond;
 	protected ArrayList<ASTStatement> ifBranch;
+	protected ArrayList<ArrayList<ASTStatement>> elseIfBranch;
 	protected ArrayList<ASTStatement> elseBranch;
 	protected String result;
 	private void initialize() {
 		this.ifBranch =  new ArrayList<ASTStatement>();
+		this.elseIfCond = new ArrayList<ASTExpression>();
+		this.elseIfBranch = new ArrayList<ArrayList<ASTStatement>>();
 		this.elseBranch = new ArrayList<ASTStatement>();
 	}
 	public ASTIfStatement() {
@@ -27,6 +31,15 @@ public class ASTIfStatement extends ASTBlockStatement {
 
 	public void setIf(ASTStatement e){
 		this.ifBranch.add(e);
+		e.addParent(this);
+	}
+	public void setElseIfCond(ASTExpression e){
+		this.elseIfCond.add(e);
+		e.addParent(this);
+		this.elseIfBranch.add(new ArrayList<ASTStatement>());
+	}
+	public void setElseIf(ASTStatement e){
+		this.elseIfBranch.get(this.elseIfBranch.size()-1).add(e);
 		e.addParent(this);
 	}
 	public void setElse(ASTStatement e){
@@ -50,6 +63,18 @@ public class ASTIfStatement extends ASTBlockStatement {
 		for(ASTStatement s:this.ifBranch){
 			sb.append(s.toTree(indent+1));
 			sb.append("\n");
+		}
+		for (int j = 0; j < this.elseIfBranch.size(); j++) {
+			for (int k = 0; k < indent; k++) {
+				sb.append("\t");
+			}
+			sb.append("elseIf_block");
+			sb.append("\n");
+			for (ASTStatement s : this.elseIfBranch.get(j)) {
+				sb.append(s.toTree(indent + 1));
+				sb.append("\n");
+			}
+
 		}
 		for(int i = 0;i<indent;i++){
 			sb.append("\t");

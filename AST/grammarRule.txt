@@ -10,7 +10,7 @@ statement():
 
 query():
 	"?"(#struct    				//display the partial struct of the current node in the tree (like where this node	belongs to
-	|#tree  					//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
+	|#tree  				//display the current AST, how the current tree looks like (this can be used to tested whether a block statement is finished, if a statement is unfinshed, this block will not be shown in the tree)
 	)
 
 blockStatement():
@@ -21,6 +21,10 @@ blockStatement():
 	| if_statement()
 	| whileStatement()
 	| switchStatement()
+	| comment()
+	| classDeclare()
+	| tryCatchStatement()
+	| withStatement()
 
 simpleStatement():
 	expression() < TERMINATOR >
@@ -30,18 +34,20 @@ simpleStatement():
 	| labelStatement()
 	| returnStatement()
 	| importStatement()
+	| gotoStatement()
+	| passStatement()
 
 importStatement() :
-	< INCLUDE >< STRING_LITERAL > < TERMINATOR >
+	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
 
 labelStatement() :
 	< LABEL >< IDENTIFIER > < TERMINATOR >
 
 returnStatement() :
-	< RETURN >(< PARAMETER > expressionC())*< TERMINATOR >
+	< RETURN >(< PARAMETER > expression())*< TERMINATOR >
 
 continueStatement() :
-	< CONTINUE >< IDENTIFIER > < TERMINATOR >
+	< CONTINUE >< TERMINATOR >
 
 breakStatement() :
 	< BREAK > (< IDENTIFIER >)? < TERMINATOR >
@@ -49,10 +55,13 @@ breakStatement() :
 gotoStatement() :
 	< GOTO >< IDENTIFIER > < TERMINATOR >
 
+passStatement() :
+	< PASS > < TERMINATOR >
+
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
-	((<VARIABLE><IDENTIFIER>(expression())?<DECLARE_END>)
-	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>expression()<INDEX_END>)+<DECLARE_END>))+
+	(((<VARIABLE><IDENTIFIER>|access())(expression())?<DECLARE_END>)
+	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>value()<INDEX_END>)+<DECLARE_END>))+
 	< TERMINATOR >
 
 switchStatement() :
@@ -61,26 +70,38 @@ switchStatement() :
 doWhileStatement() :
 	< DO > < CONDITION > exp = expression()< WHILE_START >(statement())*< WHILE_END > < TERMINATOR >
 
-whileStatementC() :
-	< WHILE > < CONDITION >expression()< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
+whileStatement() :
+	< WHILE > < CONDITION >expression()(< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< WHILE_START > (statement())*< WHILE_END > < TERMINATOR >
 
 forStatement() :
 	< FOR > (forStatementC() | forStatementP())
 
 forStatementC() :
-	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expressionC())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+	< CONDITION >(expression())?< CONDITION >(expression())?< CONDITION >(expression())?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
 forStatementP() :
-	< VARIABLE >< IDENTIFIER > fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
+	(< PARAMETER > < VARIABLE > < IDENTIFIER >)+ fragment() (< ELSE_BRANCH_START > (statement())* < ELSE_BRANCH_END >)?< FOR_START >(statement())*< FOR_END > < TERMINATOR >
 
-if_statementC() :
-	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
+if_statement() :
+	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE > < IF > < CONDITION > expression() < ELSEIF_BRANCH_START > statement() < ELSEIF_BRANCH_END >)*(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
-functionStatementC() :
-	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?(< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
+functionStatement() :
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?((< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)|(< PARAMETER_A >< DIMENSION >< INTEGER_LITERAL >types_C()< ARRAY ><IDENTIFIER>))*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
 
 structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
+
+comment() :
+	< COMMENT > (statement())* < COMMENT_END > (< IDENTIFIER >)* < TERMINATOR >
+
+classDeclare() :
+	< CLASS > < IDENTIFIER > (< PARENT > (< IDENTIFIER > | access()))* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
+
+tryCatchStatement() :
+	< TRY > (statement())* (< CATCH > (< EXCEPTION > < IDENTIFIER >)* (< VARIABLE > <IDENTIFIER>)? < CATCH_START > (statement())* < CATCH_END >)+ (< ELSE > (statement())* < ELSE_BRANCH_END >)? (< FINALLY > (statement())* < FINALLY_END >)? < TERMINATOR >
+
+withStatemnt() :
+	< WITH > (fragment() (< IDENTIFIER >)?)+ < WITH_START > (statement())* < WITH_END > < TERMINATOR >
 
 expression():
 	prefix_expression()
@@ -95,9 +116,9 @@ postfix_expression() :
 	< POST > < VARIABLE > < IDENTIFIER > incrDecrOperators()
 
 prefix_expression() :
-	incrDecrOperators() < VARIABLE > < IDENTIFIER >
+	incrDecrOperators() fragment()
 	| prefixOperators() fragment()
-	| < MINUS >expression()
+	| < MINUS > expression()
 
 infix_expression() :
 	term()
@@ -105,18 +126,37 @@ infix_expression() :
 term() :
 	fragment()(infixOperators()fragment())*
 
+access() :
+	< ACCESS > (fragment() | < IDENTIFIER > | < NEW >)(fragment() | < IDENTIFIER > | < NEW >)+< ACCESS_END >
+
+func() :
+	< FUNCTION > (< IDENTIFIER > | < FLOAT > | < INT > | access()) < LPAREN >(< PARAMETER >expression()(< IDENTIFIER >)?)*< RPAREN >
+
 fragment() :
 	< VALUE >value()
 	| < VARIABLE >< IDENTIFIER >
-	| < FUNCTION > (< IDENTIFIER > | < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >) < LPAREN >(< PARAMETER >expressionC())*< RPAREN >
-	| < LPAREN > expressionC() < RPAREN >
-	| < LBRACE >(< PARAMETER > expression())*< RBRACE >
-	| < ARRAY > < IDENTIFIER > ( < INDEX > expression())+
-	|  < ACCESS > < IDENTIFIER >(< IDENTIFIER >)+< ACCESS_END >
+	| func()
+	| < LPAREN > expression() < RPAREN >
+	| < LBRACE > ((< ARRAY > | < LIST > | < TUPLE >) (< PARAMETER > expression())* | < DICTIONARY > (< KEY > value() < VALUE > expression())*) < RBRACE >
+	| < ARRAY > (< IDENTIFIER > | func() | access()) ( < INDEX > expression() < INDEX_END >)+
+	| access()
+	| < LAMBDA > (< IDENTIFIER>)* expression() < LAMBDA_END >
+
+types_J():
+	< IDENTIFIER >
+	| primitive_typesJ()
 
 types_C():
-	< IDENTIFIER >
+	(< STRUCT >)?< IDENTIFIER >
 	| (primitive_typesC())+
+
+primitive_typesJ() :
+	< BYTE >
+	| < INT >
+	| < CHAR >
+	| < DOUBLE >
+	| < FLOAT >
+	| < BOOLEAN >
 
 primitive_typesC() :
 	< INT >
@@ -155,6 +195,7 @@ prefixOperators() :
 	< BANG >
 	| < TILDE >
 	| < BIT_AND >
+	| < PY_NOT >
 
 compoundOperators() :
 	< PLUSASSIGN >
@@ -240,6 +281,23 @@ infixOperators() :
 < DIMENSION : "#dimension" >
 < PARAMETER_A : "#parameter_a" >
 < TREE : "#tree" >
+< COMMENT: "#comment" >
+< COMMENT_END : #comment_end" >
+< LIST : "#list" >
+< TUPLE : "#tuple" >
+< DICTIONARY : "#dictionary" >
+< KEY : "#key" >
+< PARENT : "#parent" >
+< CLASS_START : "#class_start" >
+< CLASS_END : "#class_end" >
+< EXCEPTION : "#exception" >
+< CATCH_START : "#catch_start" >
+< CATCH_END : "#catch_end" >
+< FINALLY_END : "#finally_end" >
+< WITH_START : "#with_start" >
+< WITH_END : "#with_end" >
+< LAMBDA : "#lambda" >
+< LAMBDA_END : "#lambda_end" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >
@@ -255,6 +313,7 @@ infixOperators() :
 < SC_AND : "&&" >
 < PY_OR : "or" >
 < PY_AND : "and" >
+< PY_NOT : "not" >
 < INCR : "++" >
 < DECR : "--" >
 < PLUS : "+" >
@@ -279,6 +338,11 @@ infixOperators() :
 < RPAREN : ")" >
 < LBRACE : "{" >
 < RBRACE : "}" >
+< LBRACKET : "[" >
+< RBRACKET : "]" >
+< SEMICOLON : ";" >
+< COMMA : "," >
+< DOT : "." >
 < INTEGER_LITERAL :
     < DECIMAL_LITERAL > ([ "l", "L" ])?
   | < HEX_LITERAL > ([ "l", "L" ])?
@@ -325,6 +389,7 @@ infixOperators() :
     "\"" >
 
 < ABSTRACT : "abstract" >
+< AS : "as" >
 < ASSERT : "assert" >
 < BOOLEAN : "boolean" >
 < BREAK : "break" >
@@ -346,6 +411,7 @@ infixOperators() :
 < FINALLY : "finally" >
 < FLOAT : "float" >
 < FOR : "for" >
+< FROM : "from" >
 < GOTO : "goto" >
 < IF : "if" >
 < IMPLEMENTS : "implements" >

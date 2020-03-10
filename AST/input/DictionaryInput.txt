@@ -1,0 +1,3 @@
+{#dictionary};;
+{#dictionary #key 1 #value #value "Egg"  #key 2.2 #value #value 'e' #key true #value #value 2 #key 'a' #value #value 2.3 #key "tom" #value #value false};;
+{#dictionary #key 32 #value {#list #parameter #value 4 #parameter #value "Hello"} #key 'a' #value {#array #parameter #value 'w' #parameter #value true} #key 5.6 #value {#tuple #parameter #value 8.69 #parameter #value "bye"} #key "each" #value {#dictionary #key 4.3 #value #value 's' #key "see" #value #value true}};;

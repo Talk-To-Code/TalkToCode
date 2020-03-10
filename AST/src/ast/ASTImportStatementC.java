@@ -5,7 +5,7 @@ package ast;
  */
 public final class ASTImportStatementC extends ASTImportStatement{
 
-	public ASTImportStatementC(ASTExpression p) {
+	public ASTImportStatementC(ASTExpressionUnitLiteral p) {
 		super(p);
 		
 	}
