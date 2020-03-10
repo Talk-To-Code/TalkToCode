@@ -15,6 +15,7 @@ export class EditCommandManager {
     checkAll(transcribedWord: String, code_segments:string[], line_counts: number[]){
         this.code_segments = code_segments;
         this.line_counts  = line_counts;
+        transcribedWord = transcribedWord.toLowerCase();
         this.check_if_delete_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
         this.check_if_delete_block(transcribedWord);
@@ -51,11 +52,10 @@ export class EditCommandManager {
 
     //WORKS
     check_if_delete_line(text: String) { 
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         if (arr[0] == "delete" && arr[1]=="line") {
             console.log("IN HERE to delete line");
             let line_num = parseInt(arr[2]);
-
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (index!=-1){
                 this.manager.struct_command_list.splice(index,1);
@@ -65,9 +65,9 @@ export class EditCommandManager {
 
     //WORKS
     check_if_delete_function(text: String) {
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="function"){
-            console.log("TRYING TO DELETE A FUNCTION");
+            console.log("IN HERE TO DELETE A FUNCTION");
             var functionToDelete = arr[2];
             var start = -1;
             var end = -1;
@@ -98,7 +98,7 @@ export class EditCommandManager {
     
     //WORKS: Delete block [block-name] at line [line-number]
     check_if_delete_block(text: String) {
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="block"){
             console.log("IN HERE TO DELETE A BLOCK");
             let editor = vscode.window.activeTextEditor;
@@ -141,7 +141,7 @@ export class EditCommandManager {
 
     //WORKS
      check_if_comment_line(text: String) {
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         if (arr[0]== "comment" && arr[1] == "line"){
             console.log("IN HERE COMMENTING LINE");
             let line_num = parseInt(arr[2]);
@@ -197,7 +197,7 @@ export class EditCommandManager {
 
     //WORKS
     check_if_rename_function(text: String) {
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         if (arr[0]=="rename" && arr[1]=="function") {
             console.log("RENAMING THE FUNCTION")
             var functionToReplace = arr[2];
@@ -245,7 +245,7 @@ export class EditCommandManager {
 
 
     check_if_insert_before_block(text: String) {
-        var arr = text.toLowerCase().split(" ");
+        var arr = text.split(" ");
         var temp = 0;
         if (arr[0]=="insert" && arr[1]=="before"){
             console.log("GOT IN HERE TO INSERT");
