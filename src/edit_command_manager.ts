@@ -4,17 +4,17 @@ import * as vscode from 'vscode';
 export class EditCommandManager {
     manager: StructCommandManager
     code_segments: string[]
-    line_counts: []
+    line_counts: number[]
 
-    constructor(manager: StructCommandManager, code_segments: string[], line_counts: []) {
+    constructor(manager: StructCommandManager, code_segments: string[], line_counts: number[]) {
         this.manager = manager;
         this.code_segments = code_segments;
         this.line_counts = line_counts;
     }
 
-    checkAll(transcribedWord: String, code_segments:string[], count_lines: []){
+    checkAll(transcribedWord: String, code_segments:string[], line_counts: number[]){
         this.code_segments = code_segments;
-        this.line_counts  = count_lines;
+        this.line_counts  = line_counts;
         this.check_if_delete_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
         this.check_if_delete_block(transcribedWord);
@@ -26,11 +26,27 @@ export class EditCommandManager {
     }
 
     check_if_edit_command(text: String){
-        var arr = text.split(" ");
+        var arr = text.toLowerCase().split(" ");
         if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"){
             return true;
         }
         return false;
+    }
+
+    binarySearch(line_num: number, left: number, right: number): number{
+        if (right>=left){
+            var mid = Math.floor(left+(right-left)/2);
+            if (this.line_counts[mid]==line_num){
+                return mid;
+            }
+            else if (this.line_counts[mid]> line_num){
+                return this.binarySearch(line_num,left, mid-1);
+            }
+            else {
+                return this.binarySearch(line_num,mid+1,right);
+            }
+        }
+        return -1;
     }
 
     //WORKS
@@ -38,14 +54,11 @@ export class EditCommandManager {
         var arr = text.toLowerCase().split(" ");
         if (arr[0] == "delete" && arr[1]=="line") {
             console.log("IN HERE to delete line");
-            let editor = vscode.window.activeTextEditor;
-            if (editor) {
-                const document = editor.document;
-                let line_num = parseInt(arr[2])-1;
-                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
-                if (index!=-1){
-                    this.manager.struct_command_list.splice(index,1);
-                 }
+            let line_num = parseInt(arr[2]);
+
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (index!=-1){
+                this.manager.struct_command_list.splice(index,1);
             }
         }
     }
@@ -83,16 +96,16 @@ export class EditCommandManager {
         } 
     }
     
-    //WORKS : Delete block [block-name] at line [line-number]
+    //WORKS: Delete block [block-name] at line [line-number]
     check_if_delete_block(text: String) {
-        var arr = text.split(" ");
+        var arr = text.toLowerCase().split(" ");
         if (arr[0]=="delete" && arr[1]=="block"){
             console.log("IN HERE TO DELETE A BLOCK");
             let editor = vscode.window.activeTextEditor;
             if (editor) {
                 let document = editor.document;
-                var line_num = parseInt(arr[5])-1;
-                var line = document.lineAt(line_num).text.trimLeft();
+                var line_num = parseInt(arr[5]);
+                var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
@@ -100,7 +113,9 @@ export class EditCommandManager {
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
                 var count_block = 0;
                  if (line.startsWith(block_name)){
-                    var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
+                    var index = this.binarySearch(line_num,0,this.line_counts.length);
+                    if (index==-1) return;
+
                     start = index;
                     for (var i=index;i<this.manager.struct_command_list.length;i++){
                         if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
@@ -124,24 +139,19 @@ export class EditCommandManager {
         }
     }
 
-     //WORKS BUT DOESNT WORK ON FIRST LINES OF BLOCKS
+    //WORKS
      check_if_comment_line(text: String) {
         var arr = text.toLowerCase().split(" ");
         if (arr[0]== "comment" && arr[1] == "line"){
             console.log("IN HERE COMMENTING LINE");
-            let editor = vscode.window.activeTextEditor;
-            if (editor){
-                const document = editor.document;
-                let line_num = parseInt(arr[2])-1;
-                var index = this.code_segments.findIndex(obj => obj==document.lineAt(line_num).text);
-                if (index!=-1){
-                    this.manager.struct_command_list[index] = "#comment " + this.manager.struct_command_list[index] + " #comment_end;;"
-                }
+            let line_num = parseInt(arr[2]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (index!=-1){
+                this.manager.struct_command_list[index] = "#comment " + this.manager.struct_command_list[index] + " #comment_end;;"
             }
         }      
     }
 
-    // WORKS BUT BUG BECAUSE OF CURSOR COMMENT
     check_if_comment_block(text:String){
         var arr = text.split(" ");
         if (arr[0]=="comment" && arr[1]=="block"){
@@ -178,7 +188,7 @@ export class EditCommandManager {
                   
                     if (!this.manager.struct_command_list[start].startsWith("#comment")){
                             this.manager.struct_command_list[start] = "#comment " + line 
-                    this.manager.struct_command_list[end] = line + " #comment_end;;";  
+                            this.manager.struct_command_list[end] = line + " #comment_end;;";  
                     }
                 }
             }

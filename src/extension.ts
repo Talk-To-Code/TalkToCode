@@ -8,7 +8,7 @@ import { compress_name } from './compress_name';
 const {spawn} = require('child_process');
 
 var code_segments = [""];
-var count_lines = [];
+var count_lines= [0];
 var manager = new StructCommandManager();
 var editManager = new EditCommandManager(manager, code_segments, count_lines);
 var codeBuffer = "";
@@ -62,12 +62,9 @@ function listen() {
 
 			else if (editManager.check_if_edit_command(transcribed_word)){
 				console.log("IN HERE TO EDIT");
-				editManager.checkAll(transcribed_word, code_segments);
-				console.log("DONE CHECKING ALL EDITS");
+				editManager.checkAll(transcribed_word, code_segments,count_lines);
 				displayStructCommands(manager.struct_command_list);
-				console.log("DONE WITH DISPLAYING STRUCTURED COMMAND")
 				displayCode(manager.struct_command_list)
-				console.log("DONE WITH DISPLAYING CODE")
 			}
 
 			else {
@@ -154,6 +151,7 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 }
 
 function map_lines_to_code(){
+	count_lines = [];
 	var count =0;
 	var j =0;
 	for (var i=0;i<code_segments.length;i++){
@@ -172,11 +170,7 @@ function map_lines_to_code(){
 }
 
 function writeToEditor(code: string) {
-	var commands = code.split("\n");
-	code_segments=[];
-    for (var i = 0;i < commands.length; i++) {
-        code_segments.push(commands[i]);
-	}
+	code_segments = code.split("\n");
 	for (var i=0;i<code_segments.length;i++){
 		console.log("DEBUG IN CODE SEGMENT: "+i)
 		console.log(code_segments[i]);
