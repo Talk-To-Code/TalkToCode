@@ -103,9 +103,14 @@ export class edit_stack_item {
     types include: non-edit, go-down, go-up */
     type : string;
 
+    exitBlockOldIdx: number;
+
     /* For non-edit commands */
-    constructor(type: string) {
-        this.type = type
+    constructor(type: string[]) {
+        this.type = type[0]
+
+        if (type[0] == "exit-block") this.exitBlockOldIdx = parseInt(type[1]);
+        else this.exitBlockOldIdx = 0;
     }
 }
 

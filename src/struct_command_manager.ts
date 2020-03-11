@@ -59,20 +59,15 @@ export class StructCommandManager {
     parse_speech(transcribed_word: string) {
         console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
-        /* Check if it is undo command */
-        if (cleaned_speech == "scratch that" || cleaned_speech == "go back") {
-            this.scratchThatCommand();
-        }
-
+        /* Check for undo or navigation command */
+        if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
-
-        else if (cleaned_speech == "go down") this.goDownCommand();
-
-        else if (cleaned_speech == "go up") this.goUpCommand();
+        else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
+        else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
 
         /* Normal process. */
         else {
-            this.edit_stack.push(new edit_stack_item("non-edit"))
+            this.edit_stack.push(new edit_stack_item(["non-edit"]))
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
             this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
@@ -170,6 +165,7 @@ export class StructCommandManager {
             }
         }
         if (endIdx != -1) {
+            this.edit_stack.push(new edit_stack_item(["exit-block", String(oldIdx)]));
             this.struct_command_list.splice(this.curr_index, 1); /* Remove cursor from the struct_command_list. */
             /* note that after cursor has been removed, endIdx no longer points at end branch, but at the index
             AFTER the end branch. */
@@ -188,6 +184,8 @@ export class StructCommandManager {
     goUpCommand() {
         /* Cant go up */
         if (0 == this.curr_index) return
+
+        this.edit_stack.push(new edit_stack_item(["go-up"]));
         var oldIdx = this.curr_index;
         this.curr_index -= 1;
         this.curr_speech = [""];
@@ -201,7 +199,6 @@ export class StructCommandManager {
 
         /* If endBranch, only need to update cursor position in the speech hist */
         if (endBranch) {
-            console.log("should not be here")
             this.speech_hist.update_item_index(oldIdx, this.curr_index);
             this.speech_hist.update_item(oldIdx, [""]);
         }
@@ -217,6 +214,7 @@ export class StructCommandManager {
         /* Cant go down */
         if (this.struct_command_list.length -1 == this.curr_index) return
 
+        this.edit_stack.push(new edit_stack_item(["go-down"]));
         var oldIdx = this.curr_index;
         this.curr_index += 1;
         this.curr_speech = [""];
@@ -240,9 +238,16 @@ export class StructCommandManager {
             this.speech_hist.update_item(this.curr_index, [""]);
         }
     }
-
+    /* cursor position should be just below the end branch */
     undoExitBlock(edit_item: edit_stack_item) {
+        console.log("undo exit block")
+        var oldIdx = edit_item.exitBlockOldIdx;
 
+        this.struct_command_list.splice(this.curr_index, 1); /* remove cursor */
+        this.struct_command_list.splice(oldIdx, 0, cursor_comment); /* Add cursor back to old location. */
+        this.speech_hist.update_item_index(this.curr_index, oldIdx)
+        this.curr_index = oldIdx;
+        this.curr_speech = [""];
     }
 
     /* The undo command. */
@@ -303,9 +308,11 @@ export class StructCommandManager {
         }
 
         /* Perform enter block */
-        else if (edit_item != null && edit_item.type == "exit-block") {
-
-        }
+        else if (edit_item != null && edit_item.type == "exit-block") this.undoExitBlock(edit_item);
+        /* Perform enter block */
+        else if (edit_item != null && edit_item.type == "go-up") this.goDownCommand();
+        /* Perform enter block */
+        else if (edit_item != null && edit_item.type == "go-down") this.goUpCommand();
         
     }
     
