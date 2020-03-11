@@ -2,7 +2,6 @@ import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist, edit_stack_item } from './struct_command';
-import { start } from 'repl';
 
 var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
                     "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
@@ -79,15 +78,9 @@ export class StructCommandManager {
         var prev_input_speech = "";
         var prev_struct_command = "";
         if (this.curr_index > 0) {
-            console.log("here")
-            console.log(this.speech_hist)
-            console.log(this.speech_hist.get_item(this.curr_index-1))
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
-            console.log("here2")
             prev_struct_command = this.struct_command_list[this.curr_index-1];
-            console.log("here3")
         }
-        console.log("enter get struct")
         var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language);
 
         this.updateStructCommandList(struct_command);
@@ -246,7 +239,6 @@ export class StructCommandManager {
     }
     /* cursor position should be just below the end branch */
     undoExitBlock(edit_item: edit_stack_item) {
-        console.log("undo exit block")
         var oldIdx = edit_item.OldIdx;
 
         this.struct_command_list.splice(this.curr_index, 1); /* remove cursor */
@@ -372,11 +364,6 @@ export class StructCommandManager {
         this.speech_hist = edit_item.snapshotSpeechHist;
         this.struct_command_list = edit_item.snapshotStructCommand;
         this.curr_index = edit_item.OldIdx;
-
-        console.log(this.struct_command_list)
-        console.log(this.speech_hist)
-        console.log(this.curr_index)
-        console.log(this.curr_speech)
     }
 
     deepCopyStructCommand() {
