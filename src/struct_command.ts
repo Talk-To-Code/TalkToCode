@@ -97,6 +97,18 @@ export class simpleStatement {
     }
 }
 
+export class edit_stack_item {
+
+    /* What type of command was used.
+    types include: non-edit, go-down, go-up */
+    type : string;
+
+    /* For non-edit commands */
+    constructor(type: string) {
+        this.type = type
+    }
+}
+
 export class speech_hist {
     hist: speech_item[];
 

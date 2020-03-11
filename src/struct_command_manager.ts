@@ -1,7 +1,7 @@
 import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
-import { structCommand, speech_hist } from './struct_command';
+import { structCommand, speech_hist, edit_stack_item } from './struct_command';
 import { start } from 'repl';
 
 var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
@@ -33,6 +33,8 @@ export class StructCommandManager {
 
     speech_hist: speech_hist;
 
+    edit_stack: edit_stack_item[];
+
     constructor(language: string) {
         this.language = language;
         this.curr_index = 0;
@@ -41,6 +43,7 @@ export class StructCommandManager {
         this.variable_list = [""];
         this.functions_list = [""];
         this.speech_hist = new speech_hist();
+        this.edit_stack = []
     }
 
     reset() {
@@ -50,6 +53,7 @@ export class StructCommandManager {
         this.variable_list = [""];
         this.functions_list = [""];
         this.speech_hist = new speech_hist();
+        this.edit_stack = []
     }
 
     parse_speech(transcribed_word: string) {
@@ -60,12 +64,15 @@ export class StructCommandManager {
             this.scratchThatCommand();
         }
 
-        else if (cleaned_speech == "exit block") {
-            this.exitBlockCommand();
-        }
+        else if (cleaned_speech == "exit block") this.exitBlockCommand();
+
+        else if (cleaned_speech == "go down") this.goDownCommand();
+
+        else if (cleaned_speech == "go up") this.goUpCommand();
 
         /* Normal process. */
         else {
+            this.edit_stack.push(new edit_stack_item("non-edit"))
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
             this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
@@ -120,8 +127,6 @@ export class StructCommandManager {
         if (!struct_command.hasError) {
             this.curr_speech = [""] // Clear curr speech to prepare for next command.
 
-            this.speech_hist.add_item(this.curr_index + 1, [""]);
-
             /* Block statement */
             if (struct_command.isBlock) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
@@ -130,6 +135,8 @@ export class StructCommandManager {
                 this.curr_index += 1
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
                 this.curr_index -= 1 // Make sure curr_index points at the blank line.
+
+                this.appendSpeechHist("block")
             }
             /* Single line */
             else {
@@ -139,6 +146,7 @@ export class StructCommandManager {
                 /* insert blank line "". Now curr_index points at blank line. */
                 this.curr_index += 1 // Point at next index
                 this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
+                this.appendSpeechHist("line")
             }
         }
         /* Not ready to parse, add normal speech to struct_command_list */
@@ -151,8 +159,6 @@ export class StructCommandManager {
         }
     }
 
-    /* Jump out of whatever block the user is editing in. Edit the curr_index and the struct_command_list. */
-    /* Assume that the curr index is pointing to the cursor. */
     exitBlockCommand() {
         /* Perform checks to see if user is within a block or not. */
         var oldIdx = this.curr_index;
@@ -175,62 +181,132 @@ export class StructCommandManager {
             to outside the block. Further editing on this.curr_index will be on it's new location outside
             the block. Make sure future speech inputs into the speech_hist will be on the same index. */
             this.speech_hist.update_item_index(oldIdx, this.curr_index);
+            this.speech_hist.update_item(oldIdx, [""])
         }
+    }
+    /* move up. */
+    goUpCommand() {
+        /* Cant go up */
+        if (0 == this.curr_index) return
+        var oldIdx = this.curr_index;
+        this.curr_index -= 1;
+        this.curr_speech = [""];
+
+        var endBranch = false
+        if (end_branches.includes(this.struct_command_list[this.curr_index])) endBranch = true
+        /* swap new curr_index and oldIdx */
+        var temp = this.struct_command_list[oldIdx]
+        this.struct_command_list[oldIdx] = this.struct_command_list[this.curr_index]
+        this.struct_command_list[this.curr_index] = temp;
+
+        /* If endBranch, only need to update cursor position in the speech hist */
+        if (endBranch) {
+            console.log("should not be here")
+            this.speech_hist.update_item_index(oldIdx, this.curr_index);
+            this.speech_hist.update_item(oldIdx, [""]);
+        }
+        /* Else update both index */
+        else {
+            var temp_speech = this.speech_hist.get_item(this.curr_index);
+            this.speech_hist.update_item(oldIdx, temp_speech);
+            this.speech_hist.update_item(this.curr_index, [""]);
+        }
+    }
+
+    goDownCommand() {
+        /* Cant go down */
+        if (this.struct_command_list.length -1 == this.curr_index) return
+
+        var oldIdx = this.curr_index;
+        this.curr_index += 1;
+        this.curr_speech = [""];
+        
+        var endBranch = false
+        if (end_branches.includes(this.struct_command_list[this.curr_index])) endBranch = true
+        /* swap new curr_index and oldIdx */
+        var temp = this.struct_command_list[oldIdx]
+        this.struct_command_list[oldIdx] = this.struct_command_list[this.curr_index]
+        this.struct_command_list[this.curr_index] = temp;
+
+        /* If endBranch, only need to update cursor position in the speech hist */
+        if (endBranch) {
+            this.speech_hist.update_item_index(oldIdx, this.curr_index);
+            this.speech_hist.update_item(oldIdx, [""]);
+        }
+        /* Else update both index */
+        else {
+            var temp_speech = this.speech_hist.get_item(this.curr_index);
+            this.speech_hist.update_item(oldIdx, temp_speech);
+            this.speech_hist.update_item(this.curr_index, [""]);
+        }
+    }
+
+    undoExitBlock(edit_item: edit_stack_item) {
+
     }
 
     /* The undo command. */
     scratchThatCommand() {
-        /* Empty speech hist */
-        if (JSON.stringify(this.speech_hist) == JSON.stringify([[""]])) {
-            console.log("Nothing to undo.");
-            return;
-        }
-
-        /* If curr speech is empty. e.g. just enterd new line. */
-        if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
-            /* Remove blank item from the cursor position. Do this to prevent multiple entries
-            of new speech item with the same index. */
-            this.speech_hist.remove_item(this.curr_index);
-
-            /* Amount from the struct command list to remove. There is a difference for undoing a block command
-            and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
-            var amountToSplice = 0;
-
-            /* Case 1: Entered new line after finishing a block */
-            // Check if there is start branch just before this one.
-            if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x)))
-                amountToSplice = 3; // Remove prev statement, cursor comment and end branch.
-
-            /* Case 2: Entered new line after finishing a statement */
-            else amountToSplice = 2; // Remove prev statement and cursor comment.
-
-            this.curr_index -= 1;
-            this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_comment);
-
-            /* If the previous struct command was created with only 1 speech input. */
-            if (this.speech_hist.get_item(this.curr_index).length == 1) {
-                this.speech_hist.update_item(this.curr_index, [""]);
+        var edit_item = this.edit_stack.pop()
+        if (edit_item != null && edit_item.type == "non-edit") {
+            /* Empty speech hist */
+            if (JSON.stringify(this.speech_hist) == JSON.stringify([[""]])) {
+                console.log("Nothing to undo.");
+                return;
             }
-            /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
-            input and use it as curr_speech to generate new result. */
+
+            /* If curr speech is empty. e.g. just enterd new line. */
+            if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
+                /* Remove blank item from the cursor position. Do this to prevent multiple entries
+                of new speech item with the same index. */
+                this.speech_hist.remove_item(this.curr_index);
+
+                /* Amount from the struct command list to remove. There is a difference for undoing a block command
+                and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
+                var amountToSplice = 0;
+
+                /* Case 1: Entered new line after finishing a block */
+                // Check if there is start branch just before this one.
+                if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x)))
+                    amountToSplice = 3; // Remove prev statement, cursor comment and end branch.
+
+                /* Case 2: Entered new line after finishing a statement */
+                else amountToSplice = 2; // Remove prev statement and cursor comment.
+
+                this.curr_index -= 1;
+                this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_comment);
+
+                /* If the previous struct command was created with only 1 speech input. */
+                if (this.speech_hist.get_item(this.curr_index).length == 1) {
+                    this.speech_hist.update_item(this.curr_index, [""]);
+                }
+                /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
+                input and use it as curr_speech to generate new result. */
+                else {
+                    this.speech_hist.popFromSpeechItem(this.curr_index);
+                    this.curr_speech = this.speech_hist.get_item(this.curr_index);
+                }
+            }
+            /* User made a mistake during curr speech */
             else {
-                this.speech_hist.popFromSpeechItem(this.curr_index);
+                console.log("user made a mistake during curr speech");
+                /* Remove latest speech input. */
+                if (this.speech_hist.get_item(this.curr_index).length == 1) 
+                    this.speech_hist.update_item(this.curr_index, [""]);
+                else this.speech_hist.popFromSpeechItem(this.curr_index);
+                /* Update current speech. */
                 this.curr_speech = this.speech_hist.get_item(this.curr_index);
-            }
-        }
-        /* User made a mistake during curr speech */
-        else {
-            console.log("user made a mistake during curr speech");
-            /* Remove latest speech input. */
-            if (this.speech_hist.get_item(this.curr_index).length == 1) 
-                this.speech_hist.update_item(this.curr_index, [""]);
-            else this.speech_hist.popFromSpeechItem(this.curr_index);
-            /* Update current speech. */
-            this.curr_speech = this.speech_hist.get_item(this.curr_index);
 
-            /* Remove latest struct command. It will be updated by updateStructCommand later. */
-            this.struct_command_list.splice(this.curr_index, 1, cursor_comment);
-        }   
+                /* Remove latest struct command. It will be updated by updateStructCommand later. */
+                this.struct_command_list.splice(this.curr_index, 1, cursor_comment);
+            }   
+        }
+
+        /* Perform enter block */
+        else if (edit_item != null && edit_item.type == "exit-block") {
+
+        }
+        
     }
     
     updateVariableAndFunctionList(struct_command: structCommand) {
@@ -273,6 +349,31 @@ export class StructCommandManager {
         }
     }
 
+    /* append speech hist every time a successful command is made. */
+    appendSpeechHist(type: string) {
+        console.log(this.speech_hist.hist)
+        if (type == "line") {
+            /* check if anymore commands below this one. Have to correct their index values.
+            Have to start from the end. */
+            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
+                console.log(i)
+                this.speech_hist.update_item_index(i, i + 1)
+            }
+            this.speech_hist.add_item(this.curr_index, [""]);
+        }
+        /* type == block */
+        else {
+            /* check if anymore commands below this one. Have to correct their index values.
+            Have to start from the end. */
+            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
+                console.log(i)
+                this.speech_hist.update_item_index(i, i + 2)
+            }
+            this.speech_hist.add_item(this.curr_index, [""]);
+        }
+        
+    }
+
     managerStatus() {
         let toDisplay = "Current Speech: " + JSON.stringify(this.curr_speech) + '\n';
         toDisplay += "Current index: " + this.curr_index + '\n';
@@ -285,9 +386,11 @@ export class StructCommandManager {
         toDisplay += "///////////////////////////////////Speech History List:";
         toDisplay += "///////////////////////////////////\n";
 
-        for (var i = 0; i < this.speech_hist.length(); i++) {
-            toDisplay += "[" + this.speech_hist.hist[i].index + "] " + 
-                JSON.stringify(this.speech_hist.hist[i].speech_input) + '\n';
+        for (var i = 0; i < this.struct_command_list.length; i++) {
+            if (end_branches.includes(this.struct_command_list[i])) continue
+            else {
+                toDisplay += "[" + i + "] " + JSON.stringify(this.speech_hist.get_item(i)) + '\n';
+            }
         }
         return toDisplay;
     }
