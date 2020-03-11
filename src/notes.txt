@@ -27,6 +27,7 @@ struct_command_manager
 brackets for if block - "group" command
 
 infix conditions still not really extendable yet.
+assign not extendable
 
 maybe add a spelling command.
 

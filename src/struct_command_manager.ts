@@ -2,6 +2,7 @@ import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist } from './struct_command';
+import { start } from 'repl';
 
 var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
                     "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
@@ -79,13 +80,10 @@ export class StructCommandManager {
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
-        console.log("before get struct")
         var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
-
-        console.log(this.managerStatus());
     }
 
     /* Updating the struct command list */
@@ -99,10 +97,9 @@ export class StructCommandManager {
 
             this.curr_index -= 1;
             /* Remove current "" line and prev struct command. */
-            this.struct_command_list.splice(this.curr_index, 2);
-            this.struct_command_list.splice(this.curr_index, 0, "");
+            this.struct_command_list.splice(this.curr_index, 2, "");
         }
-        
+        /* Previous block is extendable */
         else if (struct_command.removePreviousBlock) {
             /* join extendable speech to prev input speech */
             var extendable_speech = this.speech_hist.get_item(this.curr_index).join(" ");
@@ -111,8 +108,7 @@ export class StructCommandManager {
 
             this.curr_index -= 1;
             /* Remove current "" line and prev struct command. */
-            this.struct_command_list.splice(this.curr_index, 3);
-            this.struct_command_list.splice(this.curr_index, 0, "");
+            this.struct_command_list.splice(this.curr_index, 3, "");
         }
 
         else if (struct_command.removePrevTerminator) {
@@ -191,46 +187,35 @@ export class StructCommandManager {
         }
 
         /* If curr speech is empty. e.g. just enterd new line. */
-        if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || 
-        JSON.stringify(this.curr_speech) == JSON.stringify([])) {
-            /* Remove item from the cursor position. As the previous speech input will be regenerated,
-            the new cursor position will be regenerated as well. Do this to prevent multiple entries
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
+            /* Remove blank item from the cursor position. Do this to prevent multiple entries
             of new speech item with the same index. */
             this.speech_hist.remove_item(this.curr_index);
+
+            /* Amount from the struct command list to remove. There is a difference for undoing a block command
+            and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
+            var amountToSplice = 0;
+
             /* Case 1: Entered new line after finishing a block */
             // Check if there is start branch just before this one.
-            if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x))) {
-                console.log("case 1: entered new line after finishing block");
-                this.curr_index -= 1;
-                this.struct_command_list.splice(this.curr_index, 3, cursor_comment);
-                
-                /* If the previous struct command was created with only 1 speech input. */
-                if (this.speech_hist.get_item(this.curr_index).length == 1) {
-                    this.speech_hist.update_item(this.curr_index, [""]);
-                }
-                /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
-                input and use it as curr_speech to generate new result. */
-                else {
-                    this.speech_hist.popFromSpeechItem(this.curr_index);
-                    this.curr_speech = this.speech_hist.get_item(this.curr_index);
-                }
-            }
-            /* Case 2: Entered new line after finishing a statement */
-            else {
-                console.log("case 2: entered new line after finishing statement");
-                this.curr_index = this.curr_index - 1; // Bring the cursor back.
-                this.struct_command_list.splice(this.curr_index, 2, cursor_comment);
+            if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x)))
+                amountToSplice = 3; // Remove prev statement, cursor comment and end branch.
 
-                /* If the previous struct command was created with only 1 speech input. */
-                if (this.speech_hist.get_item(this.curr_index).length == 1) {
-                    this.speech_hist.update_item(this.curr_index, [""]);
-                }
-                /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
-                input and use it as curr_speech to generate new result. */
-                else {
-                    this.speech_hist.popFromSpeechItem(this.curr_index);
-                    this.curr_speech = this.speech_hist.get_item(this.curr_index);
-                }
+            /* Case 2: Entered new line after finishing a statement */
+            else amountToSplice = 2; // Remove prev statement and cursor comment.
+
+            this.curr_index -= 1;
+            this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_comment);
+
+            /* If the previous struct command was created with only 1 speech input. */
+            if (this.speech_hist.get_item(this.curr_index).length == 1) {
+                this.speech_hist.update_item(this.curr_index, [""]);
+            }
+            /* Prev structcommand created with multiple speech inputs. Remove latest segment of speech
+            input and use it as curr_speech to generate new result. */
+            else {
+                this.speech_hist.popFromSpeechItem(this.curr_index);
+                this.curr_speech = this.speech_hist.get_item(this.curr_index);
             }
         }
         /* User made a mistake during curr speech */
@@ -259,6 +244,25 @@ export class StructCommandManager {
                 this.variable_list.push(struct_command.newVariable);
             }
         }
+    }
+
+    /* A function to remove struct command and it's corresponding speech hist input of the same index.
+    this.curr_index will also be adjusted */
+    splice(start_pos: number, amt_to_remove: number) {
+        console.log(start_pos + " " + amt_to_remove)
+        this.curr_index -= amt_to_remove;
+
+        /* Remove the speech inputs from speech hist */
+        for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
+            this.speech_hist.remove_item(i)          
+        }
+
+        /* Update the index for the speech_hist */
+        for (var i = start_pos + amt_to_remove; i < this.struct_command_list.length; i++) {
+            this.speech_hist.update_item_index(i, i-amt_to_remove);
+        }
+
+        this.struct_command_list.splice(start_pos, amt_to_remove);
     }
 
     managerStatus() {
