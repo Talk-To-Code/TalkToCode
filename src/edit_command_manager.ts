@@ -137,9 +137,8 @@ export class EditCommandManager {
                                 count_block--;
                             }
                         }
-
                     }
-                    this.manager.struct_command_list.splice(start,(end-start)+1);
+                    this.manager.splice(start,(end-start)+1);
                 }
             }
         }
