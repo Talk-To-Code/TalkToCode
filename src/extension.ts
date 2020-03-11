@@ -3,6 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
+import { runTestCases } from './tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 

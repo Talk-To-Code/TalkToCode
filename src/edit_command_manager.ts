@@ -69,6 +69,7 @@ export class EditCommandManager {
     }
 
     //WORKS
+    // if function name does not exist, just reject the command. If not an error occurs.
     check_if_delete_function(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="function"){
@@ -97,7 +98,7 @@ export class EditCommandManager {
                     if (countNestedFunctions==0) end = i;
                 }
             }
-            this.manager.struct_command_list.splice(start,(end-start)+1);
+            this.manager.splice(start,(end-start)+1);
         } 
     }
     

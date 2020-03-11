@@ -250,19 +250,27 @@ export class StructCommandManager {
     this.curr_index will also be adjusted */
     splice(start_pos: number, amt_to_remove: number) {
         console.log(start_pos + " " + amt_to_remove)
-        this.curr_index -= amt_to_remove;
+        if (this.curr_index < amt_to_remove) this.curr_index = start_pos
+        else this.curr_index -= amt_to_remove;
 
         /* Remove the speech inputs from speech hist */
         for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
             this.speech_hist.remove_item(i)          
         }
-
         /* Update the index for the speech_hist */
         for (var i = start_pos + amt_to_remove; i < this.struct_command_list.length; i++) {
-            this.speech_hist.update_item_index(i, i-amt_to_remove);
+            if (end_branches.includes(this.struct_command_list[i])) continue
+            else this.speech_hist.update_item_index(i, i - amt_to_remove);
         }
-
         this.struct_command_list.splice(start_pos, amt_to_remove);
+
+        /* If cursor is within block of code being deleted. */
+
+        /* Case 1: Nothing left */
+        if (this.struct_command_list.length == 0) {
+            this.struct_command_list = [cursor_comment];
+            this.speech_hist.add_item(0, [""]);
+        }
     }
 
     managerStatus() {
