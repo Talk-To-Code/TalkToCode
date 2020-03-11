@@ -81,8 +81,8 @@ function listen() {
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
 			editManager.checkAll(transcribed_word, code_segments,count_lines);
-			writeToEditor(manager.managerStatus());
-			// displayCode(manager.struct_command_list);
+			// writeToEditor(manager.managerStatus());
+			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus())
 		}
 
@@ -92,8 +92,8 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word);
-			writeToEditor(manager.managerStatus());
-			// displayCode(manager.struct_command_list);
+			// writeToEditor(manager.managerStatus());
+			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus())
 		}
 	});

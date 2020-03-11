@@ -1,3 +1,8 @@
-var arr = [0, 1, 2, 3, 4, 5]
-arr.splice(2, 6)
-console.log(arr)
+var arr = ["hello", "goodbye"]
+
+var arr2 = [];
+arr2.push(arr[0])
+arr2.push(arr[1])
+
+arr[0] = "evening"
+console.log(arr2)

@@ -63,7 +63,7 @@ export class EditCommandManager {
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (index!=-1){
-                this.manager.splice(index,1);
+                this.manager.delete_command(index,1);
             }
         }
     }
@@ -98,7 +98,7 @@ export class EditCommandManager {
                     if (countNestedFunctions==0) end = i;
                 }
             }
-            this.manager.splice(start,(end-start)+1);
+            this.manager.delete_command(start,(end-start)+1);
         } 
     }
     
@@ -138,7 +138,7 @@ export class EditCommandManager {
                             }
                         }
                     }
-                    this.manager.splice(start,(end-start)+1);
+                    this.manager.delete_command(start,(end-start)+1);
                 }
             }
         }

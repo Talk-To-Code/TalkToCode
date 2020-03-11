@@ -79,9 +79,15 @@ export class StructCommandManager {
         var prev_input_speech = "";
         var prev_struct_command = "";
         if (this.curr_index > 0) {
+            console.log("here")
+            console.log(this.speech_hist)
+            console.log(this.speech_hist.get_item(this.curr_index-1))
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
+            console.log("here2")
             prev_struct_command = this.struct_command_list[this.curr_index-1];
+            console.log("here3")
         }
+        console.log("enter get struct")
         var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language);
 
         this.updateStructCommandList(struct_command);
@@ -241,7 +247,7 @@ export class StructCommandManager {
     /* cursor position should be just below the end branch */
     undoExitBlock(edit_item: edit_stack_item) {
         console.log("undo exit block")
-        var oldIdx = edit_item.exitBlockOldIdx;
+        var oldIdx = edit_item.OldIdx;
 
         this.struct_command_list.splice(this.curr_index, 1); /* remove cursor */
         this.struct_command_list.splice(oldIdx, 0, cursor_comment); /* Add cursor back to old location. */
@@ -313,6 +319,7 @@ export class StructCommandManager {
         else if (edit_item != null && edit_item.type == "go-up") this.goDownCommand();
         /* Perform enter block */
         else if (edit_item != null && edit_item.type == "go-down") this.goUpCommand();
+        else if (edit_item != null && edit_item.type == "delete") this.undoDelete(edit_item);
         
     }
     
@@ -331,14 +338,19 @@ export class StructCommandManager {
 
     /* A function to remove struct command and it's corresponding speech hist input of the same index.
     this.curr_index will also be adjusted */
-    splice(start_pos: number, amt_to_remove: number) {
+    delete_command(start_pos: number, amt_to_remove: number) {
         console.log(start_pos + " " + amt_to_remove)
-        if (this.curr_index < amt_to_remove) this.curr_index = start_pos
+
+        var copiedStructCommand = this.deepCopyStructCommand()
+        var copiedSpeechHist = this.deepCopySpeechHist()
+        var oldIdx = this.curr_index;
+
+        if (this.curr_index < amt_to_remove) this.curr_index = start_pos;
         else this.curr_index -= amt_to_remove;
 
         /* Remove the speech inputs from speech hist */
         for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
-            this.speech_hist.remove_item(i)          
+            this.speech_hist.remove_item(i);
         }
         /* Update the index for the speech_hist */
         for (var i = start_pos + amt_to_remove; i < this.struct_command_list.length; i++) {
@@ -348,12 +360,43 @@ export class StructCommandManager {
         this.struct_command_list.splice(start_pos, amt_to_remove);
 
         /* If cursor is within block of code being deleted. */
-
         /* Case 1: Nothing left */
         if (this.struct_command_list.length == 0) {
             this.struct_command_list = [cursor_comment];
             this.speech_hist.add_item(0, [""]);
         }
+        this.edit_stack.push(new edit_stack_item(["delete", copiedStructCommand, copiedSpeechHist, oldIdx]));
+    }
+
+    undoDelete(edit_item: edit_stack_item) {
+        this.speech_hist = edit_item.snapshotSpeechHist;
+        this.struct_command_list = edit_item.snapshotStructCommand;
+        this.curr_index = edit_item.OldIdx;
+
+        console.log(this.struct_command_list)
+        console.log(this.speech_hist)
+        console.log(this.curr_index)
+        console.log(this.curr_speech)
+    }
+
+    deepCopyStructCommand() {
+        var copiedStructCommand = []
+        for (var i = 0; i < this.struct_command_list.length; i++) {
+            copiedStructCommand.push(this.struct_command_list[i])
+        }
+        return copiedStructCommand;
+    }
+
+    deepCopySpeechHist() {
+        var copiedSpeechHist = new speech_hist;
+        copiedSpeechHist.remove_item(0);
+
+        for (var i = 0; i < this.speech_hist.length(); i++) {
+            var index = this.speech_hist.hist[i].index
+            var speech = this.speech_hist.hist[i].speech_input
+            copiedSpeechHist.add_item(index, speech)
+        }
+        return copiedSpeechHist;
     }
 
     /* append speech hist every time a successful command is made. */

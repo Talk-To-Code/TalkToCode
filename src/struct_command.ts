@@ -100,17 +100,30 @@ export class simpleStatement {
 export class edit_stack_item {
 
     /* What type of command was used.
-    types include: non-edit, go-down, go-up */
+    types include: non-edit, go-down, go-up, delete*/
     type : string;
 
-    exitBlockOldIdx: number;
+    OldIdx: number;
+    snapshotSpeechHist: speech_hist;
+    snapshotStructCommand: string[];
 
     /* For non-edit commands */
-    constructor(type: string[]) {
+    constructor(type: any) {
         this.type = type[0]
 
-        if (type[0] == "exit-block") this.exitBlockOldIdx = parseInt(type[1]);
-        else this.exitBlockOldIdx = 0;
+        if (type[0] == "exit-block") this.OldIdx = parseInt(type[1]);
+        else this.OldIdx = 0;
+
+        if (type[0] == "delete") {
+            this.snapshotStructCommand = type[1];
+            this.snapshotSpeechHist = type[2];
+            this.OldIdx = type[3];
+        }
+        else {
+            this.snapshotSpeechHist = new speech_hist();
+            this.snapshotStructCommand = [""];
+            this.OldIdx = 0;
+        }
     }
 }
 
