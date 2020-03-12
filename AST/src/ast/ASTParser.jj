@@ -37,7 +37,7 @@
  *//* WHITE SPACE */< DEFAULT >SKIP :{  " "| "\t"| "\n"| "\r"| "\f"| "/*@egen*/" : AFTER_EGEN}< AFTER_EGEN >SKIP :{  < ~[ ] > : DEFAULT}/* JAVA RESERVED WORDS AND LITERALS */< DEFAULT >TOKEN :{  < ABSTRACT : "abstract" >
 | < AS : "as" >| < ASSERT : "assert" >| < BOOLEAN : "boolean" >| < BREAK : "break" >| < BYTE : "byte" >| < CASE : "case" >| < CATCH : "catch" >| < CHAR : "char" >| < CLASS : "class" >| < CONST : "const" >| < CONTINUE : "continue" >| < _DEFAULT : "default" >| < DO : "do" >| < DOUBLE : "double" >| < ELSE : "else" >| < ENUM : "enum" >| < EXTENDS : "extends" >| < FALSE : "false" >| < FINAL : "final" >| < FINALLY : "finally" >| < FLOAT : "float" >| < FOR : "for" >
 | < FROM : "from" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >
-| < PASS : "pass" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
+| < PASS : "pass" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > (["-", "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : (["-"])?[ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    (["-"])?([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
 | < PY_OR : "or" >
 | < PY_AND : "and" >
 | < PY_NOT : "not" >
@@ -480,15 +480,6 @@ ASTForStatementP forStatementP(programType pType, int indent) :
     else throw new ParseException("Not Supported in Python!\n");
   	//System.out.println(end.toSyntax());
   }
-  (    < ELSE_BRANCH_START >
-	(
-	  temp = statement(result, pType, indent+1)
-	  {
-	    result.addElseBranch(temp);
-	  }
-	)*
-	< ELSE_BRANCH_END >
-  )?
   < FOR_START >
   (
     temp = statement(result, pType, indent+1)
@@ -497,7 +488,18 @@ ASTForStatementP forStatementP(programType pType, int indent) :
       //System.out.println(temp.toSyntax());
     }
   )*
-  < FOR_END > < TERMINATOR >
+  < FOR_END >
+  (
+    < ELSE_BRANCH_START >
+	(
+	  temp = statement(result, pType, indent+1)
+	  {
+	    result.addElseBranch(temp);
+	  }
+	)*
+	< ELSE_BRANCH_END >
+  )?
+  < TERMINATOR >
   {
     return result;
   }
@@ -514,7 +516,7 @@ ASTForStatementP forStatementP(programType pType, int indent) :
       	result = new ASTWhileStatement(exp);
       	break;
     }    result.addParent(parent);
-    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }
+    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END >
   (
     < ELSE_BRANCH_START >
 	(
@@ -525,7 +527,8 @@ ASTForStatementP forStatementP(programType pType, int indent) :
 	  }
 	)*
 	< ELSE_BRANCH_END >
-  )?  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
+  )?
+  < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
   {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
   }
