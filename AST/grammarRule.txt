@@ -60,7 +60,7 @@ passStatement() :
 
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
-	(((<VARIABLE><IDENTIFIER>|access())(expression())?<DECLARE_END>)
+	(((<VARIABLE><IDENTIFIER>|pointer()|access())(expression())?<DECLARE_END>)
 	|(<ARRAY><VARIABLE><IDENTIFIER>(<INDEX>value()<INDEX_END>)+<DECLARE_END>))+
 	< TERMINATOR >
 
@@ -86,13 +86,13 @@ if_statement() :
 	< IF > < CONDITION > expression()< IF_BRANCH_START >(statement())*< IF_BRANCH_END >(< ELSE > < IF > < CONDITION > expression() < ELSEIF_BRANCH_START > statement() < ELSEIF_BRANCH_END >)*(< ELSE_BRANCH_START >(statement())*< ELSE_BRANCH_END >)?< TERMINATOR >
 
 functionStatement() :
-	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?((< PARAMETER >(< TYPE >types_C())?< IDENTIFIER >)|(< PARAMETER_A >< DIMENSION >< INTEGER_LITERAL >types_C()< ARRAY ><IDENTIFIER>))*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
+	< FUNCTION_DEC >< IDENTIFIER >(catchModifier())*(types_C())?((< PARAMETER >(< TYPE >types_C())?(< IDENTIFIER >|pointer()))|(< PARAMETER_A >< DIMENSION >< INTEGER_LITERAL >types_C()< ARRAY >(<IDENTIFIER>|pointer())))*< FUNCTION_START >(statement())*< FUNCTION_END > < TERMINATOR >
 
 structDeclareStatement() :
 	 < STRUCT_DEC >< IDENTIFIER >< STRUCT_START >(create_variable())+< STRUCT_END > < TERMINATOR >
 
 comment() :
-	< COMMENT > (statement())* < COMMENT_END > (< IDENTIFIER >)* < TERMINATOR >
+	< COMMENT > (statement())* < COMMENT_END > (< INTEGER_LITERAL >)* < TERMINATOR >
 
 classDeclare() :
 	< CLASS > < IDENTIFIER > (< PARENT > (< IDENTIFIER > | access()))* < CLASS_START > (statement())* < CLASS_END > < TERMINATOR >
@@ -132,8 +132,12 @@ access() :
 func() :
 	< FUNCTION > (< IDENTIFIER > | < FLOAT > | < INT > | access()) < LPAREN >(< PARAMETER >expression()(< IDENTIFIER >)?)*< RPAREN >
 
+pointer() :
+	< STAR > fragment()
+
 fragment() :
-	< VALUE >value()
+	pointer()
+	| < VALUE >value()
 	| < VARIABLE >< IDENTIFIER >
 	| func()
 	| < LPAREN > expression() < RPAREN >

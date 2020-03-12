@@ -12,7 +12,22 @@
 	respective AST nodes in parsing respective structural commands 
 */public class ASTParser{
   public enum programType { C, P, J }
-    private static ASTNode current = new ASTNode();  private static ASTNode program = new ASTNode();  public static void main(String args []) throws ParseException  {    ASTParser parser = new ASTParser(System.in);    //while (true)    //{      //System.out.println("Reading from standard input...");      //System.out.print("Enter an program:\n");      try      {        program();        System.out.println("AST construction complete.");      }      catch (Exception e)      {        System.out.println("Not Supported Syntax Format");        System.out.println(e.getMessage());        ASTParser.ReInit(System.in);      }      catch (Error e)      {
+    private static ASTNode current = new ASTNode();  private static ASTNode program = new ASTNode();
+
+  private static boolean isDebug;  public static void main(String args []) throws ParseException  {    ASTParser parser = new ASTParser(System.in);    //while (true)    //{      //System.out.println("Reading from standard input...");      //System.out.print("Enter an program:\n");
+
+      if(args.length != 1) {
+        System.out.println("INVALID INPUT!\nEnter 1 to print output once at the end.\nEnter 0 to print output both at the end and after completion of each statement.\nSystem exiting...");
+        System.exit(1);
+      }
+      
+      if(args[0].compareTo("1") == 0) ASTParser.isDebug = false;
+      else if(args[0].compareTo("0") == 0) ASTParser.isDebug = true;
+      else {
+        System.out.println("INVALID INPUT!\nEnter 1 to print output once at the end.\nEnter 0 to print output both at the end and after completion of each statement.\nSystem exiting...");
+        System.exit(1);
+      }
+            try      {        program();        System.out.println("AST construction complete.");      }      catch (Exception e)      {        System.out.println("Not Supported Syntax Format");        System.out.println(e.getMessage());        ASTParser.ReInit(System.in);      }      catch (Error e)      {
         System.out.println("Special Reject Sequence @#$%^&*()!");        System.out.println("Unknown Error Occurs.");        System.out.println(e.getMessage());        //break;      }    //}  }  private static void getStructure(ASTNode current)  {    Stack < ASTNode > stack = new Stack < ASTNode > ();    ASTNode temp = current;    stack.push(temp);    while (temp.parent != null)    {      if (temp.isAblock())      {        stack.push(temp);      }      temp = temp.getParent();    }    int counter = 0;    while (!stack.isEmpty())    {      String indent = "";      for (int i = 0; i < counter; i++)      {        indent += "\t";      }      System.out.println(indent + stack.pop().typeof());      counter++;    }  }  private static void getTree(ASTNode current)  {    ASTNode temp = current;    while (temp.parent != null)    {      temp = temp.getParent();    }    System.out.println(temp.toTree(0));  }}PARSER_END(ASTParser)/**********************************************
  * THE JAVACC TOKEN SPECIFICATION STARTS HERE *
  **********************************************//* JAVACC RESERVED WORDS: These are the only tokens in JavaCC but not in Java */< DEFAULT >TOKEN :{  < _LOOKAHEAD : "LOOKAHEAD" >| < _IGNORE_CASE : "IGNORE_CASE" >| < _PARSER_BEGIN : "PARSER_BEGIN" >| < _PARSER_END : "PARSER_END" >| < _JAVACODE : "JAVACODE" >| < _TOKEN : "TOKEN" >| < _SPECIAL_TOKEN : "SPECIAL_TOKEN" >| < _MORE : "MORE" >| < _SKIP : "SKIP" >| < _TOKEN_MGR_DECLS : "TOKEN_MGR_DECLS" >| < _EOF : "EOF" >}/*
@@ -22,7 +37,7 @@
  *//* WHITE SPACE */< DEFAULT >SKIP :{  " "| "\t"| "\n"| "\r"| "\f"| "/*@egen*/" : AFTER_EGEN}< AFTER_EGEN >SKIP :{  < ~[ ] > : DEFAULT}/* JAVA RESERVED WORDS AND LITERALS */< DEFAULT >TOKEN :{  < ABSTRACT : "abstract" >
 | < AS : "as" >| < ASSERT : "assert" >| < BOOLEAN : "boolean" >| < BREAK : "break" >| < BYTE : "byte" >| < CASE : "case" >| < CATCH : "catch" >| < CHAR : "char" >| < CLASS : "class" >| < CONST : "const" >| < CONTINUE : "continue" >| < _DEFAULT : "default" >| < DO : "do" >| < DOUBLE : "double" >| < ELSE : "else" >| < ENUM : "enum" >| < EXTENDS : "extends" >| < FALSE : "false" >| < FINAL : "final" >| < FINALLY : "finally" >| < FLOAT : "float" >| < FOR : "for" >
 | < FROM : "from" >| < GOTO : "goto" >| < IF : "if" >| < IMPLEMENTS : "implements" >| < IMPORT : "import" >| < INSTANCEOF : "instanceof" >| < INT : "int" >| < INTERFACE : "interface" >| < LONG : "long" >| < NATIVE : "native" >| < NEW : "new" >| < NULL : "null" >| < PACKAGE : "package" >
-| < PASS : "pass" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > ([ "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
+| < PASS : "pass" >| < PRIVATE : "private" >| < PROTECTED : "protected" >| < PUBLIC : "public" >| < RETURN : "return" >| < SHORT : "short" >| < STATIC : "static" >| < STRICTFP : "strictfp" >| < SUPER : "super" >| < SWITCH : "switch" >| < SYNCHRONIZED : "synchronized" >| < THIS : "this" >| < THROW : "throw" >| < THROWS : "throws" >| < TRANSIENT : "transient" >| < TRUE : "true" >| < TRY : "try" >| < VOID : "void" >| < VOLATILE : "volatile" >| < WHILE : "while" >}/* JAVA LITERALS */< DEFAULT >TOKEN :{  < INTEGER_LITERAL :    < DECIMAL_LITERAL > (["-", "l", "L" ])?  | < HEX_LITERAL > ([ "l", "L" ])?  | < OCTAL_LITERAL > ([ "l", "L" ])? >| < #DECIMAL_LITERAL : (["-"])?[ "1"-"9" ] ([ "0"-"9" ])* >| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >| < FLOATING_POINT_LITERAL :    < DECIMAL_FLOATING_POINT_LITERAL >  | < HEXADECIMAL_FLOATING_POINT_LITERAL >>| < #DECIMAL_FLOATING_POINT_LITERAL :    (["-"])?([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >| < #DECIMAL_EXPONENT : [ "e", "E" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < #HEXADECIMAL_FLOATING_POINT_LITERAL :    "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ (".")? < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?  | "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])* "." ([ "0"-"9", "a"-"f", "A"-"F" ])+ < HEXADECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])? >| < #HEXADECIMAL_EXPONENT : [ "p", "P" ] ([ "+", "-" ])? ([ "0"-"9" ])+ >| < CHARACTER_LITERAL :    "\'"    (      ~[ "\'", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )    "\'" >| < STRING_LITERAL :    "\""    (      ~[ "\"", "\\", "\n", "\r" ]    | "\\"      (        [ "n", "t", "b", "r", "f", "\\", "\'", "\"" ]      | [ "0"-"7" ] ([ "0"-"7" ])?      | [ "0"-"3" ] [ "0"-"7" ] [ "0"-"7" ]      )    )*    "\"" >}/* SEPARATORS */< DEFAULT >TOKEN :{  < LPAREN : "(" >| < RPAREN : ")" >| < LBRACE : "{" >| < RBRACE : "}" >| < LBRACKET : "[" >| < RBRACKET : "]" >| < SEMICOLON : ";" >| < COMMA : "," >| < DOT : "." >}/* OPERATORS */< DEFAULT >TOKEN :{  < ASSIGN : "=" >| < LT : "<" >| < GT : ">" >| < BANG : "!" >| < TILDE : "~" >| < HOOK : "?" >| < COLON : ":" >| < EQ : "==" >| < LE : "<=" >| < GE : ">=" >| < NE : "!=" >| < SC_OR : "||" >| < SC_AND : "&&" >
 | < PY_OR : "or" >
 | < PY_AND : "and" >
 | < PY_NOT : "not" >
@@ -70,7 +85,8 @@
   	{
   	  return n.image;
   	}  )}String types_C() :{  String token;  String result = "";  Token n;}{  (< STRUCT >)? n = < IDENTIFIER >  {    return n.image + " ";  }|  (    token = primitive_typesC()    {      result += token + " ";    }  )+  {    return result;  }}String typesJ() :{  String type;  Token n;}{  n = < IDENTIFIER >  {    return n.image;  }| type = primitive_typesJ()  {    return type;  }}ASTDeclarationStatement create_variable(programType pType) :{  String type_token = "";  Token name;  String id;
-  ASTExpressionUnitAccess access;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
+  ASTExpressionUnitAccess access;
+  ASTExpressionUnitPointer p;  ASTDeclarationStatement result;  ASTExpressionUnitIdentifier var;  ASTExpression exp = null;  String temp;  ArrayList < String > modifiers = new ArrayList < String > ();}{  < CREATE >  (    temp = catchModifier()    {      modifiers.add(temp);    }  )*
   (    type_token = types_C()
   )?  {
     switch (pType) {
@@ -86,6 +102,11 @@
 	  	break;
 	 }  }  (    (
       (        id = variable()
+      | p = pointer(pType)
+      	{
+      	  if(pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");
+      	  id = p.toSyntax();
+      	}
       | access = access(pType)
       	{
       	  if(pType != programType.P) throw new ParseException("Not supported in C or Java!\n");
@@ -97,7 +118,7 @@
             	((ASTDeclarationStatementC) result).addVariableWithoutDeclaration(new ASTExpressionUnitIdentifier(id));
             	break;
             case P:
-            	throw new ParseException("Python variables have to be declared!\n");
+            	throw new ParseException("Python variables have to be initialised!\n");
             	break;
           }        }        else        {
           switch (pType) {
@@ -205,11 +226,34 @@ ASTExpressionUnitFunctionCall func(programType pType) :
     return call;
   }
 }
+
+ASTExpressionUnitPointer pointer(programType pType) :
+{
+  ASTExpression exp;
+}
+{
+  (
+    < STAR >
+    {
+      if(pType != programType.C) throw new ParseException("Not supported in Java and Python!");
+    }
+    exp = fragment(pType)
+    {
+      return new ASTExpressionUnitPointer((ASTExpressionUnit) exp);
+    }
+  )
+}
 ASTExpression fragment(programType pType) :{  Token var = new Token();  String id;  Token check = new Token();  ASTExpressionUnitLiteral v = new ASTExpressionUnitLiteral();  ASTExpression parameters = new ASTExpression();  ASTExpression result = new ASTExpression();
   Token identifier = new Token();
   ASTExpressionUnitAccess access;
   ASTExpressionUnitFunctionCall call;
-  ASTExpressionUnitLambda lambda;}{  (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
+  ASTExpressionUnitLambda lambda;
+  ASTExpressionUnitPointer p;}{
+  p = pointer(pType)
+  {
+    return p;
+  }
+|   (    < VALUE > v = value(pType)  )  {    //System.out.println(v.toSyntax());
     return v;  }| id = variable()  {    return new ASTExpressionUnitIdentifier(id);  }|  call = func(pType)  {    return call;  }|  (    check = < LPAREN > result = expression(pType) < RPAREN >  )  {    result.quote();    return result;  }| < LBRACE >  {    ASTExpressionUnitLiteral arr;
     ASTExpressionUnitLiteral key;
     ASTExpression value;  }
@@ -297,7 +341,8 @@ ASTExpressionUnitFunctionCall func(programType pType) :
     return result;  }}ASTExpression postfix_expression(programType pType) :{  String operator;  Token var;}{  < POST > < VARIABLE > var = < IDENTIFIER > operator = incrDecrOperators()  {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(var.image);    ASTExpressionPostfixOperation result = new ASTExpressionPostfixOperation(operator, i);    return result;  }}ASTExpression expression(programType pType) :{  ASTExpression result1;  ASTExpression result2;  ASTExpression result3;  ASTExpression result4;}{  (    result1 = prefix_expression(pType)    {      return result1;    }  | result2 = infix_expression(pType)    {      return result2;    }  | result3 = postfix_expression(pType)    {      return result3;    }  )| result4 = assignment(pType)  {    return result4;  }}ASTExpression assignment(programType pType) :{  ASTExpression term;  Token operator;  ASTExpression exp;  String op;}{  < ASSIGNMENT > term = fragment(pType)  {}  (    token = < WITH >    {      op = "=";    }  | op = compoundOperators()  )  exp = expression(pType)  {    ASTExpressionAssignment result = new ASTExpressionAssignment(term, exp, op);    return result;  }}/*Block Statement*/ASTStructDeclaration structDeclareStatement(ASTNode parent, programType pType, int indent) :{  Token name;  ASTDeclarationStatement attribute;}{  < STRUCT_DEC > name = < IDENTIFIER >  {
     if (pType != programType.C) throw new ParseException("Not supported in Python or Java!\n");    ASTStructDeclaration result = new ASTStructDeclaration(name.image);
-    result.setIndent(indent);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatement(ASTNode parent, programType pType, int indent) :{  String modifier;  String returnType;  Token name;  String parameterType = "";  Token parameterName;  ASTStatement s;  Token dimension;
+    result.setIndent(indent);    result.addParent(parent);  }  < STRUCT_START >  (    attribute = create_variable(pType)    {      result.addAttribute((ASTDeclarationStatementC) attribute);     //System.out.println(attribute.toSyntax());    }  )+  < STRUCT_END > < TERMINATOR >  {    return result;  }}ASTFunction functionStatement(ASTNode parent, programType pType, int indent) :{  String modifier;  String returnType;  Token name;  String parameterType = "";  Token parameterName;
+  ASTExpressionUnitPointer p;  ASTStatement s;  Token dimension;
   ASTFunction result;}{  < FUNCTION_DEC > name = < IDENTIFIER >  {
     switch (pType) {
       case C:
@@ -318,16 +363,41 @@ ASTExpressionUnitFunctionCall func(programType pType) :
 	      if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
 	    }
       )?
-      parameterName = < IDENTIFIER >      {
-        if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");        ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);        ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);		switch (pType) {
-	      case C:
-        	((ASTFunctionC) result).addParameter(t, i);
-	      	break;
-	      case P:
-	      	((ASTFunctionP) result).addParameter(i);
-	      	break;
-	    }      }    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY > parameterName = < IDENTIFIER >      {
-        if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));        ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);        ((ASTFunctionC) result).addParameter(type, id);      }    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {
+      (        parameterName = < IDENTIFIER >
+        {
+          if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");
+          ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);
+          ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);
+          switch (pType) {
+            case C:
+            	((ASTFunctionC) result).addParameter(t, i);
+	      		break;
+	      	case P:
+	      		((ASTFunctionP) result).addParameter(i);
+	      		break;
+	     }
+	   }
+	 | p = pointer(pType)
+	   {
+	     if(pType != programType.C) throw new ParseException("Not Supported in Java and Python!\n");
+	     if(parameterType == "") throw new ParseException("Must declare type in C!\n");
+	     t = new ASTExpressionUnitTypes(parameterType);
+         i = new ASTExpressionUnitIdentifier(p.toSyntax());
+         ((ASTFunctionC) result).addParameter(t, i);
+       }
+	 )    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY >      {
+        if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));      }
+      (        parameterName = < IDENTIFIER >
+        {
+          ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);
+          ((ASTFunctionC) result).addParameter(type, id);
+        }
+      | p = pointer(pType)
+      	{
+      	  id = new ASTExpressionUnitIdentifier(p.toSyntax());
+          ((ASTFunctionC) result).addParameter(type, id);
+        }
+      )    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {
       if (!s.toSyntax().equals("\n"))
       {
         result.addStatement(s);      	//System.out.println(s.toSyntax());
@@ -410,15 +480,6 @@ ASTForStatementP forStatementP(programType pType, int indent) :
     else throw new ParseException("Not Supported in Python!\n");
   	//System.out.println(end.toSyntax());
   }
-  (    < ELSE_BRANCH_START >
-	(
-	  temp = statement(result, pType, indent+1)
-	  {
-	    result.addElseBranch(temp);
-	  }
-	)*
-	< ELSE_BRANCH_END >
-  )?
   < FOR_START >
   (
     temp = statement(result, pType, indent+1)
@@ -427,7 +488,18 @@ ASTForStatementP forStatementP(programType pType, int indent) :
       //System.out.println(temp.toSyntax());
     }
   )*
-  < FOR_END > < TERMINATOR >
+  < FOR_END >
+  (
+    < ELSE_BRANCH_START >
+	(
+	  temp = statement(result, pType, indent+1)
+	  {
+	    result.addElseBranch(temp);
+	  }
+	)*
+	< ELSE_BRANCH_END >
+  )?
+  < TERMINATOR >
   {
     return result;
   }
@@ -444,7 +516,7 @@ ASTForStatementP forStatementP(programType pType, int indent) :
       	result = new ASTWhileStatement(exp);
       	break;
     }    result.addParent(parent);
-    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }
+    result.setIndent(indent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END >
   (
     < ELSE_BRANCH_START >
 	(
@@ -455,7 +527,8 @@ ASTForStatementP forStatementP(programType pType, int indent) :
 	  }
 	)*
 	< ELSE_BRANCH_END >
-  )?  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
+  )?
+  < TERMINATOR >  {    return result;  }}ASTDoWhileStatement doWhileStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression exp;  ASTStatement temp;}{  < DO >
   {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");
   }
@@ -930,7 +1003,7 @@ ASTCompilationUnit compilationUnit() :
         current = statement;
         //current.addStatement(statement);
         // important : Outputs to final program
-        System.out.println(statement.toSyntax());
+        if(isDebug) System.out.println(statement.toSyntax());
       }
     }
   )+

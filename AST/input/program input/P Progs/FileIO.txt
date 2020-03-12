@@ -1,0 +1,9 @@
+#p_program FileIO
+#create #variable fileName #function input(#parameter #value "Enter name of file to be opened: ") #dec_end;;
+#with #function open(#parameter #variable fileName #parameter #value "r+") f
+#with_start
+#function print(#parameter #function #access f read #access_end());;
+#create #variable newLine #function input(#parameter #value "Enter new content: ") #dec_end;;
+#function #access f write #access_end (#parameter #variable newLine + #value "\n");;
+#with_end;;
+#program_end

@@ -1,0 +1,48 @@
+#p_program QuickSort
+#include "sys";;
+#function_declare quicksort #parameter X #parameter first #parameter last
+#function_start
+#create #variable pivot #value 0 #dec_end #variable j #value 0 #dec_end #variable temp #value 0 #dec_end #variable i #value 0 #dec_end;;
+if #condition #variable first < #variable last
+#if_branch_start
+#assign #variable pivot #with #variable first;;
+#assign #variable i #with #variable first;;
+#assign #variable j #with #variable last;;
+while #condition #variable i < #variable j
+#while_start
+while #condition #array X #indexes #variable i #index_end <= #array X #indexes #variable pivot #index_end and #variable i < #variable last
+#while_start
+#assign #variable i += #value 1;;
+#while_end;;
+while #condition #array X #indexes #variable j #index_end > #array X #indexes #variable pivot #index_end
+#while_start
+#assign #variable j -= #value 1;;
+#while_end;;
+if #condition #variable i < #variable j
+#if_branch_start
+#assign #variable temp #with #array X #indexes #variable i #index_end;;
+#assign #array X #indexes #variable i #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#if_branch_end;;
+#while_end;;
+#assign #variable temp #with #array X #indexes #variable pivot #index_end;;
+#assign #array X #indexes #variable pivot #index_end #with #array X #indexes #variable j #index_end;;
+#assign #array X #indexes #variable j #index_end #with #variable temp;;
+#function quicksort(#parameter #variable X #parameter #variable first #parameter #variable j - #value 1);;
+#function quicksort(#parameter #variable X #parameter #variable j + #value 1 #parameter #variable last);;
+#if_branch_end;;
+#function_end;;
+#create #variable size #value 0 #dec_end #variable X {#list} #dec_end;;
+#assign #variable size #with #function int(#parameter #function input(#parameter #value "Enter size of the array: "));;
+#function print(#parameter #value "Enter %d elements: " % #variable size);;
+for #parameter #variable i #function range(#parameter #variable size)
+#for_start
+#function #access X append #access_end (#parameter #function int(#parameter #function input()));;
+#for_end;;
+#function quicksort(#parameter #variable X #parameter #value 0 #parameter #variable size - #value 1);;
+#function print(#parameter #value "Sorted elements: ");;
+for #parameter #variable i #function range(#parameter #variable size)
+#for_start
+#function print(#parameter #value "%d" % #array X #indexes #variable i #index_end);;
+#for_end;;
+#program_end

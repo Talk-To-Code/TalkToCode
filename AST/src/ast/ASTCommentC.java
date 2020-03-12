@@ -20,7 +20,7 @@ public class ASTCommentC extends ASTComment {
 				if(this.statements.get(i) instanceof ASTSimpleStatement) {
 					this.result += "//";
 					if(this.statements.get(i).toSyntax().charAt(0) != '\"') this.result += this.statements.get(i).toSyntax();
-					else this.result += this.statements.get(i).toSyntax().substring(1, this.statements.get(i).toSyntax().length()-3);
+					else this.result += this.statements.get(i).toSyntax().substring(1, this.statements.get(i).toSyntax().length()-3) + "\n";
 				}
 				else {
 					this.result += "/*\n";
