@@ -330,7 +330,7 @@ export class StructCommandManager {
 
     /* A function to remove struct command and it's corresponding speech hist input of the same index.
     this.curr_index will also be adjusted */
-    delete_command(start_pos: number, amt_to_remove: number) {
+    splice(start_pos: number, amt_to_remove: number) {
         console.log(start_pos + " " + amt_to_remove)
 
         var copiedStructCommand = this.deepCopyStructCommand()
