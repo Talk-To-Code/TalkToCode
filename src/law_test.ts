@@ -1,10 +1,8 @@
-var text = "----"
+var arr = ["hello", "goodbye"]
 
-text = text.replace(/\+/g, "plus");
-text = text.replace(/-/g, "minus");
-text = text.replace(/\*/g, "multiply");
-text = text.replace(/\//g, "divide");
+var arr2 = [];
+arr2.push(arr[0])
+arr2.push(arr[1])
 
-text = text.replace(/bit and/g, "bit_and");
-text = text.replace(/bit or/g, "bit_or");
-console.log(text)
+arr[0] = "evening"
+console.log(arr2)
