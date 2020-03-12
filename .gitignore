@@ -7,4 +7,4 @@ AST/.project
 AST/.settings/org.eclipse.jdt.core.prefs
 AST/input.txt
 AST/src/output2.txt
-AST/ast/src/ASTParser.class
+AST/src/ast/ASTParser.class
