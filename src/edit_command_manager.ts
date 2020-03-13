@@ -26,12 +26,16 @@ export class EditCommandManager {
         this.check_if_rename_function(transcribedWord);
         this.check_if_rename_variable(transcribedWord);
         this.check_if_cut_block(transcribedWord);
+        this.check_if_cut_line(transcribedWord);
+        this.check_if_copy_line(transcribedWord);
+        this.check_if_copy_block(transcribedWord);
+        this.check_if_paste_above_or_below_line(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
         var arr = text.toLowerCase().split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy"){
             return true;
         }
         return false;
@@ -248,10 +252,109 @@ export class EditCommandManager {
         }
     }
 
-    check_if_paste(text:String){
-
+    //WORKS
+    check_if_paste_above_or_below_line(text:String){
+        var arr = text.split(" ");
+        if (arr[0]=="paste"){
+            console.log("IN HERE TO PASTE ABOVE/BELOW LINE");
+            var line_num = parseInt(arr[3]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (arr[1]=="above"){
+                console.log("GOT INTO ABOVE");
+                this.manager.struct_command_list.splice(index,0,...this.cut_copy_buffer);
+                for (var i=0;i<this.manager.struct_command_list.length;i++){
+                    console.log("DEBUG IN PASTE: "+i);
+                    console.log(this.manager.struct_command_list[i]);
+                    console.log(this.cut_copy_buffer[0]);
+                }
+            }
+            else if (arr[1]=="below"){
+                console.log("GOT INTO BELOW");
+                this.manager.struct_command_list.splice(index+1,0,...this.cut_copy_buffer);
+                for (var i=0;i<this.manager.struct_command_list.length;i++){
+                    console.log("DEBUG IN PASTE: "+i);
+                    console.log(this.manager.struct_command_list[i]);
+                    console.log(this.cut_copy_buffer[0]);
+                }
+            }
+        }
     }
 
+    //WORKS
+    check_if_cut_line(text: String){
+        var arr = text.split(" ");
+        if (arr[0] == "cut" && arr[1]=="line") {
+            console.log("IN HERE to cut line");
+            this.cut_copy_buffer=[""]
+            let line_num = parseInt(arr[2]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (index!=-1){
+                this.cut_copy_buffer[0] = this.manager.struct_command_list[index];
+                this.manager.struct_command_list.splice(index,1);
+            }
+        }
+    }
+
+    //WORKS
+    check_if_copy_line(text: String){
+        var arr = text.split(" ");
+        if (arr[0] == "copy" && arr[1]=="line") {
+            console.log("IN HERE to copy line");
+            this.cut_copy_buffer=[""]
+            let line_num = parseInt(arr[2]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (index!=-1){
+                this.cut_copy_buffer[0] = this.manager.struct_command_list[index];
+            }
+        }
+    }
+
+    //WORKS
+    check_if_copy_block(text: String){
+        var arr = text.split(" ");
+        if (arr[0]=="copy" && arr[1]=="block"){
+            this.cut_copy_buffer = [""];
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                let document = editor.document;
+                var line_num = parseInt(arr[5]);
+                var line = document.lineAt(line_num-1).text.trimLeft();
+                var start = -1;
+                var end = -1;
+                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            
+                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
+                var count_block = 0;
+                 if (line.startsWith(block_name)){
+                    var index = this.binarySearch(line_num,0,this.line_counts.length);
+                    if (index==-1) return;
+
+                    start = index;
+                    for (var i=index;i<this.manager.struct_command_list.length;i++){
+                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
+                            count_block++;
+                        }
+
+                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
+                            if (count_block==0){
+                                end = i;
+                                break;
+                            }
+                            else if (count_block>0){
+                                count_block--;
+                            }
+                        }
+                    }
+
+                    for (var j=start;j<=end;j++){
+                        this.cut_copy_buffer[j-start]=this.manager.struct_command_list[j];
+                    }
+                }
+            }
+        }
+    }
+
+    //WORKS
     check_if_cut_block(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="cut" && arr[1]=="block"){

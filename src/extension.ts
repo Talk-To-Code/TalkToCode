@@ -78,7 +78,6 @@ function listen() {
 		else if (editManager.check_if_edit_command(transcribed_word)){
 			console.log("IN HERE TO EDIT");
 			editManager.checkAll(transcribed_word, code_segments,count_lines);
-			writeToEditor(manager.managerStatus());
 			displayCode(manager.struct_command_list);
 		}
 
@@ -88,7 +87,6 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word);
-			writeToEditor(manager.managerStatus());
 			displayCode(manager.struct_command_list);
 		}
 	});
@@ -130,6 +128,7 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	if (text2.endsWith(";")){
 		text2 = text2.substring(0,text2.length-1); 
 	} 
+
 	if (text1.indexOf(text2)!=-1){
 		return true;
 	}
