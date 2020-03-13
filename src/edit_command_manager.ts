@@ -30,6 +30,7 @@ export class EditCommandManager {
         this.check_if_copy_line(transcribedWord);
         this.check_if_copy_block(transcribedWord);
         this.check_if_paste_above_or_below_line(transcribedWord);
+        this.check_if_insert_before_line(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
     }
 
@@ -399,35 +400,24 @@ export class EditCommandManager {
             }
         }
     }
-    check_if_insert_before_block(text: String) {
+
+    //WORKS
+    check_if_insert_before_line(text: String) {
         var arr = text.split(" ");
         var temp = 0;
         if (arr[0]=="insert" && arr[1]=="before"){
             console.log("GOT IN HERE TO INSERT");
-            let editor = vscode.window.activeTextEditor;
-            if (editor){
-                const document = editor.document;
-                let line_num = parseInt(arr[6])-1;
-                let block_name = arr[2];
-
-                const position = editor.selection.active;
-
-                var newPosition = position.with(line_num, 0);
-
-                editor.edit(editBuilder =>{
-                    editBuilder.insert(document.lineAt(line_num).range.start,"\n")
-                })
-
-                var newSelection = new vscode.Selection(newPosition, newPosition);
-                editor.selection = newSelection;
-                temp = this.manager.curr_index;
-                this.manager.curr_index=line_num;
-                
-            }
+                let line_num = parseInt(arr[3]);
+                let index = this.binarySearch(line_num,0,this.line_counts.length);
+                this.manager.struct_command_list.splice(index,0,"#comment #value \" insert here \";; #comment_end;;");
+                this.manager.curr_index = index;
         }
     }
-    
-    compute_start_end(){
+
+    check_if_insert_before_block(text: String){
 
     }
+
+
+    
 }
