@@ -37,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
 		// test_function();
@@ -134,6 +134,7 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	if (text2.endsWith(";")){
 		text2 = text2.substring(0,text2.length-1); 
 	} 
+
 	if (text1.indexOf(text2)!=-1){
 		return true;
 	}
