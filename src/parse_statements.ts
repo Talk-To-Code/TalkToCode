@@ -444,7 +444,7 @@ function parse_function(text: string) {
         statement.logError(fragment[1]);
         return statement;
     }
-    statement.parsedStatement = fragment[1];
+    statement.parsedStatement = fragment[1] + ";;";
     return statement;
 }
 
@@ -613,7 +613,7 @@ function parse_fragment(splitted_text: string[]) {
     else if (splitted_text[0] == "call") {
         if (splitted_text[1] != "function") return ["not ready", "function not mentioned."];
         /* Minimal format is "call function" <function name> "end function". */
-        if (splitted_text.length < 4) return ["not ready", "no function name mentioned."];
+        if (splitted_text.length <= 4) return ["not ready", "no function name mentioned."];
         if (splitted_text.slice(splitted_text.length-2).join(" ") != "end function")
             return ["not ready", "end function not mentioned."];
 

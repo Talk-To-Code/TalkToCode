@@ -118,7 +118,7 @@ function generate_test_cases(cases: string) {
 
     else if (cases == "call_function") {
         test_cases[0] = ["call function print f parameter string enter two numbers end string end function"];
-        // test_cases[0] = ["call function print f"]
+        test_cases[0] = ["call function end function"]
         test_cases[1] = ["#function printf(#parameter #value \"enter 2 numbers\");;", "#comment #value \" cursor here \";; #comment_end;;"];
     }
 

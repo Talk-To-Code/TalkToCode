@@ -107,7 +107,7 @@ function displayCode(struct_command_list: string[]) {
 
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-    const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: ast_cwd});
+    const other_child = spawn('java', ['ast/ASTParser 1'], {shell:true, cwd: ast_cwd});
 	other_child.stdin.setEncoding('utf8');
 
     other_child.stdin.write(commands);
