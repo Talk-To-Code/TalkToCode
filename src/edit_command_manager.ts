@@ -58,6 +58,8 @@ export class EditCommandManager {
     }
 
     //WORKS
+    // There could be an error if the line the user asks to delete is "if (hello > 5)". Good to do checks for
+    // that and reject the invalid command.
     check_if_delete_line(text: String) { 
         var arr = text.split(" ");
         if (arr[0] == "delete" && arr[1]=="line") {
@@ -65,12 +67,13 @@ export class EditCommandManager {
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (index!=-1){
-                this.manager.struct_command_list.splice(index,1);
+                this.manager.splice(index,1);
             }
         }
     }
 
     //WORKS
+    // if function name does not exist, just reject the command. If not an error occurs.
     check_if_delete_function(text: String) {
         var arr = text.split(" ");
         if (arr[0]=="delete" && arr[1]=="function"){
@@ -99,7 +102,7 @@ export class EditCommandManager {
                     if (countNestedFunctions==0) end = i;
                 }
             }
-            this.manager.struct_command_list.splice(start,(end-start)+1);
+            this.manager.splice(start,(end-start)+1);
         } 
     }
     
@@ -138,9 +141,8 @@ export class EditCommandManager {
                                 count_block--;
                             }
                         }
-
                     }
-                    this.manager.struct_command_list.splice(start,(end-start)+1);
+                    this.manager.splice(start,(end-start)+1);
                 }
             }
         }

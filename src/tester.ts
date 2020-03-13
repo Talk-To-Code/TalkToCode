@@ -13,8 +13,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    // test_cases = generate_test_cases("create_function");
-    // runTestCase(test_cases[0], test_cases[1]);
+    test_cases = generate_test_cases("create_function");
+    runTestCase(test_cases[0], test_cases[1]);
     
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -127,7 +127,7 @@ function generate_test_cases(cases: string) {
 
 /* Run and compare my output and correct output using test cases. */
 function runTestCase(test_cases: string[], correct_output: string[]) {
-    var test_manager = new StructCommandManager("py");
+    var test_manager = new StructCommandManager("c");
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i]);

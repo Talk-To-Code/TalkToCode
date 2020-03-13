@@ -206,9 +206,6 @@ class Serial #parent #access threading Thread #access_end
 #function_declare run #parameter self
 #function_start
 while #condition not #access self isHandShakeDone #access_end
-#else_branch_start
-#function print(#parameter #value "Handshake Done!\n");;
-#else_branch_end
 #while_start
 #function #access self port write #access_end (#parameter #function bytes(#parameter #value "H" #parameter #value "utf-8"));;
 #create #variable ack #function #access #function #access self port read #access_end() decode #access_end() #dec_end;;
@@ -217,7 +214,10 @@ if #condition #variable ack == #value 'A'
 #assign #access self isHandShakeDone #access_end #with #value true;;
 #function #access self port write #access_end (#parameter #function bytes(#parameter #value "A" #parameter #value "utf-8"));;
 #if_branch_end;;
-#while_end;;
+#while_end
+#else_branch_start
+#function print(#parameter #value "Handshake Done!\n");;
+#else_branch_end;;
 while #condition not #function #access self shutdown is_set #access_end()
 #while_start
 #function #access self getData #access_end();;
@@ -254,9 +254,6 @@ while #condition #variable length == #value ""
 #create #variable data #value "" #dec_end;;
 #create #variable checksum #function ord(#parameter #value '\0') #dec_end;;
 for #parameter #variable i #function range(#parameter #function int(#parameter #variable length))
-#else_branch_start
-#function print(#parameter #value "Checksum initialised!\n");;
-#else_branch_end
 #for_start
 #create #variable dataByte #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8") #dec_end;;
 if #condition #variable dataByte != #value ','
@@ -272,7 +269,10 @@ if #condition #variable i == #function int(#parameter #variable length)
 #if_branch_start
 break;;
 #if_branch_end;;
-#for_end;;
+#for_end
+#else_branch_start
+#function print(#parameter #value "Checksum initialised!\n");;
+#else_branch_end;;
 if #condition #variable checksum == #function ord(#parameter #function #access #function #access self port read #access_end() decode #access_end (#parameter #value "utf-8"))
 #if_branch_start
 #function #access self port write #access_end (#parameter #function bytes(#parameter #value "A" #parameter #value "utf-8"));;

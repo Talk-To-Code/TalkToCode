@@ -14,19 +14,13 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 #program_end
 
 todo:
-edit speech hist
-- undo of exit block is enter block.
-
-Make an Edit stack 
-- stores vital info to undo edit commands.
-- make this its own class along with undo.
-
 struct_command_manager
 - have its own manuevering commands - go left, right, up, down.
 
 brackets for if block - "group" command
 
 infix conditions still not really extendable yet.
+assign not extendable
 
 maybe add a spelling command.
 
