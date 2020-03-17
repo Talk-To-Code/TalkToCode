@@ -23,8 +23,8 @@ export class structCommand {
     removePrevTerminator: boolean;
     /* removePreviousStatement: is true if the previous statement is extendable by the current statement. */
     removePreviousStatement: boolean;
-    /* removePreviousBlock: is true if the previous block is extendable by the current statement. */
-    removePreviousBlock: boolean;
+    /* held: is true when user is holding the statement there for editing or long commands. */
+    held: boolean;
     
 
     constructor(typeOfCommand: string) {
@@ -39,7 +39,7 @@ export class structCommand {
         this.isCase = false;
         this.removePrevTerminator = false;
         this.removePreviousStatement = false;
-        this.removePreviousBlock = false;
+        this.held = false;
 
         if (typeOfCommand == "block") this.isBlock = true;
     }

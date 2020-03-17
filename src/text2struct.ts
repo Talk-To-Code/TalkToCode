@@ -37,10 +37,7 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         input_speech = prev_input_speech + " " + input_speech;
         removePreviousStatement = true;
     }
-    else if (checkMsg == "extend if"){
-        input_speech = prev_input_speech + " " + input_speech;
-        removePreviousBlock = true;
-    }
+
     input_speech = replace_infix_operators(input_speech);
 
     console.log("text going in: " + input_speech);
@@ -62,7 +59,6 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         }
     }
     struct_command.removePreviousStatement = removePreviousStatement;
-    struct_command.removePreviousBlock = removePreviousBlock;
     struct_command.newFunction = checkForNewFunction(struct_command);
     struct_command.newVariable = checkForNewVariable(struct_command);
     return struct_command;
@@ -110,12 +106,6 @@ function checkPrevStatement(input_text: string, prev_struct_command: string) {
             return "extend assign";
         }
     }
-
-    else if (prev_struct_command.includes("#if_branch_start")) {
-        if (input_text.split(" ")[0] == "and" || input_text.split(" ")[0] == "or" ||
-        input_text.split(" ")[0] == "bit_and" || input_text.split(" ")[0] == "bit_or") return "extend if"; 
-    }
-
     return "do not extend";
 }
 

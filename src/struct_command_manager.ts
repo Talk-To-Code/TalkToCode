@@ -100,23 +100,10 @@ export class StructCommandManager {
             /* Remove current "" line and prev struct command. */
             this.struct_command_list.splice(this.curr_index, 2, "");
         }
-        /* Previous block is extendable */
-        else if (struct_command.removePreviousBlock) {
-            /* join extendable speech to prev input speech */
-            var extendable_speech = this.speech_hist.get_item(this.curr_index).join(" ");
-            this.speech_hist.remove_item(this.curr_index);
-            this.speech_hist.concat_item(this.curr_index-1, extendable_speech);
-
-            this.curr_index -= 1;
-            /* Remove current "" line and prev struct command. */
-            this.struct_command_list.splice(this.curr_index, 3, "");
-        }
-
         else if (struct_command.removePrevTerminator) {
             /* Remove terminator from prev index. */
             this.struct_command_list[this.curr_index - 1] = this.struct_command_list[this.curr_index - 1].replace(";;", "");
         }
-
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
             this.curr_speech = [""] // Clear curr speech to prepare for next command.
