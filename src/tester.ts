@@ -13,8 +13,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("create_function");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("create_function");
+    // runTestCase(test_cases[0], test_cases[1]);
     
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -46,9 +46,7 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["declare integer", "hello world", "equal 5", "hello world equals 4",
-        "declare float", "count", "equals hello world",
-        "declare integer first equals 10"];
+        test_cases[0] = ["begin if hello greater than 5 and hello less than 2"];
         
         test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
         "#assign #variable helloWorld #with #value 4;;", 

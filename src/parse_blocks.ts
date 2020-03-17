@@ -54,6 +54,8 @@ export function parse_command(text: string, language: string) {
             return parse_do(splitted_text, language);
         case "case":
             return parse_case(splitted_text);
+        case "structure":
+            return parse_structure(splitted_text);
         default:
             var statement = parse_statement(text, "normal", language);
             return statement.convert2StructCommand();
@@ -67,6 +69,7 @@ function determine_user_command(text: string) {
     text = text.replace("begin loop", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
+    text = text.replace("create structure", "structure")
     text = text.replace("do while", "do");
 
     var splitted_text = text.split(" ");
@@ -367,6 +370,20 @@ function parse_case(splitted_text: string[]) {
     }
     command.parsedCommand = "case " + fragment[1] + " #case_start";
     command.endCommand = "#case_end;;"
+
+    return command;
+}
+
+function parse_structure(splitted_text: string[]) {
+    var command = new structCommand("block");
+
+    if (splitted_text.length == 0) {
+        command.logError("no term mentioned");
+        return command;
+    }
+
+    command.parsedCommand = "#struct_declare " + joinName(splitted_text) + " #struct_start";
+    command.endCommand = "#struct_end;;"
 
     return command;
 }

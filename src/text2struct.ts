@@ -33,7 +33,7 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     var removePreviousBlock = false;
 
     var checkMsg = checkPrevStatement(input_speech, prev_struct_command);
-    if (checkMsg == "extend declare") {
+    if (checkMsg == "extend declare" || checkMsg == "extend assign") {
         input_speech = prev_input_speech + " " + input_speech;
         removePreviousStatement = true;
     }
@@ -102,6 +102,12 @@ function checkPrevStatement(input_text: string, prev_struct_command: string) {
         }
         if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
             return "extend declare";
+        }
+    }
+
+    else if (prev_struct_command.includes("#assign")) {
+        if (arithmetic_operator.includes(input_text.split(" ")[0])) {
+            return "extend assign";
         }
     }
 

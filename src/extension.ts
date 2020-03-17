@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-import { runTestCases } from './tester'
+import { runTestCases, test_function } from './tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
@@ -39,9 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		listen();
+		// listen();
 		// test_function();
-		// runTestCases();
+		runTestCases();
 
 	});
 	context.subscriptions.push(disposable);

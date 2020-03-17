@@ -64,7 +64,7 @@ function find_symbol(text: string) {
                 else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
                 else if (splitted_text[i] == "colon") splitted_text[i] = ":";
                 else if (splitted_text[i] == "equal") splitted_text[i] = "=";
-                else if (splitted_text[i] == "dot") splitted_text[i] = ".";
+                else if (splitted_text[i] == "dot" || splitted_text[i] == "point") splitted_text[i] = ".";
 
                 symbol_flag = false;
             }
