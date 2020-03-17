@@ -1,7 +1,5 @@
 import { simpleStatement } from './struct_command'
 
-var variable_types = ["int", "long", "float", "double", "boolean", "char", "string", "void"];
-
 var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
 var arithmetic_operators = ["plus", "divide", "multiply", "minus"];
 var postfix_prefix_operator = ["++", "--"];
@@ -16,6 +14,7 @@ export function joinName(name_arr: string[]) {
         var_name = name_arr[0].toLowerCase();
         var i;
         for (i = 1; i < name_arr.length; i++) {
+            if (name_arr[i] == "") continue;
             /* Change first letter to capital */
             var toAdd = name_arr[i][0].toUpperCase() + name_arr[i].slice(1);
             var_name = var_name + toAdd;
@@ -43,19 +42,19 @@ export function parse_statement(text: string, typeOfStatement: string, language:
             if (language == "c") return parse_declare_c(text);
             else return parse_declare_py(text);
         case "assign":
-            return parse_assignment(text);
+            return parse_assignment(text, language);
         case "infix":
-            return parse_infix(text);
+            return parse_infix(text, language);
         case "postfix": // For now just postfix man.
             return parse_postfix(text);
         case "return":
-            return parse_return(text);
+            return parse_return(text, language);
         case "break":
             return parse_break();
         case "continue":
             return parse_continue();
         case "function":
-            return parse_function(text);
+            return parse_function(text, language);
         default:
             var statement = new simpleStatement();
             statement.logError("Does not match any statement format.");
@@ -94,13 +93,14 @@ function parse_break() {
 declare <var_type> <var name>
 declare <struct name> <var name>
 declare <var_type> array <var name> size <literal>
+declare <var_type> array <var name> size <literal> equal make array parameter ... parameter ...
 declare <var_type> <var name> equal <var_name>
 declare <var_type> <var name> equal <literal>
 declare <var_type> <var name> equal <complex fragment> */
 function parse_declare_c(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
-    statement.parsedStatement = "#create";
+    statement.parsedStatement = "#create #variable";
 
     var splitted_text = text.split(" ");
 
@@ -111,73 +111,89 @@ function parse_declare_c(text: string) {
         statement.logError("var type is the last word mentioned.");
         return statement;
     }
-    
-    else statement.parsedStatement += " " + splitted_text[1]; // Add var_tpye. 
+    else statement.parsedStatement += " " + splitted_text[1]; // Add var_type. 
+    var fragment1 = ""
+    var fragment2 = ""
+    var equalPresent = false;
+
+    /* Check if equal is present. Then assign fragment1 and fragment2 values. */
+    if (splitted_text.includes("equal")) {
+        equalPresent = true;
+        var equal_idx = splitted_text.indexOf("equal");
+        if (equal_idx == splitted_text.length-1) {
+            statement.logError("equal was last word mentioned.");
+            return statement;
+        }
+        fragment1 = splitted_text.slice(2, equal_idx).join(" ");
+        fragment2 = splitted_text.slice(equal_idx+1).join(" ");
+    }
+    else fragment1 = splitted_text.slice(2).join(" ");
+
     /* Check for array declaration. */
-    if (splitted_text.includes("array") && !splitted_text.includes("equal")) {
+    if (splitted_text.includes("array")) {
+        /* remove array, size and int from fragment. */
+        fragment1 = fragment1.replace("array ", "");
+        fragment1 = fragment1.replace("size ", "");
+        fragment1 = fragment1.trim();
+        fragment1 = fragment1.replace(/  +/g, ' ');
+        fragment1 = fragment1.substring(0, fragment1.length-1);
+
         if (!splitted_text.includes("size")) {
             statement.logError("Size was not mentioned.");
             return statement;
         }
-        if (splitted_text.indexOf("size") == splitted_text.length-1) {
+        var indexSize = splitted_text.indexOf("size");
+        if (indexSize == splitted_text.length-1) {
             statement.logError("size is the last word.");
             return statement;
         }
-        statement.parsedStatement += " " + parse_array_d(splitted_text.slice(3).join(" "));
-    }
-    else {
-        /* Check if Equal is mentioned. */
-        if (splitted_text.includes("equal")) {
-            var equal_idx = splitted_text.indexOf("equal");
-            if (equal_idx == splitted_text.length-1) {
-                statement.logError("equal was last word mentioned.");
-                return statement;
-            }
-            var fragment1 = fragment_segmenter(splitted_text.slice(2, equal_idx));
-            var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
-
-            if (fragment1[0] == "not ready") {
-                statement.logError(fragment1[1]);
-                return statement;
-            }
-
-            if (fragment2[0] == "not ready") {
-                statement.logError(fragment2[1]);
-                return statement;
-            }
-            statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
+        /* Size is not last word. Hence, indexSize + 1 cannot exceed boundary. */
+        if (isNaN(Number(splitted_text[indexSize+1]))) {
+            statement.logError("size of array must be a number");
+            return statement;
         }
-        else {
-            var fragment = fragment_segmenter(splitted_text.slice(2));
-            if (fragment[0] == "not ready") {
-                statement.logError(fragment[1]);
+        // E.g. array number size 100 -> #array #variable number #indexes 100 #index_end #dec_end;;
+        statement.parsedStatement += " #array #variable " + joinName(fragment1.split(" "));
+        statement.parsedStatement += " #indexes " + splitted_text[indexSize+1] + " #index_end";
+
+        if (equalPresent) {
+            var splitted_fragment_2 = fragment2.split(" ");
+            if (splitted_fragment_2.length > 3 && splitted_fragment_2.slice(0, 2).join(" ") == "make array") {
+                var groupedFragments = parse_grouped_fragment("make array", splitted_fragment_2);
+                if (groupedFragments[0] == "not ready") {
+                    statement.logError("error with grouped fragment. " + groupedFragments[1]);
+                    return statement;
+                }
+                statement.parsedStatement += " " + groupedFragments[1];
+            }
+            else {
+                statement.logError("not a valid array initialization.");
                 return statement;
             }
-            statement.parsedStatement += " " + fragment[1];
+        }
+    }
+    /* Not array declaration */
+    else {
+        statement.parsedStatement += " " + joinName(fragment1.split(" "));
+
+        if (equalPresent) {
+            var parsedFragment2 = fragment_segmenter(fragment2.split(" "), "c");
+            if (parsedFragment2[0] == "not ready") {
+                statement.logError("fragment issue. " + parsedFragment2[1]);
+                return statement;
+            }
+            statement.parsedStatement += " " + parsedFragment2[1];
         }
     }
     statement.parsedStatement += " #dec_end;;";
     return statement;
 }
 
-/* Parse array when doing daclaration.
-E.g. array number size 100 -> #array #variable number #indexes #value 100 #index_end #dec_end;;
-*/
-function parse_array_d(text: string) {
-    var splitted_text = text.split(" ");
-    var size_idx = splitted_text.indexOf("size");
-    var parsed_results = "#array #variable";
-    parsed_results += " " + joinName(splitted_text.slice(0, size_idx));
-    parsed_results += " #indexes #value " + splitted_text.slice(size_idx+1).join(" ") + " #indexes_end";
-    
-    return parsed_results;  
-}
-
 /* E.g. Have to initialise, so "equal" is a must.
 declare <var name> equal <var_name>
 declare <var name> equal <literal>
 declare <var name> equal <complex fragment>
-declare list <var name> with (<parameter> <literal>)? */
+declare <var name> equal make list parameter <literal> parameter <literal> */
 function parse_declare_py(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
@@ -192,34 +208,48 @@ function parse_declare_py(text: string) {
     }
 
     var equal_idx = splitted_text.indexOf("equal");
-    var fragment1 = fragment_segmenter(splitted_text.slice(1, equal_idx));
-    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
+    var fragment1 = fragment_segmenter(splitted_text.slice(1, equal_idx), "py");
     if (fragment1[0] == "not ready") {
         statement.logError(fragment1[1]);
         return statement;
     }
-    if (fragment2[0] == "not ready") {
-        statement.logError(fragment2[1]);
-        return statement;
+
+    var fragment2 : string[]
+    /* Check if creating a list or not. */
+    var preFragment = splitted_text.slice(equal_idx + 1);
+    if (preFragment.length > 3 && preFragment.slice(0, 2).join(" ") == "make list") {
+        var fragment2 = parse_grouped_fragment("make list", preFragment);
+        if (fragment2[0] == "not ready") {
+            statement.logError("error with grouped fragment. " + fragment2[1]);
+            return statement;
+        }
     }
+    else {
+        fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), "py");
+        if (fragment2[0] == "not ready") {
+            statement.logError(fragment2[1]);
+            return statement;
+        }
+    }
+        
     statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
     return statement;
 }
 
-function parse_return(text: string) {
+function parse_return(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isReturn = true;
     statement.parsedStatement = "return #paramater";
     var splitted_text = text.split(" ");
     /* Return has an assign statement */
     if (splitted_text.includes("equal")) {
-        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "));
+        var assign_statement = parse_assignment(splitted_text.slice(1).join(" "), language);
         if (assign_statement.hasError) return assign_statement;
         else statement.parsedStatement += " " + assign_statement.parsedStatement; // assign statement alr has its own ";;"
     }
     /* returning a variable or literal */
     else {
-        var fragment = fragment_segmenter(splitted_text.slice(1));
+        var fragment = fragment_segmenter(splitted_text.slice(1), language);
         if (fragment[0] == "not ready") {
             statement.logError(fragment[1]);
             return statement;
@@ -229,7 +259,7 @@ function parse_return(text: string) {
     return statement;
 }
 
-function parse_assignment(text: string) {
+function parse_assignment(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isAssign = true;
     var splitted_text = text.split(" ");
@@ -240,8 +270,8 @@ function parse_assignment(text: string) {
         return statement;
     }
 
-    var fragment1 = fragment_segmenter(splitted_text.slice(0, equal_idx));
-    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1));
+    var fragment1 = fragment_segmenter(splitted_text.slice(0, equal_idx), language);
+    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), language);
 
     if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
         statement.logError(fragment1[1]);
@@ -259,12 +289,12 @@ function parse_postfix(text: string) {
     return statement;
 }
 
-function parse_infix(text: string) {
+function parse_infix(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isInfix = true;
     var splitted_text = text.split(" ");
 
-    var fragment = fragment_segmenter(splitted_text);
+    var fragment = fragment_segmenter(splitted_text, language);
     if (fragment[0] == "not ready") {
         statement.logError(fragment[1]);
         return statement;
@@ -274,10 +304,10 @@ function parse_infix(text: string) {
     return statement;
 }
 
-function parse_function(text: string) {
+function parse_function(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isFunction = true;
-    var fragment = fragment_segmenter(text.split(" "));
+    var fragment = fragment_segmenter(text.split(" "), language);
     if (fragment[0] == "not ready") {
         statement.logError(fragment[1]);
         return statement;
@@ -292,12 +322,26 @@ Before parsing can be done, first segment them then parse each individual segmen
 Returns list as [<status>, <parsed_result>] 
 <status> - "ready" or "not ready"
 <parsed_result> - the successfully parsed result. */
-export function fragment_segmenter(splitted_text: string[]) {
+export function fragment_segmenter(splitted_text: string[], language: string) {
     if (splitted_text.length == 0) return ["not ready", "empty fragment."];
     if (JSON.stringify(splitted_text) == JSON.stringify([""])) return ["not ready", "empty fragment."];
 
     /* Begin processing to separate fragments based on arithmetic operators. */
     var text = splitted_text.join(" ");
+
+    /* Grouped fragments for declaring array, list or dictionary. */
+    if (language == "c" && splitted_text.length > 3 && splitted_text.slice(0, 2).join(" ") == "make array") {
+        var groupFrag = parse_grouped_fragment(splitted_text.slice(0, 2).join(" "), splitted_text);
+        if (groupFrag[0] == "not ready") return ["not ready", groupFrag[1]];
+        return ["ready", groupFrag[1]];
+    }
+
+    else if (language == "py" && splitted_text.length > 3 && splitted_text.slice(0, 2).join(" ") == "make list") {
+        var groupFrag = parse_grouped_fragment(splitted_text.slice(0, 2).join(" "), splitted_text);
+        if (groupFrag[0] == "not ready") return ["not ready", groupFrag[1]];
+        return ["ready", groupFrag[1]];
+    }
+
     /* Add spaces around parenthesis. Parenthesis can now be separated by split(" ") */
     text = text.replace(/\(/g, " ( ").replace(/\)/g, " ) ").trim();
     text = text.replace(/end string/g, "end_string");
@@ -527,4 +571,31 @@ function parse_fragment(splitted_text: string[]) {
 
     // }
     return ["ready", "#variable " + joinName(splitted_text)];
+}
+
+/* Command for it is:
+make array parameter <expression> parameter <expression> ...
+make list parameter <expression> parameter <expression> ... */
+function parse_grouped_fragment(groupType: string, splitted_text: string[]) {
+    var parsedFragment = "{"
+    if (groupType == "make list") parsedFragment += " #list";
+    else parsedFragment += " #array";
+    /* Remove "make array" or "make list" */
+    splitted_text.splice(0, 2);
+
+    if (!splitted_text.includes("parameter")) return ["ready", parsedFragment + " }"];
+
+    var parameter_block = splitted_text.join(" ").split("parameter").slice(1);
+    /* Trim each element in the array. */
+    parameter_block = parameter_block.map(function(value, index) {
+        return value.trim();
+    });
+
+    for (var i = 0; i < parameter_block.length; i++) {
+        var fragment = parse_fragment(parameter_block[i].split(" "));
+        if (fragment[0] == "not ready") return ["not ready", "parameter fragment incorrect."];
+        parsedFragment += " #parameter " + fragment[1];
+    }
+    parsedFragment += " }"
+    return ["ready", parsedFragment];
 }

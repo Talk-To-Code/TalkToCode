@@ -49,11 +49,11 @@ export function parse_command(text: string, language: string) {
         case "while":
             return parse_while(splitted_text, language);
         case "switch":
-            return parse_switch(splitted_text);
+            return parse_switch(splitted_text, language);
         case "do":
             return parse_do(splitted_text, language);
         case "case":
-            return parse_case(splitted_text);
+            return parse_case(splitted_text, language);
         case "structure":
             return parse_structure(splitted_text);
         default:
@@ -233,8 +233,8 @@ function parse_for_loop_py(splitted_text: string[], language: string) {
         var splitted_parameter_block = parameter_block[i].split(" ");
         if (splitted_parameter_block.includes("in")) {
             var inIdx = splitted_parameter_block.indexOf("in");
-            var frag1 = fragment_segmenter(splitted_parameter_block.slice(0, inIdx));
-            var frag2 = fragment_segmenter(splitted_parameter_block.slice(inIdx+1));
+            var frag1 = fragment_segmenter(splitted_parameter_block.slice(0, inIdx), "py");
+            var frag2 = fragment_segmenter(splitted_parameter_block.slice(inIdx+1), "py");
 
             if (frag1[0] == "not ready") {
                 command.logError("Error in fragment. " + frag1[1]);
@@ -247,7 +247,7 @@ function parse_for_loop_py(splitted_text: string[], language: string) {
             command.parsedCommand += " " + frag1[1] + " " + frag2[1];
         }
         else {
-            var frag = fragment_segmenter(splitted_parameter_block);
+            var frag = fragment_segmenter(splitted_parameter_block, "py");
             if (frag[0] == "not ready") {
                 command.logError("Error in fragment. " + frag[1]);
                 return command;
@@ -339,7 +339,7 @@ function parse_function(splitted_text: string[]) {
     return command;
 }
 
-function parse_switch(splitted_text: string[]) {
+function parse_switch(splitted_text: string[], language: string) {
     /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
     var command = new structCommand("non-block");
 
@@ -347,7 +347,7 @@ function parse_switch(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = fragment_segmenter(splitted_text);
+    var fragment = fragment_segmenter(splitted_text, language);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;
@@ -356,14 +356,14 @@ function parse_switch(splitted_text: string[]) {
     return command;
 }
 
-function parse_case(splitted_text: string[]) {
+function parse_case(splitted_text: string[], language: string) {
     var command = new structCommand("block");
     command.isCase = true;
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = fragment_segmenter(splitted_text);
+    var fragment = fragment_segmenter(splitted_text, language);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;

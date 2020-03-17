@@ -46,12 +46,9 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["begin if hello greater than 5 and hello less than 2"];
+        test_cases[0] = ["declare int array hello size 5 equals make array parameter 5"];
         
-        test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
-        "#assign #variable helloWorld #with #value 4;;", 
-        "#create float #variable count #variable helloWorld #dec_end;;",
-        "#create int #variable first #value 10 #dec_end;;", "#comment #value \" cursor here \";; #comment_end;;"];
+        test_cases[1] = [""];
     }
 
     else if (cases == "jump_statements") {
