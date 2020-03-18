@@ -51,17 +51,26 @@ begin switch <var name>
 case <literal> 
     <statements  - e.g. assign statements...>
 
-- for loop
+- for loop (c version)
 begin loop condition <statement e.g. i equals zero> condition <condition> condition <postfix e.g. i plus plus>
+
+- for loop (py version)
+begin loop parameter <var name> in <var name>
+begin loop parameter <var name> parameter <var name> in <var name> * parameter can be said multiple times
 
 - struct (for c only)
 create structure <struct name> 
     <declare statements>
 
-- create function
+- create function (c version)
 create function <function name> with return type <var type> begin
 create function <function name> with return type <var type> parameter <var type> <var name> begin
 create function <function name> with return type <var type> parameter <var type> array <var name> begin
+create function <function name> with return type <var type> parameter <var type> array dimension <number> <var name> begin
+
+- create function (py version)
+create function <function name> parameter <var name> begin
+create function <function name> parameter <var name> parameter <var name> begin
 
 - try, catch, else, finally
 begin try
@@ -90,7 +99,5 @@ todo:
 unsigned and signed for c
 
 declare float literal
-
-update create function to work without "with". not really needed.
 
 maybe add a spelling command.
