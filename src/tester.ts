@@ -46,7 +46,7 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["hello equals 5", "go up","begin try"];
+        test_cases[0] = ["comment hello world end comment"];
         
         test_cases[1] = [""];
     }

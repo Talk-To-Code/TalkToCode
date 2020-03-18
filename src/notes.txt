@@ -33,28 +33,43 @@ call function <function name>
 call function <function name> parameter ... parameter ...
 
 - If, Else if, Else
-begin if <condition> <statements - e.g. assign statements...>
-else if <condition> <statements - e.g. assign statements...>
-else <statements - e.g. assign statements...>
+begin if <condition> 
+    <statements - e.g. assign statements...>
+else if <condition> 
+    <statements - e.g. assign statements...>
+else 
+    <statements - e.g. assign statements...>
 
 - while, do while loop
-while <condition> <statements - e.g. assign statements...>
-do while <condition> <statements - e.g. assign statements...>
+while <condition> 
+    <statements - e.g. assign statements...>
+do while <condition> 
+    <statements - e.g. assign statements...>
 
 - switch case
 begin switch <var name>
-case <literal> <statements  - e.g. assign statements...>
+case <literal> 
+    <statements  - e.g. assign statements...>
 
 - for loop
 begin loop condition <statement e.g. i equals zero> condition <condition> condition <postfix e.g. i plus plus>
 
 - struct (for c only)
-create structure <struct name> <declare statements>
+create structure <struct name> 
+    <declare statements>
 
 - create function
 create function <function name> with return type <var type> begin
 create function <function name> with return type <var type> parameter <var type> <var name> begin
 create function <function name> with return type <var type> parameter <var type> array <var name> begin
+
+- try, catch, else, finally
+begin try
+    <statements  - e.g. assign statements...>  * note that catch is auto done for you
+else
+    <statements  - e.g. assign statements...>
+finally
+    <statements  - e.g. assign statements...>
 
 - <literal>
 <integer> - for number literal
@@ -70,14 +85,9 @@ string "what you want to say" end string
 
 
 
-
-
-
 todo:
 
 unsigned and signed for c
-
-comment
 
 declare float literal
 

@@ -1,5 +1,4 @@
 import { simpleStatement } from './struct_command'
-import { start } from 'repl';
 
 var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
 var arithmetic_operators = ["plus", "divide", "multiply", "minus"];
@@ -56,6 +55,8 @@ export function parse_statement(text: string, typeOfStatement: string, language:
             return parse_continue();
         case "function":
             return parse_function(text, language);
+        case "comment":
+            return parse_comment(text);
         default:
             var statement = new simpleStatement();
             statement.logError("Does not match any statement format.");
@@ -71,6 +72,7 @@ function determine_type(text: string, typeOfStatement: string) {
     else if (splitted_text[0] == "continue") return "continue";
     else if (splitted_text[0] == "break") return "break";
     else if (splitted_text[0] == "call") return "function";
+    else if (splitted_text[0] == "comment") return "comment";
     else if (splitted_text.includes("equal")) return "assign";
     else if (splitted_text.some(x=>postfix_prefix_operator.includes(x))) return "postfix";
     else return "not ready.";
@@ -90,14 +92,33 @@ function parse_break() {
     return statement;
 }
 
+// comment "what you want to say" end comment
+function parse_comment(text: string) {
+    var statement = new simpleStatement();
+    var splitted_text = text.split(" ");
+
+    if (splitted_text.length < 4) {
+        statement.logError("comment not ready");
+        return statement;
+    }
+    /* check last 2 words */
+    if (splitted_text.slice(splitted_text.length-2).join(" ") != "end comment") {
+        statement.logError("end comment not mentioned");
+        return statement;
+    }
+
+    "#comment #value \" cursor here \";; #comment_end;;"
+    statement.parsedStatement = "#comment #value \"" + splitted_text.slice(1, splitted_text.length-2).join(" ") + "\";; #comment_end;;";
+    return statement;
+}
+
 /* E.g. 
-declare <var_type> <var name>
-declare <struct name> <var name>
-declare <var_type> array <var name> size <literal>
-declare <var_type> array <var name> size <literal> equal make array parameter ... parameter ...
+declare <var type> <var name>  - note there is no restriction to var type. since we have structs.
 declare <var_type> <var name> equal <var_name>
 declare <var_type> <var name> equal <literal>
-declare <var_type> <var name> equal <complex fragment> */
+declare <var_type> <var name> equal <complex fragment>
+declare <var_type> array <var name> size <literal>
+declare <var_type> array <var name> size <literal> equal make array parameter ... parameter ... */
 function parse_declare_c(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
