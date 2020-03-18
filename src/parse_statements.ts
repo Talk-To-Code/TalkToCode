@@ -540,25 +540,6 @@ function parse_fragment(splitted_text: string[]) {
 
         return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-1).join(" ") + "\""];
     }
-    else if (splitted_text.includes("array")) {
-        /* array fragment has to include [<var_name>, "array", "index", <value>] which requires a minimum
-        of 4 words. */
-        if (splitted_text.length < 4) return ["not ready", "array fragment missing some values."];
-        if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
-        if (splitted_text.indexOf("array") == 0) return ["not ready", "no variable name mentioned."];
-
-        var arrayIdx = splitted_text.indexOf("array");
-        var var_name = joinName(splitted_text.slice(0, arrayIdx));
-
-        var indexIdx = splitted_text.indexOf("index");
-        if (indexIdx != arrayIdx + 1) return ["not ready", "index is wrong position."];
-        var fragment: string[] = parse_fragment(splitted_text.slice(indexIdx+1));
-        if (fragment[0] == "not ready") 
-            return ["not ready", "parameter fragment wrong. " + fragment[1]];
-
-        return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
-    }
-
     // #access test #function getStuff() #access_end #dec_end;;
     // #access test hello #access_end #dec_end;;
     // #access test hello test hello #access_end #dec_end;;
@@ -584,7 +565,24 @@ function parse_fragment(splitted_text: string[]) {
         }
         toReturn += " #access_end";
         return ["ready", toReturn];
+    }
+    else if (splitted_text.includes("array")) {
+        /* array fragment has to include [<var_name>, "array", "index", <value>] which requires a minimum
+        of 4 words. */
+        if (splitted_text.length < 4) return ["not ready", "array fragment missing some values."];
+        if (!splitted_text.includes("index")) return ["not ready", "index was not mentioned."];
+        if (splitted_text.indexOf("array") == 0) return ["not ready", "no variable name mentioned."];
 
+        var arrayIdx = splitted_text.indexOf("array");
+        var var_name = joinName(splitted_text.slice(0, arrayIdx));
+
+        var indexIdx = splitted_text.indexOf("index");
+        if (indexIdx != arrayIdx + 1) return ["not ready", "index is wrong position."];
+        var fragment: string[] = parse_fragment(splitted_text.slice(indexIdx+1));
+        if (fragment[0] == "not ready") 
+            return ["not ready", "parameter fragment wrong. " + fragment[1]];
+
+        return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
     }
     return ["ready", "#variable " + joinName(splitted_text)];
 }

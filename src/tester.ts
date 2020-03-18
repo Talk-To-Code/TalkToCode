@@ -46,7 +46,7 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["hello equals test symbol point value symbol point hello world"];
+        test_cases[0] = ["hello equals 5", "go up","begin try"];
         
         test_cases[1] = [""];
     }
@@ -81,7 +81,7 @@ function generate_test_cases(cases: string) {
     }
 
     else if (cases == "create_function") {
-        test_cases[0] = ["create function find maximum with return type integer with parameter integer array numbers with parameter integer length begin"];
+        test_cases[0] = ["create function find maximum with return type integer parameter integer array numbers parameter integer length begin"];
         test_cases[1] = ["#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter #type int length #function_start", 
         "#comment #value \" cursor here \";; #comment_end;;", "#function_end;;"];
     }

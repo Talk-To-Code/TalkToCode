@@ -21,6 +21,12 @@ export class structCommand {
     /* isCase: true when struct command is a Case block. Useful for checking conditions on whether the case
     block is part of a previous switch block. Used in the text2struct.ts file. */
     isCase: boolean;
+    /* isFinally: true when struct command is a finally block. Useful for checking conditions on whether the finally
+    block is part of a previous try block. Used in the text2struct.ts file. */
+    isFinally: boolean;
+    /* isTry: true when struct command is a try block. Useful for checking conditions. try block is a special
+    case where try and catch comes together. Hence, 2 blocks must be added to struct_command_list. */
+    isTry: boolean;
     /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
     is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
     removePrevTerminator: boolean;
@@ -41,6 +47,8 @@ export class structCommand {
         this.isElseIf = false;
         this.isElse = false;
         this.isCase = false;
+        this.isFinally = false;
+        this.isTry = false;
         this.removePrevTerminator = false;
         this.removePreviousStatement = false;
         this.held = false;

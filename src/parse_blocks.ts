@@ -24,12 +24,12 @@ variable list
     list of new variables declared by the user. This is only updated when a declare command is given. */
 
 export function parse_command(text: string, language: string) {
-    var starting_command = determine_user_command(text);
+    var starting_command = determine_user_command(text, language);
 
-    if (starting_command[0] == "not ready") {
-        var command = new structCommand("non-block");
-        command.logError(starting_command[1]);
-        return command;
+    /* c does not support exception handling */
+    if ((starting_command[0] == "try" && language == "c") || (starting_command[0] == "finally" && language == "c")) {
+        var errorCommand = new structCommand("non-block");
+        errorCommand.logError("C does not support exception handling");
     }
 
     /* Splitted_text is the user's command without the leading starting command.
@@ -58,6 +58,10 @@ export function parse_command(text: string, language: string) {
             return parse_case(splitted_text, language);
         case "structure":
             return parse_structure(splitted_text);
+        case "try":
+            return parse_try();
+        case "finally":
+            return parse_finally();
         default:
             var statement = parse_statement(text, "normal", language);
             return statement.convert2StructCommand();
@@ -65,15 +69,16 @@ export function parse_command(text: string, language: string) {
 }
 
 /* To determine what command the user is trying say */
-function determine_user_command(text: string) {
+function determine_user_command(text: string, language: string) {
 
     text = text.replace("begin if", "if");
-    text = text.replace("begin else if", "elseIf");
+    text = text.replace("else if", "elseIf");
     text = text.replace("begin loop", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
     text = text.replace("create structure", "structure")
     text = text.replace("do while", "do");
+    text = text.replace("begin try", "try");
 
     var splitted_text = text.split(" ");
 
@@ -104,6 +109,7 @@ function parse_if(splitted_text: string[], language: string) {
 
 function parse_elseIf(splitted_text: string[], language: string) {
     var command = new structCommand("block");
+    command.isElseIf = true;
     command.parsedCommand = "else if #condition";
 
     var statement = parse_statement(splitted_text.join(" "), "infix", language);
@@ -361,7 +367,8 @@ function parse_function(splitted_text: string[]) {
 }
 
 function parse_switch(splitted_text: string[], language: string) {
-    /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. */
+    /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. 
+    It is not considered a block because it lacks and end branch. */
     var command = new structCommand("non-block");
 
     if (splitted_text.length == 0) {
@@ -405,6 +412,24 @@ function parse_structure(splitted_text: string[]) {
 
     command.parsedCommand = "#struct_declare " + joinName(splitted_text) + " #struct_start";
     command.endCommand = "#struct_end;;"
+
+    return command;
+}
+
+/* only works for py. not for java. java has parameters in the catch condition. */
+function parse_try() {
+    var command = new structCommand("block");
+    command.isTry = true;
+    command.parsedCommand = "try catch #catch start"
+    command.endCommand = "#catch_end;;";
+    return command;
+}
+
+function parse_finally() {
+    var command = new structCommand("block");
+    command.isFinally = true;
+    command.parsedCommand = "finally"
+    command.endCommand = "#finally_end;;";
 
     return command;
 }

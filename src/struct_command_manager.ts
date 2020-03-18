@@ -3,12 +3,13 @@ import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist, edit_stack_item } from './struct_command';
 
-var end_branches = ["#if_branch_end;;", "#else_branch_end;;", "#for_end;;", "#while_end;;", "#case_end;;", 
-                    "#function_end;;", "#if_branch_end", "#else_branch_end", "#for_end", "#while_end", 
-                    "#case_end", "#function_end"];
+var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
+                    "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
+                    "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end", "#catch_end", "#finally_end"];
 
-var start_branches = ["#if_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
-                    "#function_start"]
+var start_branches = ["#if_branch_start", "elseIf_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
+                    "#function_start", "catch #catch_start", "switch", "try", "finally"];
 
 var cursor_comment = "#comment #value \" cursor here \";; #comment_end;;"
 
@@ -85,6 +86,7 @@ export class StructCommandManager {
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
+        console.log(this.managerStatus())
     }
 
     /* Updating the struct command list */
@@ -109,15 +111,27 @@ export class StructCommandManager {
             this.curr_speech = [""] // Clear curr speech to prepare for next command.
 
             /* Block statement */
-            if (struct_command.isBlock) {
-                this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand)
-                this.curr_index += 1
-                this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
-                this.curr_index += 1
-                this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand)
-                this.curr_index -= 1 // Make sure curr_index points at the blank line.
+            if (struct_command.isBlock && !struct_command.isTry) {
+                this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand);
+                this.curr_index += 1;
+                this.struct_command_list.splice(this.curr_index, 0, cursor_comment);
+                this.curr_index += 1;
+                this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand);
+                this.curr_index -= 1; // Make sure curr_index points at the blank line.
 
-                this.appendSpeechHist("block")
+                this.appendSpeechHist("block");
+            }
+            else if (struct_command.isBlock && struct_command.isTry) {
+                this.struct_command_list.splice(this.curr_index, 1, "try");
+                this.curr_index += 1;
+                this.struct_command_list.splice(this.curr_index, 0, cursor_comment);
+                this.curr_index += 1;
+                this.struct_command_list.splice(this.curr_index, 0, "catch #catch_start");
+                this.curr_index += 1;
+                this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand);
+                this.curr_index -= 2;
+
+                this.appendSpeechHist("try");
             }
             /* Single line */
             else {
@@ -281,7 +295,7 @@ export class StructCommandManager {
             else {
                 console.log("user made a mistake during curr speech");
                 /* Remove latest speech input. */
-                if (this.speech_hist.get_item(this.curr_index).length == 1) 
+                if (this.speech_hist.get_item(this.curr_index).length == 1)
                     this.speech_hist.update_item(this.curr_index, [""]);
                 else this.speech_hist.popFromSpeechItem(this.curr_index);
                 /* Update current speech. */
@@ -375,27 +389,32 @@ export class StructCommandManager {
 
     /* append speech hist every time a successful command is made. */
     appendSpeechHist(type: string) {
-        console.log(this.speech_hist.hist)
         if (type == "line") {
             /* check if anymore commands below this one. Have to correct their index values.
-            Have to start from the end. */
+            Have to start from the end for proper updating */
             for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
-                console.log(i)
                 this.speech_hist.update_item_index(i, i + 1)
             }
             this.speech_hist.add_item(this.curr_index, [""]);
         }
         /* type == block */
-        else {
+        else if (type == "block") {
             /* check if anymore commands below this one. Have to correct their index values.
-            Have to start from the end. */
+            Have to start from the end for proper updating */
             for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
-                console.log(i)
                 this.speech_hist.update_item_index(i, i + 2)
             }
             this.speech_hist.add_item(this.curr_index, [""]);
         }
-        
+        /* type == try */
+        else {
+            /* check if anymore commands below this one. Have to correct their index values.
+            Have to start from the end for proper updating */
+            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
+                this.speech_hist.update_item_index(i, i + 3)
+            }
+            this.speech_hist.add_item(this.curr_index, [""]);
+        }
     }
 
     managerStatus() {
@@ -412,6 +431,7 @@ export class StructCommandManager {
 
         for (var i = 0; i < this.struct_command_list.length; i++) {
             if (end_branches.includes(this.struct_command_list[i])) continue
+            else if (this.struct_command_list[i] == "catch #catch_start") continue
             else {
                 toDisplay += "[" + i + "] " + JSON.stringify(this.speech_hist.get_item(i)) + '\n';
             }

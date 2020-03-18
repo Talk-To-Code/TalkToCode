@@ -1,18 +1,86 @@
-input into the parser:
+Speech format:
 
-list of struct commands.
+- Declare variable (C version)
+declare <var type> <var name>  - note there is no restriction to var type. since we have structs.
+declare <var_type> <var name> equal <var_name>
+declare <var_type> <var name> equal <literal>
+declare <var_type> <var name> equal <complex fragment>
 
-"#c_program SampleProgram", "#include "stdio.h";;", <code>, " #program_end"
+declare <var_type> array <var name> size <literal>
+declare <var_type> array <var name> size <literal> equal make array parameter ... parameter ...
 
-As of now, cannot parse integer array with assignment.
-e.g. int mark[5] = {19, 10, 8, 17, 9}
+- Declare variable (py version)
+declare <var name> equal <var_name>
+declare <var name> equal <literal>
+declare <var name> equal <complex fragment>
 
-#c_program SampleProgram #include "stdio h";; #create int #variable hello #value 5 #dec_end;;
-for #condition #assign #variable I #with #value 0 #condition #variable is < #value 5 #condition #post #variable I ++ #for_start
-#create int #variable first #value 0 #dec_end;;
-#for_end;; 
-#program_end
+declare <var name> equal make array parameter ... parameter ...
+
+- Assign variable (c and py version)
+<var name> equal <var_name>
+<var name> equal <literal>
+<var name> equal <complex fragment>
+
+- return or continue statements
+return
+continue
+
+- comment
+comment "what you want to say" end comment
+
+- calling a function
+call function <function name>
+call function <function name> parameter ... parameter ...
+
+- If, Else if, Else
+begin if <condition> <statements - e.g. assign statements...>
+else if <condition> <statements - e.g. assign statements...>
+else <statements - e.g. assign statements...>
+
+- while, do while loop
+while <condition> <statements - e.g. assign statements...>
+do while <condition> <statements - e.g. assign statements...>
+
+- switch case
+begin switch <var name>
+case <literal> <statements  - e.g. assign statements...>
+
+- for loop
+begin loop condition <statement e.g. i equals zero> condition <condition> condition <postfix e.g. i plus plus>
+
+- struct (for c only)
+create structure <struct name> <declare statements>
+
+- create function
+create function <function name> with return type <var type> begin
+create function <function name> with return type <var type> parameter <var type> <var name> begin
+create function <function name> with return type <var type> parameter <var type> array <var name> begin
+
+- <literal>
+<integer> - for number literal
+string "what you want to say" end string
+
+- <complex fragment> - basically a never ending list of stuff
+<var name / literal / <call function>> <operator> <var name / literal / <call function>> <operator> ...
+* <call function> refers to the long command to call function.
+* <var name> can have [] as well
+<var name> array index <literal / complex fragment>
+* <complex fragment> can have "." as well
+<complex fragment> symbol point <complex fragment>
+
+
+
+
+
 
 todo:
+
+unsigned and signed for c
+
+comment
+
+declare float literal
+
+update create function to work without "with". not really needed.
 
 maybe add a spelling command.
