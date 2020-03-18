@@ -36,6 +36,7 @@ simpleStatement():
 	| importStatement()
 	| gotoStatement()
 	| passStatement()
+	| typedefStatement()
 
 importStatement() :
 	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
@@ -57,6 +58,9 @@ gotoStatement() :
 
 passStatement() :
 	< PASS > < TERMINATOR >
+
+typedefStatement() :
+	< TYPEDEF > types_C() < IDENTIFIER > < TERMINATOR >
 
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
@@ -145,6 +149,7 @@ fragment() :
 	| < ARRAY > (< IDENTIFIER > | func() | access()) ( < INDEX > expression() < INDEX_END >)+
 	| access()
 	| < LAMBDA > (< IDENTIFIER>)* expression() < LAMBDA_END >
+	| < TYPE > types_C() < LPAREN > expression() < RPAREN >
 
 types_J():
 	< IDENTIFIER >
@@ -348,17 +353,17 @@ infixOperators() :
 < COMMA : "," >
 < DOT : "." >
 < INTEGER_LITERAL :
-    < DECIMAL_LITERAL > ([ "l", "L" ])?
+    < DECIMAL_LITERAL > (["-", "l", "L" ])?
   | < HEX_LITERAL > ([ "l", "L" ])?
   | < OCTAL_LITERAL > ([ "l", "L" ])? >
-| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >
+| < #DECIMAL_LITERAL : (["-"])?[ "1"-"9" ] ([ "0"-"9" ])* >
 | < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >
 | < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >
 | < FLOATING_POINT_LITERAL :
     < DECIMAL_FLOATING_POINT_LITERAL >
   | < HEXADECIMAL_FLOATING_POINT_LITERAL >>
 | < #DECIMAL_FLOATING_POINT_LITERAL :
-    ([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?
+    (["-"])?([ "0"-"9" ])+ "." ([ "0"-"9" ])* (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?
   | "." ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? ([ "f", "F", "d", "D" ])?
   | ([ "0"-"9" ])+ < DECIMAL_EXPONENT > ([ "f", "F", "d", "D" ])?
   | ([ "0"-"9" ])+ (< DECIMAL_EXPONENT >)? [ "f", "F", "d", "D" ] >
@@ -444,6 +449,7 @@ infixOperators() :
 < TRANSIENT : "transient" >
 < TRUE : "true" >
 < TRY : "try" >
+< TYPEDEF : "typedef" >
 < VOID : "void" >
 < VOLATILE : "volatile" >
 < WHILE : "while" >
