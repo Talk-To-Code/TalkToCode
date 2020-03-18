@@ -72,7 +72,11 @@ create function <function name> with return type <var type> parameter <var type>
 create function <function name> parameter <var name> begin
 create function <function name> parameter <var name> parameter <var name> begin
 
-- try, catch, else, finally
+- create class (py version)
+create class <class name>
+create class <class name> with parent <parent name>
+
+- try, catch, else, finally (py version)
 begin try
     <statements  - e.g. assign statements...>  * note that catch is auto done for you
 else

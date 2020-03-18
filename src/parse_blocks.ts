@@ -32,6 +32,12 @@ export function parse_command(text: string, language: string) {
         errorCommand.logError("C does not support exception handling");
     }
 
+    /* c does not support classes */
+    if (starting_command[0] == "start" && language == "c") {
+        var errorCommand = new structCommand("non-block");
+        errorCommand.logError("C does not support creating classes");
+    }
+
     /* Splitted_text is the user's command without the leading starting command.
     Starting command refers to "begin if", "begin loop" etc. */
     var splitted_text = starting_command[1].split(" ");
@@ -63,6 +69,8 @@ export function parse_command(text: string, language: string) {
             return parse_try();
         case "finally":
             return parse_finally();
+        case "class":
+            return parse_class(splitted_text);
         default:
             var statement = parse_statement(text, "normal", language);
             return statement.convert2StructCommand();
@@ -78,6 +86,7 @@ function determine_user_command(text: string, language: string) {
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
     text = text.replace("create structure", "structure")
+    text = text.replace("create class", "class")
     text = text.replace("do while", "do");
     text = text.replace("begin try", "try");
 
@@ -482,5 +491,30 @@ function parse_finally() {
     command.parsedCommand = "finally"
     command.endCommand = "#finally_end;;";
 
+    return command;
+}
+
+function parse_class(splitted_text: string[]) {
+    var command = new structCommand("block");
+    var text = splitted_text.join(" ");
+    text = text.replace(" with parent", "parent");
+    splitted_text = text.split(" ");
+
+    if (!splitted_text.includes("parent")) {
+        command.parsedCommand = "class " + joinName(splitted_text) + " #class_start";
+        command.endCommand = "#class_end;;"
+    }
+
+    if (splitted_text[splitted_text.length - 1] == "parent") {
+        command.logError("parent is last word said");
+        return command;
+    }
+
+    var parentIdx = splitted_text.indexOf("parent");
+    var class_name = joinName(splitted_text.slice(0, parentIdx));
+    var parent_name = joinName(splitted_text.slice(parentIdx + 1));
+
+    command.parsedCommand = "class " + class_name + " #parent " + parent_name + " #class_start";
+    command.endCommand = "#class_end;;"
     return command;
 }
