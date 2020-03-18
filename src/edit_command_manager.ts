@@ -1,21 +1,26 @@
 import { StructCommandManager } from "./struct_command_manager";
 import * as vscode from 'vscode';
 
+
+var insert_comment = "#comment #value \" insert here \";; #comment_end;;";
+var start_comment = "#comment ";
+var end_comment= " #comment_end;;";
+
 export class EditCommandManager {
+    /* Manager to access the structured command list and the current index of the code */
     manager: StructCommandManager
-    code_segments: string[]
+    /* Line counts to track what lines of the code correspond to the indices in struct command list */
     line_counts: number[]
+    /* A buffer to save the line(s) copied or cut by the user to be used for pasting */
     cut_copy_buffer: string[]
 
-    constructor(manager: StructCommandManager, code_segments: string[], line_counts: number[]) {
+    constructor(manager: StructCommandManager, line_counts: number[]) {
         this.manager = manager;
-        this.code_segments = code_segments;
         this.line_counts = line_counts;
         this.cut_copy_buffer = [""];
     }
 
-    checkAll(transcribedWord: String, code_segments:string[], line_counts: number[]){
-        this.code_segments = code_segments;
+    checkAll(transcribedWord: String, line_counts: number[]){
         this.line_counts  = line_counts;
         transcribedWord = transcribedWord.toLowerCase();
         this.check_if_delete_line(transcribedWord);
@@ -32,11 +37,13 @@ export class EditCommandManager {
         this.check_if_paste_above_or_below_line(transcribedWord);
         this.check_if_insert_before_line(transcribedWord);
         this.check_if_insert_before_block(transcribedWord);
+        this.check_if_uncomment_line(transcribedWord);
+        this.check_if_uncomment_block(transcribedWord);
     }
 
     check_if_edit_command(text: String){
         var arr = text.toLowerCase().split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy" || arr[0]=="uncomment"){
             return true;
         }
         return false;
@@ -122,28 +129,13 @@ export class EditCommandManager {
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                var count_block = 0;
                  if (line.startsWith(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
                     if (index==-1) return;
 
                     start = index;
-                    for (var i=index;i<this.manager.struct_command_list.length;i++){
-                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
-                            count_block++;
-                        }
-
-                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
-                            if (count_block==0){
-                                end = i;
-                                break;
-                            }
-                            else if (count_block>0){
-                                count_block--;
-                            }
-                        }
-                    }
-                    this.manager.splice(start,(end-start)+1);
+                    end = this.determine_end(index,block_name,block_name_end);
+                    this.manager.struct_command_list.splice(start,(end-start)+1);
                 }
             }
         }
@@ -157,7 +149,7 @@ export class EditCommandManager {
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (index!=-1){
-                this.manager.struct_command_list[index] = "#comment " + this.manager.struct_command_list[index] + " #comment_end;;"
+                this.manager.struct_command_list[index] = start_comment + this.manager.struct_command_list[index] + end_comment;
             }
         }      
     }
@@ -177,32 +169,15 @@ export class EditCommandManager {
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                var count_block = 0;
                 if (line.startsWith(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
                     if (index==-1) return;
 
                     start = index;
-                    for (var i=index;i<this.manager.struct_command_list.length;i++){
-                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
-                            count_block++;
-                        }
+                    end = this.determine_end(index,block_name,block_name_end);
 
-                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
-                            if (count_block==0){
-                                end = i;
-                                break;
-                            }
-                            else if (count_block>0){
-                                count_block--;
-                            }
-                        }
-                    }
-                    console.log("START: "+start+" END: "+end);
-                    this.manager.struct_command_list[start] = "#comment " +  this.manager.struct_command_list[start]
-                    this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + " #comment_end;;";  
-                    console.log("START OF BLOCK: "+this.manager.struct_command_list[start]);
-                    console.log("END OF BLOCK: "+this.manager.struct_command_list[end]);
+                    this.manager.struct_command_list[start] = start_comment +  this.manager.struct_command_list[start]
+                    this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + end_comment;  
                 }
             }
         }
@@ -263,22 +238,10 @@ export class EditCommandManager {
             var line_num = parseInt(arr[3]);
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (arr[1]=="above"){
-                console.log("GOT INTO ABOVE");
                 this.manager.struct_command_list.splice(index,0,...this.cut_copy_buffer);
-                for (var i=0;i<this.manager.struct_command_list.length;i++){
-                    console.log("DEBUG IN PASTE: "+i);
-                    console.log(this.manager.struct_command_list[i]);
-                    console.log(this.cut_copy_buffer[0]);
-                }
             }
             else if (arr[1]=="below"){
-                console.log("GOT INTO BELOW");
                 this.manager.struct_command_list.splice(index+1,0,...this.cut_copy_buffer);
-                for (var i=0;i<this.manager.struct_command_list.length;i++){
-                    console.log("DEBUG IN PASTE: "+i);
-                    console.log(this.manager.struct_command_list[i]);
-                    console.log(this.cut_copy_buffer[0]);
-                }
             }
         }
     }
@@ -327,27 +290,12 @@ export class EditCommandManager {
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                var count_block = 0;
                  if (line.startsWith(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
                     if (index==-1) return;
 
                     start = index;
-                    for (var i=index;i<this.manager.struct_command_list.length;i++){
-                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
-                            count_block++;
-                        }
-
-                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
-                            if (count_block==0){
-                                end = i;
-                                break;
-                            }
-                            else if (count_block>0){
-                                count_block--;
-                            }
-                        }
-                    }
+                    end = this.determine_end(index, block_name,block_name_end);
 
                     for (var j=start;j<=end;j++){
                         this.cut_copy_buffer[j-start]=this.manager.struct_command_list[j];
@@ -372,27 +320,12 @@ export class EditCommandManager {
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                var count_block = 0;
                  if (line.startsWith(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
                     if (index==-1) return;
 
                     start = index;
-                    for (var i=index;i<this.manager.struct_command_list.length;i++){
-                        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
-                            count_block++;
-                        }
-
-                        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
-                            if (count_block==0){
-                                end = i;
-                                break;
-                            }
-                            else if (count_block>0){
-                                count_block--;
-                            }
-                        }
-                    }
+                    end = this.determine_end(index,block_name,block_name_end);
 
                     for (var j=start;j<=end;j++){
                         this.cut_copy_buffer[j-start]=this.manager.struct_command_list[j];
@@ -406,20 +339,94 @@ export class EditCommandManager {
     //WORKS
     check_if_insert_before_line(text: String) {
         var arr = text.split(" ");
-        var temp = 0;
-        if (arr[0]=="insert" && arr[1]=="before"){
-            console.log("GOT IN HERE TO INSERT");
+        if (arr[0]=="insert" && arr[1]=="before" && arr[2]=="line"){
+            console.log("IN HERE to inser before line");
                 let line_num = parseInt(arr[3]);
                 let index = this.binarySearch(line_num,0,this.line_counts.length);
-                this.manager.struct_command_list.splice(index,0,"#comment #value \" insert here \";; #comment_end;;");
+                this.manager.struct_command_list.splice(index,0,insert_comment);
                 this.manager.curr_index = index;
         }
     }
 
+    //WORKS
     check_if_insert_before_block(text: String){
+        var arr = text.split(" ");
+        if (arr[0]=="insert" && arr[1]=="before"){
+            console.log("IN HERE to insert before block");
+            var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            for (var i=this.manager.curr_index;i>=0;i--){
+                if (this.manager.struct_command_list[i].startsWith(block_name)){
+                    this.manager.struct_command_list.splice(i,0,insert_comment);
+                    this.manager.curr_index = i;
+                    return;
+                }
+            }
+        }
+    }
 
+    //WORKS
+    check_if_uncomment_line(text: String){
+        var arr = text.split(" ");
+        if (arr[0]=="uncomment" && arr[1]=="line"){
+            console.log("IN HERE UNCOMMENTING LINE");
+            let line_num = parseInt(arr[2]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            if (index!=-1){
+                if (!this.manager.struct_command_list[index].startsWith(start_comment)) return;
+                this.manager.struct_command_list[index] = this.manager.struct_command_list[index].substring(start_comment.length,this.manager.struct_command_list[index].length-end_comment.length);
+            }
+        }
+    }
+
+    //TODO
+    check_if_uncomment_block(text: String){
+        var arr = text.split(" ");
+        if (arr[0]=="uncomment" && arr[1]=="block"){
+            console.log("IN HERE TO UNCOMMENT BLOCK");
+            let editor = vscode.window.activeTextEditor;
+            if (editor) {
+                let document = editor.document;
+                var line_num = parseInt(arr[5]);
+                var line = document.lineAt(line_num-1).text.trimLeft();
+                var start = -1;
+                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
+            
+                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
+                if (line.indexOf(block_name)!=-1 && line.indexOf(block_name)==line.lastIndexOf(block_name)){
+                    var index = this.binarySearch(line_num,0,this.line_counts.length);
+                    if (index==-1) return;
+
+                    start = index;
+                    var end = this.determine_end(index,block_name,block_name_end);
+                    if (!this.manager.struct_command_list[start].startsWith(block_name)) return;
+                    this.manager.struct_command_list[start] = this.manager.struct_command_list[index].substring(start_comment.length);
+                    this.manager.struct_command_list[end] = this.manager.struct_command_list[index].substring(0,this.manager.struct_command_list[end].length-end_comment.length);
+                }
+            }
+        }
+    }
+
+    determine_end(index: number, block_name: string, block_name_end: string){
+        var count_block = 0;
+        var end = -1;
+        for (var i=index;i<this.manager.struct_command_list.length;i++){
+            if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
+                count_block++;
+            }
+
+            else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
+                if (count_block==0){
+                    end = i;
+                    break;
+                }
+                else if (count_block>0){
+                    count_block--;
+                }
+            }
+        }
+        return end;
     }
 
 
-    
+
 }

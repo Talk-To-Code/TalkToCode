@@ -66,7 +66,7 @@ function initManager() {
 	else language = "c";
 
 	manager = new StructCommandManager(language);
-	editManager =  new EditCommandManager(manager, code_segments, count_lines);
+	editManager =  new EditCommandManager(manager,count_lines);
 }
 
 function listen() {
@@ -80,13 +80,13 @@ function listen() {
 		else if (editManager.check_if_edit_command(transcribed_word)){
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
-			editManager.checkAll(transcribed_word, code_segments,count_lines);
-			// writeToEditor(manager.managerStatus());
+			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus())
 		}
 
 		else {
+			console.log("CURR INDEX NORMALLY: "+manager.curr_index);
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 			errorFlag = false;
 			codeBuffer = "";
