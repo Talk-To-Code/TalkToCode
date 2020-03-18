@@ -12,6 +12,9 @@ export class structCommand {
     /* isBlock: true when the struct command is a block statement. Useful for updating the struct command
     list in the struct_command_manager. */
     isBlock: boolean;
+    /* isElseIf: true when struct command is an Else if block. Useful for checking conditions on whether the else
+    if block is part of a previous If block. Used in the text2struct.ts file. */
+    isElseIf: boolean;
     /* isElse: true when struct command is an Else block. Useful for checking conditions on whether the else
     block is part of a previous If block. Used in the text2struct.ts file. */
     isElse: boolean;
@@ -35,6 +38,7 @@ export class structCommand {
         this.newFunction = "";
         this.hasError = false;
         this.isBlock = false;
+        this.isElseIf = false;
         this.isElse = false;
         this.isCase = false;
         this.removePrevTerminator = false;

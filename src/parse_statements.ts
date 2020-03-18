@@ -1,4 +1,5 @@
 import { simpleStatement } from './struct_command'
+import { start } from 'repl';
 
 var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
 var arithmetic_operators = ["plus", "divide", "multiply", "minus"];
@@ -558,18 +559,33 @@ function parse_fragment(splitted_text: string[]) {
         return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
     }
 
-    // else if (splitted_text.includes(".")) {
-        
-    //     if (splitted_text[0] == ".") return ["not ready", "dot at the start of the fragment."];
-        
-    //     var pointIdx = splitted_text.indexOf(".");
+    // #access test #function getStuff() #access_end #dec_end;;
+    // #access test hello #access_end #dec_end;;
+    // #access test hello test hello #access_end #dec_end;;
+    else if (splitted_text.includes(".")) {
+        var toReturn = "#access";
+        if (splitted_text[0] == ".") return ["not ready", "dot at the start of the fragment."];
+        if (splitted_text[splitted_text.length-1] == ".") return ["not ready", "dot at the end of the fragment."];
 
-    //     var fragment1 : string[] = parse_fragment(splitted_text.slice(0, pointIdx));
-    //     var fragment2 : string[] = parse_fragment(splitted_text.slice(pointIdx + 1));
-    //     if (fragment1[0] == "not ready") return ["not ready", "parameter fragment wrong. " + fragment1[1]];
-    //     if (fragment2[0] == "not ready") return ["not ready", "parameter fragment wrong. " + fragment2[1]];
+        var startpt = 0;
+        for (var i = 0; i < splitted_text.length; i++) {
+            if (splitted_text[i] == ".") {
+                var fragment : string[] = parse_fragment(splitted_text.slice(startpt, i));
+                if (fragment[0] == "not ready") return ["not ready", "error parsing, " + fragment[1]];
+                toReturn += " " + fragment[1];
+                startpt = i + 1;
+            }
+            if (i == splitted_text.length - 1) {
+                var fragment : string[] = parse_fragment(splitted_text.slice(startpt, splitted_text.length));
+                if (fragment[0] == "not ready") return ["not ready", "error parsing, " + fragment[1]];
+                if (fragment[1].split(" ").includes("#value")) ["not ready", "accessing with a literal."];
+                toReturn += " " + fragment[1];
+            }
+        }
+        toReturn += " #access_end";
+        return ["ready", toReturn];
 
-    // }
+    }
     return ["ready", "#variable " + joinName(splitted_text)];
 }
 

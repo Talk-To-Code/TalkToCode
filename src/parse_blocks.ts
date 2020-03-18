@@ -41,6 +41,8 @@ export function parse_command(text: string, language: string) {
             return parse_if(splitted_text, language);
         case "else":
             return parse_else(splitted_text);
+        case "elseIf":
+            return parse_elseIf(splitted_text, language);
         case "loop":
             if (language == "c") return parse_for_loop_c(splitted_text, language);
             else return parse_for_loop_py(splitted_text, language);
@@ -66,6 +68,7 @@ export function parse_command(text: string, language: string) {
 function determine_user_command(text: string) {
 
     text = text.replace("begin if", "if");
+    text = text.replace("begin else if", "elseIf");
     text = text.replace("begin loop", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
@@ -96,6 +99,24 @@ function parse_if(splitted_text: string[], language: string) {
     }
     command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
     command.endCommand = "#if_branch_end;;";
+    return command;
+}
+
+function parse_elseIf(splitted_text: string[], language: string) {
+    var command = new structCommand("block");
+    command.parsedCommand = "else if #condition";
+
+    var statement = parse_statement(splitted_text.join(" "), "infix", language);
+    if (statement.hasError) {
+        command.logError("incomplete condition, " + statement.errorMessage);
+        return command;
+    }
+    if (!statement.isInfix) {
+        command.logError("infix is required.");
+        return command;
+    }
+    command.parsedCommand += " " + statement.parsedStatement + " #elseIf_branch_start";
+    command.endCommand = "#elseIf_branch_end;;";
     return command;
 }
 

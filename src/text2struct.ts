@@ -114,6 +114,8 @@ function checkPrevStatement(input_text: string, prev_struct_command: string) {
 function checkPrevBlock(struct_command: structCommand, prev_command: string) {
 
     if (prev_command == "#if_branch_end;;" && struct_command.isElse) return true;
+    if (prev_command == "#elseIf_branch_end;;" && struct_command.isElse) return true;
+    if (prev_command == "#if_branch_end;;" && struct_command.isElseIf) return true;
     if (prev_command == "#case_end;;" && struct_command.isCase) return true;
     if (prev_command == "#case_end" && struct_command.isCase) return true;
     if (prev_command.includes("switch #condition #variable") && struct_command.isCase) return true;

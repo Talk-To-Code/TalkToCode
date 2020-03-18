@@ -15,10 +15,4 @@ for #condition #assign #variable I #with #value 0 #condition #variable is < #val
 
 todo:
 
-update parse_function. make it better
-
-else if
-
-point / dot call function has to work
-
 maybe add a spelling command.

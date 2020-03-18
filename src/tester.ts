@@ -46,7 +46,7 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["declare int array hello size 5 equals make array parameter 5"];
+        test_cases[0] = ["hello equals test symbol point value symbol point hello world"];
         
         test_cases[1] = [""];
     }
