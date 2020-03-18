@@ -7,7 +7,6 @@ if(x == 1):
 
 else:
 	print("x is not equal to one.\n")
-
 '''
 #if(x == 1):
 	print("x is equal to one.\n")

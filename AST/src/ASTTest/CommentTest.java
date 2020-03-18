@@ -39,7 +39,7 @@ public class CommentTest extends TestCase {
 				count++;
 			}
 			currentTemp = "";
-			for(int j = 0; j < 9; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
+			for(int j = 0; j < 8; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
 			count++;
 			expectedOutput.add(currentTemp);
 			for(int i = 0; i < 3; i++) {

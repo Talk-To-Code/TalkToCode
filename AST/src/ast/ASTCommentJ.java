@@ -25,7 +25,8 @@ public class ASTCommentJ extends ASTComment {
 				else {
 					this.result += "/*\n";
 					for(int j = 0; j < this.indent; j++) this.result+="\t";
-					this.result += this.statements.get(i).toSyntax();
+					if(i < this.statements.size()-1) this.result += this.statements.get(i).toSyntax();
+					else this.result += this.statements.get(i).toSyntax().trim() + "\n";
 					for(int j = 0; j < this.indent; j++) this.result+="\t";
 					this.result += "*/\n";
 				}

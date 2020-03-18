@@ -42,7 +42,7 @@ public class CommentPyTest extends TestCase {
 			expectedOutput.add(currentTemp);
 			count++;
 			currentTemp = "";
-			for(int j = 0; j < 8; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
+			for(int j = 0; j < 7; j++) if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");				
 			count++;
 			expectedOutput.add(currentTemp);
 			for(int i = 0; i < 3; i++) {
