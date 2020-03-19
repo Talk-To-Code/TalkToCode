@@ -64,7 +64,7 @@ function initManager() {
 	// }
 	// /* Default case. */
 	// else language = "c";
-	language = "py"
+	language = "c";
 
 	manager = new StructCommandManager(language);
 	editManager =  new EditCommandManager(manager, code_segments, count_lines);
