@@ -39,9 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
+		listen();
 		// test_function();
-		runTestCases();
+		// runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -55,15 +55,16 @@ function initUser(user: string) {
 }
 
 function initManager() {
-	let editor = vscode.window.activeTextEditor;
-	if (editor) {
-		var filename = editor.document.fileName;
-		var file_extension = filename.split(".")[1];
-		if (file_extension == "py") language = "py";
-		else language = "c";
-	}
-	/* Default case. */
-	else language = "c";
+	// let editor = vscode.window.activeTextEditor;
+	// if (editor) {
+	// 	var filename = editor.document.fileName;
+	// 	var file_extension = filename.split(".")[1];
+	// 	if (file_extension == "py") language = "py";
+	// 	else language = "c";
+	// }
+	// /* Default case. */
+	// else language = "c";
+	language = "py"
 
 	manager = new StructCommandManager(language);
 	editManager =  new EditCommandManager(manager, code_segments, count_lines);
@@ -118,12 +119,12 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-			var data_segments = codeBuffer.split("#include");
-			var idxOfAST = data_segments[1].indexOf("ASTNode");
+			var code = codeBuffer.split("ASTNode")[0].trim();
 			codeBuffer = ""; // clear code stream
-			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
+			writeToEditor(code);
 		}
 		else if (data.includes("Not Supported Syntax Format")) {
+			console.log("error")
 			codeBuffer = ""
 			errorFlag = true;
 		}

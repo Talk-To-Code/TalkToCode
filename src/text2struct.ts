@@ -31,7 +31,7 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 
     var removePreviousStatement = false;
 
-    var extendCommand = checkPrevStatement(input_speech, prev_struct_command);
+    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
     if (extendCommand) {
         input_speech = prev_input_speech + " " + input_speech;
         removePreviousStatement = true;
@@ -88,20 +88,25 @@ function replace_infix_operators(text: string) {
 }
 
 /* Check if previous statement is extendable with the current statement. */
-function checkPrevStatement(input_text: string, prev_struct_command: string) {
+function checkPrevStatement(input_text: string, prev_struct_command: string, language: string) {
     
     /* A declare statement without an assignment */
-    if (prev_struct_command.includes("#create")) {
+    if (prev_struct_command.includes("#create") && language == "c") {
         if (prev_struct_command.split(" ").length == 5 && input_text.split(" ")[0] == "equal") {
             return true;
         }
         if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
-            return true
+            return true;
+        }
+    }
+    else if (prev_struct_command.includes("#create") && language == "py") {
+        if (prev_struct_command.split(" ").length >= 5 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+            return true;
         }
     }
     else if (prev_struct_command.includes("#assign")) {
         if (arithmetic_operator.includes(input_text.split(" ")[0])) {
-            return true
+            return true;
         }
     }
     return false;

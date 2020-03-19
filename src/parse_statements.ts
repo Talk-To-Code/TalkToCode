@@ -254,7 +254,7 @@ function parse_declare_py(text: string) {
         }
     }
         
-    statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1];
+    statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1] + " #dec_end;;";
     return statement;
 }
 
