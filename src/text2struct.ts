@@ -30,17 +30,13 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     var input_speech = input_speech_segments.join(" ");
 
     var removePreviousStatement = false;
-    var removePreviousBlock = false;
 
-    var checkMsg = checkPrevStatement(input_speech, prev_struct_command);
-    if (checkMsg == "extend declare") {
+    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
+    if (extendCommand) {
         input_speech = prev_input_speech + " " + input_speech;
         removePreviousStatement = true;
     }
-    else if (checkMsg == "extend if"){
-        input_speech = prev_input_speech + " " + input_speech;
-        removePreviousBlock = true;
-    }
+
     input_speech = replace_infix_operators(input_speech);
 
     console.log("text going in: " + input_speech);
@@ -54,15 +50,14 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 
     struct_command.removePrevTerminator = checkPrevBlock(struct_command, prev_struct_command);
     /* If else or case block is not preceded by a If or Switch block accordingly, not valid. */
-    if (struct_command.isElse || struct_command.isCase) {
+    if (struct_command.isElse || struct_command.isCase || struct_command.isElseIf) {
         if (!struct_command.removePrevTerminator) {
             struct_command.logError("This block is invalid.");
-            console.log("Error: " + struct_command.errorMessage)
+            console.log("Error: " + struct_command.errorMessage);
             return struct_command;
         }
     }
     struct_command.removePreviousStatement = removePreviousStatement;
-    struct_command.removePreviousBlock = removePreviousBlock;
     struct_command.newFunction = checkForNewFunction(struct_command);
     struct_command.newVariable = checkForNewVariable(struct_command);
     return struct_command;
@@ -93,24 +88,28 @@ function replace_infix_operators(text: string) {
 }
 
 /* Check if previous statement is extendable with the current statement. */
-function checkPrevStatement(input_text: string, prev_struct_command: string) {
+function checkPrevStatement(input_text: string, prev_struct_command: string, language: string) {
     
     /* A declare statement without an assignment */
-    if (prev_struct_command.includes("#create")) {
+    if (prev_struct_command.includes("#create") && language == "c") {
         if (prev_struct_command.split(" ").length == 5 && input_text.split(" ")[0] == "equal") {
-            return "extend declare";
+            return true;
         }
         if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
-            return "extend declare";
+            return true;
         }
     }
-
-    else if (prev_struct_command.includes("#if_branch_start")) {
-        if (input_text.split(" ")[0] == "and" || input_text.split(" ")[0] == "or" ||
-        input_text.split(" ")[0] == "bit_and" || input_text.split(" ")[0] == "bit_or") return "extend if"; 
+    else if (prev_struct_command.includes("#create") && language == "py") {
+        if (prev_struct_command.split(" ").length >= 5 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+            return true;
+        }
     }
-
-    return "do not extend";
+    else if (prev_struct_command.includes("#assign")) {
+        if (arithmetic_operator.includes(input_text.split(" ")[0])) {
+            return true;
+        }
+    }
+    return false;
 }
 
 
@@ -118,6 +117,11 @@ function checkPrevStatement(input_text: string, prev_struct_command: string) {
 function checkPrevBlock(struct_command: structCommand, prev_command: string) {
 
     if (prev_command == "#if_branch_end;;" && struct_command.isElse) return true;
+    if (prev_command == "#elseIf_branch_end;;" && struct_command.isElse) return true;
+    if (prev_command == "#catch_end;;" && struct_command.isElse) return true;
+    if (prev_command == "#catch_end;;" && struct_command.isFinally) return true;
+    if (prev_command == "#else_branch_end;;" && struct_command.isFinally) return true;
+    if (prev_command == "#if_branch_end;;" && struct_command.isElseIf) return true;
     if (prev_command == "#case_end;;" && struct_command.isCase) return true;
     if (prev_command == "#case_end" && struct_command.isCase) return true;
     if (prev_command.includes("switch #condition #variable") && struct_command.isCase) return true;
