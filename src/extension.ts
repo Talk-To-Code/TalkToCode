@@ -71,13 +71,14 @@ function initManager() {
 
 function listen() {
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 
 		else if (editManager.check_if_edit_command(transcribed_word)){
+			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
 			editManager.checkAll(transcribed_word,count_lines);
@@ -86,7 +87,6 @@ function listen() {
 		}
 
 		else {
-			console.log("CURR INDEX NORMALLY: "+manager.curr_index);
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 			errorFlag = false;
 			codeBuffer = "";
@@ -107,7 +107,7 @@ function displayCode(struct_command_list: string[]) {
 
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-    const other_child = spawn('java', ['ast/ASTParser'], {shell:true, cwd: ast_cwd});
+    const other_child = spawn('java', ['ast/ASTParser 0'], {shell:true, cwd: ast_cwd});
 	other_child.stdin.setEncoding('utf8');
 
     other_child.stdin.write(commands);
@@ -145,7 +145,7 @@ function map_lines_to_code(){
 	var count =0;
 	var j =0;
 	for (var i=0;i<code_segments.length;i++) {
-		if (code_segments[i].startsWith("#include") || code_segments[i] == "\r" || code_segments[i] == ""){
+		if (code_segments[i].startsWith("#include") || code_segments[i] == "\r" || code_segments[i] == ""|| code_segments[i]=="*/"|| code_segments[i]=="/*"){
 			count++;
 		}
 		else if (i< code_segments.length-1 && checkIfFunctionPrototype(code_segments[i+1], code_segments[i])){
@@ -162,10 +162,10 @@ function map_lines_to_code(){
 function writeToEditor(code: string) {
 	code_segments = code.split("\n");
 	map_lines_to_code();
-	// for (var i=0;i<count_lines.length;i++){
-	// 	console.log("DEBUG LINE COUNTS: ");
-	// 	console.log(count_lines[i]);
-	// }
+	for (var i=0;i<count_lines.length;i++){
+		console.log("DEBUG LINE COUNTS: ");
+		console.log(count_lines[i]);
+	}
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {

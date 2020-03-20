@@ -39,11 +39,13 @@ export class EditCommandManager {
         this.check_if_insert_before_block(transcribedWord);
         this.check_if_uncomment_line(transcribedWord);
         this.check_if_uncomment_block(transcribedWord);
+        this.check_if_search_and_replace(transcribedWord);
+        this.check_if_typecast_variable(transcribedWord);
     }
 
     check_if_edit_command(text: String){
         var arr = text.toLowerCase().split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy" || arr[0]=="uncomment"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy" || arr[0]=="uncomment" || arr[0]=="find" || arr[0]=="typecast"){
             return true;
         }
         return false;
@@ -70,6 +72,7 @@ export class EditCommandManager {
     // that and reject the invalid command.
     check_if_delete_line(text: String) { 
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0] == "delete" && arr[1]=="line") {
             console.log("IN HERE to delete line");
             let line_num = parseInt(arr[2]);
@@ -84,6 +87,7 @@ export class EditCommandManager {
     // if function name does not exist, just reject the command. If not an error occurs.
     check_if_delete_function(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0]=="delete" && arr[1]=="function"){
             console.log("IN HERE TO DELETE A FUNCTION");
             var functionToDelete = arr[2];
@@ -117,6 +121,7 @@ export class EditCommandManager {
     //WORKS: Delete block [block-name] at line [line-number]
     check_if_delete_block(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=6) return;
         if (arr[0]=="delete" && arr[1]=="block"){
             console.log("IN HERE TO DELETE A BLOCK");
             let editor = vscode.window.activeTextEditor;
@@ -135,7 +140,7 @@ export class EditCommandManager {
 
                     start = index;
                     end = this.determine_end(index,block_name,block_name_end);
-                    this.manager.struct_command_list.splice(start,(end-start)+1);
+                    this.manager.splice(start,(end-start)+1);
                 }
             }
         }
@@ -144,6 +149,7 @@ export class EditCommandManager {
     //WORKS NOT ON BLOCKS
      check_if_comment_line(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0]== "comment" && arr[1] == "line"){
             console.log("IN HERE COMMENTING LINE");
             let line_num = parseInt(arr[2]);
@@ -157,6 +163,7 @@ export class EditCommandManager {
     //WORKS
     check_if_comment_block(text:String){
         var arr = text.split(" ");
+        if (arr.length!=6) return;
         if (arr[0]=="comment" && arr[1]=="block"){
             console.log("IN HERE TO COMMENT BLOCK: "+text);
             let editor = vscode.window.activeTextEditor;
@@ -166,8 +173,8 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
+                if (arr[2]=="is") arr[2]="if";
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
                 if (line.startsWith(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
@@ -186,6 +193,7 @@ export class EditCommandManager {
     //WORKS
     check_if_rename_function(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=5) return;
         if (arr[0]=="rename" && arr[1]=="function") {
             console.log("RENAMING THE FUNCTION")
             var functionToReplace = arr[2];
@@ -210,6 +218,7 @@ export class EditCommandManager {
     //WORKS: need to work on scope
     check_if_rename_variable(text:String) {
         var arr = text.split(" ");
+        if (arr.length!=5) return;
         if (arr[0]=="rename" && (arr[1]=="variable" || arr[1]=="variables")){
             var wordToReplace = arr[2];
             var replaceWith = arr[4];
@@ -233,6 +242,7 @@ export class EditCommandManager {
     //WORKS
     check_if_paste_above_or_below_line(text:String){
         var arr = text.split(" ");
+        if (arr.length!=4) return;
         if (arr[0]=="paste"){
             console.log("IN HERE TO PASTE ABOVE/BELOW LINE");
             var line_num = parseInt(arr[3]);
@@ -249,6 +259,7 @@ export class EditCommandManager {
     //WORKS
     check_if_cut_line(text: String){
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0] == "cut" && arr[1]=="line") {
             console.log("IN HERE to cut line");
             this.cut_copy_buffer=[""]
@@ -256,7 +267,7 @@ export class EditCommandManager {
             var index = this.binarySearch(line_num,0,this.line_counts.length);
             if (index!=-1){
                 this.cut_copy_buffer[0] = this.manager.struct_command_list[index];
-                this.manager.struct_command_list.splice(index,1);
+                this.manager.splice(index,1);
             }
         }
     }
@@ -264,6 +275,7 @@ export class EditCommandManager {
     //WORKS
     check_if_copy_line(text: String){
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0] == "copy" && arr[1]=="line") {
             console.log("IN HERE to copy line");
             this.cut_copy_buffer=[""]
@@ -278,6 +290,7 @@ export class EditCommandManager {
     //WORKS
     check_if_copy_block(text: String){
         var arr = text.split(" ");
+        if (arr.length!=6) return;
         if (arr[0]=="copy" && arr[1]=="block"){
             this.cut_copy_buffer = [""];
             let editor = vscode.window.activeTextEditor;
@@ -308,6 +321,7 @@ export class EditCommandManager {
     //WORKS
     check_if_cut_block(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=6) return;
         if (arr[0]=="cut" && arr[1]=="block"){
             this.cut_copy_buffer = [""];
             let editor = vscode.window.activeTextEditor;
@@ -330,7 +344,7 @@ export class EditCommandManager {
                     for (var j=start;j<=end;j++){
                         this.cut_copy_buffer[j-start]=this.manager.struct_command_list[j];
                     }
-                    this.manager.struct_command_list.splice(start,(end-start)+1);
+                    this.manager.splice(start,(end-start)+1);
                 }
             }
         }
@@ -339,8 +353,9 @@ export class EditCommandManager {
     //WORKS
     check_if_insert_before_line(text: String) {
         var arr = text.split(" ");
+        if (arr.length!=4) return;
         if (arr[0]=="insert" && arr[1]=="before" && arr[2]=="line"){
-            console.log("IN HERE to inser before line");
+            console.log("IN HERE to insert before line");
                 let line_num = parseInt(arr[3]);
                 let index = this.binarySearch(line_num,0,this.line_counts.length);
                 this.manager.struct_command_list.splice(index,0,insert_comment);
@@ -351,22 +366,31 @@ export class EditCommandManager {
     //WORKS
     check_if_insert_before_block(text: String){
         var arr = text.split(" ");
-        if (arr[0]=="insert" && arr[1]=="before"){
+        if (arr.length!=4) return;
+        if (arr[0]=="insert" && arr[1]=="before" && arr[3]=="block"){
             console.log("IN HERE to insert before block");
+            if (arr[2]=="4"|| arr[2]=="4:00") arr[2]="for";
+
             var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            for (var i=this.manager.curr_index;i>=0;i--){
+            var minDistance = 1000000;
+            var minIndex = -1;
+            for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].startsWith(block_name)){
-                    this.manager.struct_command_list.splice(i,0,insert_comment);
-                    this.manager.curr_index = i;
-                    return;
+                    if (Math.abs(i-this.manager.curr_index)<minDistance){
+                        minDistance = Math.abs(i-this.manager.curr_index);
+                        minIndex = i;
+                    }
                 }
             }
+            this.manager.struct_command_list.splice(minIndex,0,insert_comment);
+            this.manager.curr_index = minIndex;
         }
     }
 
     //WORKS
     check_if_uncomment_line(text: String){
         var arr = text.split(" ");
+        if (arr.length!=3) return;
         if (arr[0]=="uncomment" && arr[1]=="line"){
             console.log("IN HERE UNCOMMENTING LINE");
             let line_num = parseInt(arr[2]);
@@ -378,9 +402,10 @@ export class EditCommandManager {
         }
     }
 
-    //TODO
+    //WORKS
     check_if_uncomment_block(text: String){
         var arr = text.split(" ");
+        if (arr.length!=6) return;
         if (arr[0]=="uncomment" && arr[1]=="block"){
             console.log("IN HERE TO UNCOMMENT BLOCK");
             let editor = vscode.window.activeTextEditor;
@@ -390,7 +415,7 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            
+    
                 var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
                 if (line.indexOf(block_name)!=-1 && line.indexOf(block_name)==line.lastIndexOf(block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length);
@@ -398,10 +423,49 @@ export class EditCommandManager {
 
                     start = index;
                     var end = this.determine_end(index,block_name,block_name_end);
-                    if (!this.manager.struct_command_list[start].startsWith(block_name)) return;
-                    this.manager.struct_command_list[start] = this.manager.struct_command_list[index].substring(start_comment.length);
-                    this.manager.struct_command_list[end] = this.manager.struct_command_list[index].substring(0,this.manager.struct_command_list[end].length-end_comment.length);
+                    if (!this.manager.struct_command_list[start].startsWith(start_comment)) return;
+                    this.manager.struct_command_list[start] = this.manager.struct_command_list[start].substring(start_comment.length);
+                    this.manager.struct_command_list[end] = this.manager.struct_command_list[end].substring(0,this.manager.struct_command_list[end].length-end_comment.length);
                 }
+            }
+        }
+    }
+
+    //TODO: find [word] and replace with [new_word]
+    check_if_search_and_replace(text: String){
+        var arr = text.split(" ");
+        if (arr.length!=6) return;
+        if (arr[0]=="find"){
+            console.log("IN HERE TO FIND AND REPLACE");
+            var word = arr[1];
+            var new_word = arr[5];
+            for (var i=0;i<this.manager.struct_command_list.length;i++){
+                if (this.manager.struct_command_list[i].indexOf(word)!=-1){
+                    this.manager.struct_command_list[i] = this.manager.struct_command_list[i].replace(word,new_word);
+                }
+            }
+        }
+    }
+
+    //TODO: typecast variable [variable_name] as [data type] at line [line_num]
+    check_if_typecast_variable(text: String){
+        var arr = text.split(" ");
+        if (arr.length!=8) return;
+        if (arr[0]=="typecast" && arr[1]=="variable"){
+            console.log("IN HERE to typecast");
+            var variable_name = arr[2];
+            var data_type = arr[4];
+            var line_num = parseInt(arr[7]);
+            var index = this.binarySearch(line_num,0,this.line_counts.length);
+            var phrase = "#variable "+variable_name;
+            var substring_index = this.manager.struct_command_list[index].indexOf(phrase);
+            if (substring_index!=-1){
+                console.log("got in here: "+this.manager.struct_command_list[index]);
+                var line = this.manager.struct_command_list[index]
+                
+                this.manager.struct_command_list[index] = line.substring(0, substring_index)+"#type "+data_type+" ("+line.substring(substring_index,substring_index+phrase.length)+")"+line.substring(substring_index+phrase.length);
+                console.log("DEBUG: "+this.manager.struct_command_list[index]);
+                return;
             }
         }
     }
