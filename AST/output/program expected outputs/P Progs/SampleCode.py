@@ -231,7 +231,6 @@ class Client(threading.Thread):
 				mode = mode_res[0]
 
 				predictionReady = True
-
 			'''
 
 		else:
