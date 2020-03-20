@@ -37,6 +37,7 @@ simpleStatement():
 	| gotoStatement()
 	| passStatement()
 	| typedefStatement()
+	| debugStatement()
 
 importStatement() :
 	(< FROM >< STRING_LITERAL >)?< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?(< INCLUDE >< STRING_LITERAL >(< AS >< IDENTIFIER >)?)*< TERMINATOR >
@@ -61,6 +62,9 @@ passStatement() :
 
 typedefStatement() :
 	< TYPEDEF > types_C() < IDENTIFIER > < TERMINATOR >
+
+debugStatement() :
+	< STRING > < STRING_LITERAL > < TERMINATOR >
 
 create_variable() :
 	< CREATE >(catchModifier())*(types_C())?
@@ -256,6 +260,8 @@ infixOperators() :
 < EXPRESSIONS : "#expression" >
 < IF_BRANCH_START : "#if_branch_start" >
 < IF_BRANCH_END : "#if_branch_end" >
+< ELSEIF_BRANCH_START : "#elseIf_branch_start >
+< ELSEIF_BRANCH_END : "#elseIf_branch_end >
 < ELSE_BRANCH_START : "#else_branch_start" >
 < ELSE_BRANCH_END : "#else_branch_end" >
 < PRE : "#pre" >
@@ -307,6 +313,7 @@ infixOperators() :
 < WITH_END : "#with_end" >
 < LAMBDA : "#lambda" >
 < LAMBDA_END : "#lambda_end" >
+< STRING : "#string" >
 < ASSIGN : "=" >
 < LT : "<" >
 < GT : ">" >
@@ -323,6 +330,7 @@ infixOperators() :
 < PY_OR : "or" >
 < PY_AND : "and" >
 < PY_NOT : "not" >
+< IS : "is" >
 < INCR : "++" >
 < DECR : "--" >
 < PLUS : "+" >

@@ -63,7 +63,7 @@
 | < WITH_END : "#with_end" >
 | < LAMBDA : "#lambda" >
 | < LAMBDA_END: "#lambda_end" >
-| < DELETE : "#delete" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
+| < STRING : "#string" >}TOKEN :{  < C_TYPES_MODIFIERS_SIGNED : "signed" >| < C_TYPES_MODIFIERS_UNSIGNED : "unsigned" >}/* IDENTIFIERS */TOKEN :{  < IDENTIFIER : < LETTER > (< PART_LETTER >)* >| < #LETTER : [ "$", "A"-"Z", "_", "a"-"z" ] >| < #PART_LETTER : [ "$", "0"-"9", "A"-"Z", "_", "a"-"z" ] >}String variable() :{  Token var;}{  < VARIABLE > var = < IDENTIFIER >  {    return var.image;  }}String infixOperators() :{  Token n;}{  n = < PLUS >  {    return n.image;  }| n = < MINUS >  {    return n.image;  }| n = < STAR >  {    return n.image;  }| n = < SLASH >  {    return n.image;  }| n = < LT >  {    return n.image;  }| n = < GT >  {    return n.image;  }| n = < EQ >  {    return n.image;  }| n = < LE >  {    return n.image;  }| n = < GE >  {    return n.image;  }| n = < NE >  {    return n.image;  }| n = < SC_OR >  {    return n.image;  }| n = < SC_AND >  {    return n.image;  }
 | n = < PY_OR >
   {
     return n.image;
@@ -897,7 +897,19 @@ ASTTypedefStatement typedefStatement(programType pType) :
   type = types_C()
   id = < IDENTIFIER > < TERMINATOR >
   {    return new ASTTypedefStatement(type, id.image);
-  }}ASTSimpleStatement simpleStatement(programType pType) :
+  }}
+
+ASTDebugStatement debugStatement() :
+{
+  Token str;
+}
+{
+  < STRING > str = < STRING_LITERAL > < TERMINATOR >
+  {
+    return new ASTDebugStatement(str.image);
+  }
+}
+ASTSimpleStatement simpleStatement(programType pType) :
 {
   ASTExpression result;
   ASTDeclarationStatement out;
@@ -909,6 +921,7 @@ ASTTypedefStatement typedefStatement(programType pType) :
   ASTGoToStatement gt;
   ASTPassStatement pass;
   ASTTypedefStatement td;
+  ASTDebugStatement db;
 }
 {
   (
@@ -963,6 +976,10 @@ ASTTypedefStatement typedefStatement(programType pType) :
 | td = typedefStatement(pType)
   {
     return td;
+  }
+| db = debugStatement()
+  {
+    return db;
   }
 }
 ASTBlockStatement blockStatement(ASTNode parent, programType pType, int indent) :{  ASTStructDeclaration structDeclare;  ASTDoWhileStatement doWhile;  ASTForStatement forStatement;  ASTFunction functionDeclare;  ASTIfStatement ifStatement;  ASTWhileStatement whileStatement;  ASTSwitchStatement switchStatement;
@@ -1027,7 +1044,7 @@ ASTCompilationUnit compilationUnit() :
   (
     statement = statement(result, pType, 0)
     {
-      if (!statement.toSyntax().equals("\n"))
+      if (!statement.toSyntax().equals("\n") || statement instanceof ASTDebugStatement)
       {
         result.addStatement(statement);
         current = statement;

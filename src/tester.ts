@@ -13,8 +13,8 @@ export function runTestCases() {
     // test_cases = generate_test_cases("for_loop");
     // runTestCase(test_cases[0], test_cases[1]);
 
-    test_cases = generate_test_cases("create_function");
-    runTestCase(test_cases[0], test_cases[1]);
+    // test_cases = generate_test_cases("create_function");
+    // runTestCase(test_cases[0], test_cases[1]);
     
     // test_cases = generate_test_cases("while_loop");
     // runTestCase(test_cases[0], test_cases[1]);
@@ -46,14 +46,9 @@ function generate_test_cases(cases: string) {
     if (cases == "declare_assign") {
         /* Not yet tested for declare float count equals hello world. does not work
         By right, "declare float count equals hello" should not work as well since hello was not declared */
-        test_cases[0] = ["declare integer", "hello world", "equal 5", "hello world equals 4",
-        "declare float", "count", "equals hello world",
-        "declare integer first equals 10"];
+        test_cases[0] = ["create function find maximum parameter hello world begin"];
         
-        test_cases[1] = ["#create int #variable helloWorld #value 5 #dec_end;;", 
-        "#assign #variable helloWorld #with #value 4;;", 
-        "#create float #variable count #variable helloWorld #dec_end;;",
-        "#create int #variable first #value 10 #dec_end;;", "#comment #value \" cursor here \";; #comment_end;;"];
+        test_cases[1] = [""];
     }
 
     else if (cases == "jump_statements") {
@@ -86,7 +81,7 @@ function generate_test_cases(cases: string) {
     }
 
     else if (cases == "create_function") {
-        test_cases[0] = ["create function find maximum with return type integer with parameter integer array numbers with parameter integer length begin"];
+        test_cases[0] = ["create function find maximum with return type integer parameter integer array numbers parameter integer length begin"];
         test_cases[1] = ["#function_declare findMaximum int #parameter_a #dimension 1 int #array numbers #parameter #type int length #function_start", 
         "#comment #value \" cursor here \";; #comment_end;;", "#function_end;;"];
     }
@@ -118,7 +113,7 @@ function generate_test_cases(cases: string) {
 
     else if (cases == "call_function") {
         test_cases[0] = ["call function print f parameter string enter two numbers end string end function"];
-        // test_cases[0] = ["call function print f"]
+        test_cases[0] = ["call function end function"]
         test_cases[1] = ["#function printf(#parameter #value \"enter 2 numbers\");;", "#comment #value \" cursor here \";; #comment_end;;"];
     }
 
@@ -127,7 +122,7 @@ function generate_test_cases(cases: string) {
 
 /* Run and compare my output and correct output using test cases. */
 function runTestCase(test_cases: string[], correct_output: string[]) {
-    var test_manager = new StructCommandManager("c");
+    var test_manager = new StructCommandManager("py");
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i]);

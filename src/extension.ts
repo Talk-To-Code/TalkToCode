@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-import { runTestCases } from './tester'
+import { runTestCases, test_function } from './tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
@@ -55,15 +55,16 @@ function initUser(user: string) {
 }
 
 function initManager() {
-	let editor = vscode.window.activeTextEditor;
-	if (editor) {
-		var filename = editor.document.fileName;
-		var file_extension = filename.split(".")[1];
-		if (file_extension == "py") language = "py";
-		else language = "c";
-	}
-	/* Default case. */
-	else language = "c";
+	// let editor = vscode.window.activeTextEditor;
+	// if (editor) {
+	// 	var filename = editor.document.fileName;
+	// 	var file_extension = filename.split(".")[1];
+	// 	if (file_extension == "py") language = "py";
+	// 	else language = "c";
+	// }
+	// /* Default case. */
+	// else language = "c";
+	language = "c";
 
 	manager = new StructCommandManager(language);
 	editManager =  new EditCommandManager(manager,count_lines);
@@ -109,6 +110,7 @@ function displayCode(struct_command_list: string[]) {
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
     const other_child = spawn('java', ['ast/ASTParser 0'], {shell:true, cwd: ast_cwd});
+
 	other_child.stdin.setEncoding('utf8');
 
     other_child.stdin.write(commands);
@@ -119,12 +121,12 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-			var data_segments = codeBuffer.split("#include");
-			var idxOfAST = data_segments[1].indexOf("ASTNode");
+			var code = codeBuffer.split("ASTNode")[0].trim();
 			codeBuffer = ""; // clear code stream
-			writeToEditor("#include" + data_segments[1].slice(0, idxOfAST));
+			writeToEditor(code);
 		}
 		else if (data.includes("Not Supported Syntax Format")) {
+			console.log("error")
 			codeBuffer = ""
 			errorFlag = true;
 		}

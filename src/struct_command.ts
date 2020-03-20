@@ -12,19 +12,28 @@ export class structCommand {
     /* isBlock: true when the struct command is a block statement. Useful for updating the struct command
     list in the struct_command_manager. */
     isBlock: boolean;
+    /* isElseIf: true when struct command is an Else if block. Useful for checking conditions on whether the else
+    if block is part of a previous If block. Used in the text2struct.ts file. */
+    isElseIf: boolean;
     /* isElse: true when struct command is an Else block. Useful for checking conditions on whether the else
     block is part of a previous If block. Used in the text2struct.ts file. */
     isElse: boolean;
     /* isCase: true when struct command is a Case block. Useful for checking conditions on whether the case
     block is part of a previous switch block. Used in the text2struct.ts file. */
     isCase: boolean;
+    /* isFinally: true when struct command is a finally block. Useful for checking conditions on whether the finally
+    block is part of a previous try block. Used in the text2struct.ts file. */
+    isFinally: boolean;
+    /* isTry: true when struct command is a try block. Useful for checking conditions. try block is a special
+    case where try and catch comes together. Hence, 2 blocks must be added to struct_command_list. */
+    isTry: boolean;
     /* removePrevTerminator: is true if the current block is combinable with the prev block. E.g. Else block
     is part of prev If block. Remove the terminator behind #if_branch_end and append it to #else_branch_end. */
     removePrevTerminator: boolean;
     /* removePreviousStatement: is true if the previous statement is extendable by the current statement. */
     removePreviousStatement: boolean;
-    /* removePreviousBlock: is true if the previous block is extendable by the current statement. */
-    removePreviousBlock: boolean;
+    /* held: is true when user is holding the statement there for editing or long commands. */
+    held: boolean;
     
 
     constructor(typeOfCommand: string) {
@@ -35,11 +44,14 @@ export class structCommand {
         this.newFunction = "";
         this.hasError = false;
         this.isBlock = false;
+        this.isElseIf = false;
         this.isElse = false;
         this.isCase = false;
+        this.isFinally = false;
+        this.isTry = false;
         this.removePrevTerminator = false;
         this.removePreviousStatement = false;
-        this.removePreviousBlock = false;
+        this.held = false;
 
         if (typeOfCommand == "block") this.isBlock = true;
     }
