@@ -39,9 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		listen();
+		// listen();
 		// test_function();
-		// runTestCases();
+		runTestCases();
 
 	});
 	context.subscriptions.push(disposable);
@@ -66,7 +66,7 @@ function initManager() {
 	// else language = "c";
 	language = "c";
 
-	manager = new StructCommandManager(language);
+	manager = new StructCommandManager(language, true);
 	editManager =  new EditCommandManager(manager, code_segments, count_lines);
 }
 

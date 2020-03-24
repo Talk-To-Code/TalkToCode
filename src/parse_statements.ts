@@ -122,7 +122,7 @@ declare <var_type> array <var name> size <literal> equal make array parameter ..
 function parse_declare_c(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
-    statement.parsedStatement = "#create #variable";
+    statement.parsedStatement = "#create";
 
     var splitted_text = text.split(" ");
 
@@ -137,11 +137,12 @@ function parse_declare_c(text: string) {
     var fragment1 = ""
     var fragment2 = ""
     var equalPresent = false;
+    var equal_idx = 0;
 
     /* Check if equal is present. Then assign fragment1 and fragment2 values. */
     if (splitted_text.includes("equal")) {
         equalPresent = true;
-        var equal_idx = splitted_text.indexOf("equal");
+        equal_idx = splitted_text.indexOf("equal");
         if (equal_idx == splitted_text.length-1) {
             statement.logError("equal was last word mentioned.");
             return statement;
@@ -151,8 +152,18 @@ function parse_declare_c(text: string) {
     }
     else fragment1 = splitted_text.slice(2).join(" ");
 
+    var arrayDeclaration = false;
+    /* check if is an array declaration. */
+    if (equalPresent) {
+        /* Only check before the "equal" keyword. */
+        if (splitted_text.slice(0, equal_idx).includes("array")) arrayDeclaration = true;
+    }
+    else {
+        if (splitted_text.includes("array")) arrayDeclaration = true;
+    }
+
     /* Check for array declaration. */
-    if (splitted_text.includes("array")) {
+    if (arrayDeclaration) {
         /* remove array, size and int from fragment. */
         fragment1 = fragment1.replace("array ", "");
         fragment1 = fragment1.replace("size ", "");
@@ -196,7 +207,7 @@ function parse_declare_c(text: string) {
     }
     /* Not array declaration */
     else {
-        statement.parsedStatement += " " + joinName(fragment1.split(" "));
+        statement.parsedStatement += " #variable " + joinName(fragment1.split(" "));
 
         if (equalPresent) {
             var parsedFragment2 = fragment_segmenter(fragment2.split(" "), "c");
@@ -261,7 +272,13 @@ function parse_declare_py(text: string) {
 function parse_return(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isReturn = true;
-    statement.parsedStatement = "return #paramater";
+
+    if (text == "return") {
+        statement.parsedStatement = "return;;";
+        return statement;
+    }
+
+    statement.parsedStatement = "return #parameter";
     var splitted_text = text.split(" ");
     /* Return has an assign statement */
     if (splitted_text.includes("equal")) {
@@ -287,19 +304,40 @@ function parse_assignment(text: string, language: string) {
     var splitted_text = text.split(" ");
     var equal_idx = splitted_text.indexOf("equal");
 
+    var haveCompound = false;
+
     if (equal_idx == splitted_text.length-1) {
         statement.logError("equal was last word mentioned.");
         return statement;
     }
 
-    var fragment1 = fragment_segmenter(splitted_text.slice(0, equal_idx), language);
-    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), language);
+    var frag1_input = splitted_text.slice(0, equal_idx);
+    var frag2_input = splitted_text.slice(equal_idx + 1);
+
+    if (arithmetic_operators.includes(splitted_text[equal_idx-1])) {
+        haveCompound = true;
+        frag1_input = splitted_text.slice(0, equal_idx - 1);
+    }
+
+    var fragment1 = fragment_segmenter(frag1_input, language);
+    var fragment2 = fragment_segmenter(frag2_input, language);
 
     if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
         statement.logError(fragment1[1]);
         return statement;
     }
-    statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
+
+    if (haveCompound) {
+        var compoundSpeech = splitted_text.slice(equal_idx-1, equal_idx+1).join(" ");
+        var compoundOperator = "";
+        if (compoundSpeech == "plus equal") compoundOperator = " += ";
+        else if (compoundSpeech == "minus equal") compoundOperator = " -= "
+        else if (compoundSpeech == "multiply equal") compoundOperator = " *= "
+        else compoundOperator = " /= "
+        
+        statement.parsedStatement = "#assign " + fragment1[1] + compoundOperator + fragment2[1] + ";;";
+    }
+    else statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
     return statement;
 }
 
@@ -545,7 +583,7 @@ function parse_fragment(splitted_text: string[]) {
                 var fragment: string[] = parse_fragment(parameter_blocks[i].split(" "));
                 if (fragment[0] == "not ready") 
                     return ["not ready", "parameter fragment wrong. " + fragment[1]];
-                parsed_result += "#parameter " + fragment[1];
+                parsed_result += " #parameter " + fragment[1];
             }
             parsed_result += ")";
             return ["ready", parsed_result];

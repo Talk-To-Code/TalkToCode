@@ -38,6 +38,12 @@ export function parse_command(text: string, language: string) {
         errorCommand.logError("C does not support creating classes");
     }
 
+    /* Python does not support switch statements */
+    if (starting_command[0] == "switch" && language == "py") {
+        var errorCommand = new structCommand("non-block");
+        errorCommand.logError("Python does not support switch statements");
+    }
+
     /* Splitted_text is the user's command without the leading starting command.
     Starting command refers to "begin if", "begin loop" etc. */
     var splitted_text = starting_command[1].split(" ");
@@ -342,7 +348,8 @@ function parse_function_c(splitted_text: string[]) {
         return command;
     } 
     /* Remove "begin". Not necessary. */
-    var text = splitted_text.splice(splitted_text.length-1, 1).join(" ");
+    splitted_text.splice(splitted_text.length-1);
+    var text = splitted_text.join(" ");
 
     var withIdx = splitted_text.indexOf("with");
     var splitted_funcName = splitted_text.slice(0, withIdx);
@@ -417,6 +424,7 @@ function parse_function_c(splitted_text: string[]) {
             }
         }
         else { // If parameter of function is not an array.
+            console.log("heree")
             command.parsedCommand += " #parameter #type " + splitted_param[0]; // Add variable type
             command.parsedCommand += " " + joinName(splitted_param.slice(1));
         }

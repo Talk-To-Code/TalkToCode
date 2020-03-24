@@ -11,7 +11,7 @@ var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_en
 var start_branches = ["#if_branch_start", "elseIf_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
                     "#function_start", "catch #catch_start", "switch", "try", "finally"];
 
-var cursor_comment = "#comment #value \" cursor here \";; #comment_end;;"
+var cursor_struct = '#string "";;';
 
 export class StructCommandManager {
 
@@ -35,20 +35,23 @@ export class StructCommandManager {
 
     edit_stack: edit_stack_item[];
 
-    constructor(language: string) {
+    debugMode: boolean;
+
+    constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
-        this.struct_command_list = [cursor_comment];
+        this.struct_command_list = [cursor_struct];
         this.curr_speech = [""];
         this.variable_list = [""];
         this.functions_list = [""];
         this.speech_hist = new speech_hist();
-        this.edit_stack = []
+        this.edit_stack = [];
+        this.debugMode = debugMode;
     }
 
     reset() {
         this.curr_index = 0;
-        this.struct_command_list = [cursor_comment];
+        this.struct_command_list = [cursor_struct];
         this.curr_speech = [""];
         this.variable_list = [""];
         this.functions_list = [""];
@@ -57,7 +60,7 @@ export class StructCommandManager {
     }
 
     parse_speech(transcribed_word: string) {
-        console.log("####################### NEXT COMMAND #######################");
+        if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
         /* Check for undo or navigation command */
         if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
@@ -82,11 +85,12 @@ export class StructCommandManager {
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
-        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language);
+        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language, this.debugMode);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
-        console.log(this.managerStatus())
+
+        if (this.debugMode) console.log(this.managerStatus());
     }
 
     /* Updating the struct command list */
@@ -114,7 +118,7 @@ export class StructCommandManager {
             if (struct_command.isBlock && !struct_command.isTry) {
                 this.struct_command_list.splice(this.curr_index, 1, struct_command.parsedCommand);
                 this.curr_index += 1;
-                this.struct_command_list.splice(this.curr_index, 0, cursor_comment);
+                this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
                 this.curr_index += 1;
                 this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand);
                 this.curr_index -= 1; // Make sure curr_index points at the blank line.
@@ -124,7 +128,7 @@ export class StructCommandManager {
             else if (struct_command.isBlock && struct_command.isTry) {
                 this.struct_command_list.splice(this.curr_index, 1, "try");
                 this.curr_index += 1;
-                this.struct_command_list.splice(this.curr_index, 0, cursor_comment);
+                this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
                 this.curr_index += 1;
                 this.struct_command_list.splice(this.curr_index, 0, "catch #catch_start");
                 this.curr_index += 1;
@@ -140,14 +144,14 @@ export class StructCommandManager {
 
                 /* insert blank line "". Now curr_index points at blank line. */
                 this.curr_index += 1 // Point at next index
-                this.struct_command_list.splice(this.curr_index, 0, cursor_comment)
+                this.struct_command_list.splice(this.curr_index, 0, cursor_struct)
                 this.appendSpeechHist("line")
             }
         }
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
             var speech = this.curr_speech.join(" ")
-            var commented_speech = "#comment #value \"" + speech + "\";; #comment_end;;"
+            var commented_speech = "#string \"" + speech + "\";;"
             this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
@@ -169,7 +173,7 @@ export class StructCommandManager {
             this.struct_command_list.splice(this.curr_index, 1); /* Remove cursor from the struct_command_list. */
             /* note that after cursor has been removed, endIdx no longer points at end branch, but at the index
             AFTER the end branch. */
-            this.struct_command_list.splice(endIdx, 0, cursor_comment); /* Add cursor after the end_branch. */
+            this.struct_command_list.splice(endIdx, 0, cursor_struct); /* Add cursor after the end_branch. */
             this.curr_index = endIdx;
 
             this.curr_speech = [""];
@@ -243,7 +247,7 @@ export class StructCommandManager {
         var oldIdx = edit_item.OldIdx;
 
         this.struct_command_list.splice(this.curr_index, 1); /* remove cursor */
-        this.struct_command_list.splice(oldIdx, 0, cursor_comment); /* Add cursor back to old location. */
+        this.struct_command_list.splice(oldIdx, 0, cursor_struct); /* Add cursor back to old location. */
         this.speech_hist.update_item_index(this.curr_index, oldIdx)
         this.curr_index = oldIdx;
         this.curr_speech = [""];
@@ -278,7 +282,7 @@ export class StructCommandManager {
                 else amountToSplice = 2; // Remove prev statement and cursor comment.
 
                 this.curr_index -= 1;
-                this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_comment);
+                this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_struct);
 
                 /* If the previous struct command was created with only 1 speech input. */
                 if (this.speech_hist.get_item(this.curr_index).length == 1) {
@@ -302,7 +306,7 @@ export class StructCommandManager {
                 this.curr_speech = this.speech_hist.get_item(this.curr_index);
 
                 /* Remove latest struct command. It will be updated by updateStructCommand later. */
-                this.struct_command_list.splice(this.curr_index, 1, cursor_comment);
+                this.struct_command_list.splice(this.curr_index, 1, cursor_struct);
             }   
         }
 
@@ -355,7 +359,7 @@ export class StructCommandManager {
         /* If cursor is within block of code being deleted. */
         /* Case 1: Nothing left */
         if (this.struct_command_list.length == 0) {
-            this.struct_command_list = [cursor_comment];
+            this.struct_command_list = [cursor_struct];
             this.speech_hist.add_item(0, [""]);
         }
         this.edit_stack.push(new edit_stack_item(["delete", copiedStructCommand, copiedSpeechHist, oldIdx]));
