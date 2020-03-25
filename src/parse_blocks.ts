@@ -478,6 +478,13 @@ function parse_structure(splitted_text: string[]) {
         return command;
     }
 
+    if (JSON.stringify(splitted_text) == "[\"\"]") {
+        command.logError("no term mentioned");
+        return command;
+    }
+
+    console.log(splitted_text)
+
     command.parsedCommand = "#struct_declare " + joinName(splitted_text) + " #struct_start";
     command.endCommand = "#struct_end;;"
 

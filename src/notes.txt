@@ -16,6 +16,8 @@ declare <var name> equal <complex fragment>
 
 declare <var name> equal make list parameter ... parameter ...
 
+declare <var name> equal make dictionary key ... value ... key ... value ...
+
 - Assign variable (c and py version)
 <var name> equal <var_name>
 <var name> equal <literal>
@@ -109,7 +111,6 @@ todo:
 
 unsigned and signed for c
 
-add testing for struct
 add testing for pointers
 
 declare float literal

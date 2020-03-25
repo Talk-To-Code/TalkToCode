@@ -264,6 +264,13 @@ function parse_declare_py(text: string) {
             return statement;
         }
     }
+    else if (preFragment.length > 3 && preFragment.slice(0, 2).join(" ") == "make dictionary") {
+        var fragment2 = parse_dictionary(preFragment);
+        if (fragment2[0] == "not ready") {
+            statement.logError("error with grouped fragment. " + fragment2[1]);
+            return statement;
+        }
+    }
     else {
         fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), "py");
         if (fragment2[0] == "not ready") {
@@ -722,4 +729,28 @@ function parse_grouped_fragment(groupType: string, splitted_text: string[]) {
     }
     parsedFragment += " }"
     return ["ready", parsedFragment];
+}
+
+function parse_dictionary(splitted_text: string[]) {
+    var parsed_result = "{ #dictionary";
+    /* Remove make dictionary */
+    splitted_text.splice(0, 2);
+
+    var key_blocks = splitted_text.join(" ").split("key")
+    key_blocks = key_blocks.map(x=>x.trim());
+    key_blocks = key_blocks.slice(1);
+
+    for (var i = 0; i < key_blocks.length; i++) {
+        var splitted_key_blocks = key_blocks[i].split(" ");
+        if (splitted_key_blocks[0] == "value") return ["not ready", "no key mentioned."];
+        if (splitted_key_blocks.length != 3) return ["not ready", "missing stuff."]
+        if (isNaN(Number(splitted_key_blocks[0]))) return ["not ready", "no integer literal mentioned."];
+        if (isNaN(Number(splitted_key_blocks[2]))) return ["not ready", "no integer literal mentioned."];
+
+        parsed_result += " #key " + splitted_key_blocks[0] + " #value #value " + splitted_key_blocks[2];
+    }
+
+    parsed_result += " }"
+
+    return ["ready", parsed_result];
 }

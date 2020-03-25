@@ -48,6 +48,9 @@ export function runTestCasesForC() {
 
     test_cases = generate_test_cases_c("switch_case");
     runTestCase(test_cases[0], test_cases[1], "c");
+
+    test_cases = generate_test_cases_c("structure");
+    runTestCase(test_cases[0], test_cases[1], "c");
 }
 
 export function runTestCasesForPy() {
@@ -57,6 +60,9 @@ export function runTestCasesForPy() {
     runTestCase(test_cases[0], test_cases[1], "py");
 
     test_cases = generate_test_cases_py("declare2");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("declare3");
     runTestCase(test_cases[0], test_cases[1], "py");
 
     test_cases = generate_test_cases_py("return1");
@@ -234,6 +240,14 @@ function generate_test_cases_c(cases: string) {
         "#string \"\";;","#case_end;;"];
     }
 
+    else if (cases == "structure") {
+        test_cases[0] = ["create structure greeting", "declare integer hello", "declare integer goodbye", "exit block"];
+
+        test_cases[1] = ["#struct_declare greeting #struct_start",
+        "#create int #variable hello #dec_end;;",
+        "#create int #variable goodbye #dec_end;;","#string \"\";;","#struct_end;;"];
+    }
+
     return test_cases
 }
 
@@ -249,7 +263,7 @@ function generate_test_cases_py(cases: string) {
         "#create #variable helloWorld #variable helloWorld #dec_end;;","#string \"\";;"];
     }
 
-    if (cases == "declare2") {
+    else if (cases == "declare2") {
         test_cases[0] = ["declare hello equals make list parameter 5 parameter 2",
         "declare", "hello", "equals", "5", 
         "declare hello equals call function get greeting parameter morning end function",
@@ -263,7 +277,14 @@ function generate_test_cases_py(cases: string) {
         "#string \"\";;"];
     }
 
-    if (cases == "return1") {
+    else if (cases == "declare3") {
+        test_cases[0] = ["declare hello equals make dictionary key 5 value 2 key 10 value 3"];
+
+        test_cases[1] = ["#create #variable hello { #dictionary #key 5 #value #value 2 #key 10 #value #value 3 } #dec_end;;",
+        "#string \"\";;"];
+    }
+
+    else if (cases == "return1") {
         test_cases[0] = ["return", "return hello", "return parameter hello", "return parameter hello parameter goodbye",
         "return hello equals string what is up end string"];
         
@@ -272,7 +293,7 @@ function generate_test_cases_py(cases: string) {
         "return #parameter #assign #variable hello #with #value \"what is up\";;","#string \"\";;"];
     }
 
-    if (cases == "for_loop") {
+    else if (cases == "for_loop") {
         test_cases[0] = ["begin loop parameter element in list", "exit block",
         "begin loop parameter key parameter value in my dict symbol point call function items end function"];
 
@@ -281,7 +302,7 @@ function generate_test_cases_py(cases: string) {
         "#string \"\";;","#for_end;;"];
     }
 
-    if (cases == "create_function") {
+    else if (cases == "create_function") {
         test_cases[0] = ["create function hello begin", "exit block",
         "create function hello parameter greeting begin", "exit block",
         "create function hello parameter hello world begin", "exit block"];
@@ -291,7 +312,7 @@ function generate_test_cases_py(cases: string) {
         "#function_declare hello #parameter helloWorld #function_start","#function_end;;","#string \"\";;"];
     }
 
-    if (cases == "create_class") {
+    else if (cases == "create_class") {
         test_cases[0] = ["create class greeting", "exit block", "create class hello with parent greeting"];
 
         test_cases[1] = ["class greeting #class_start","#class_end;;",
