@@ -48,7 +48,8 @@ export function parse_statement(text: string, typeOfStatement: string, language:
         case "postfix": // For now just postfix man.
             return parse_postfix(text);
         case "return":
-            return parse_return(text, language);
+            if (language == "c") return parse_return_c(text, language);
+            else return parse_return_py(text, language);
         case "break":
             return parse_break();
         case "continue":
@@ -133,6 +134,7 @@ function parse_declare_c(text: string) {
         statement.logError("var type is the last word mentioned.");
         return statement;
     }
+
     else statement.parsedStatement += " " + splitted_text[1]; // Add var_type. 
     var fragment1 = ""
     var fragment2 = ""
@@ -151,6 +153,11 @@ function parse_declare_c(text: string) {
         fragment2 = splitted_text.slice(equal_idx+1).join(" ");
     }
     else fragment1 = splitted_text.slice(2).join(" ");
+
+    if (fragment1.length == 0) {
+        statement.logError("no variable name mentioned.");
+        return statement;
+    }
 
     var arrayDeclaration = false;
     /* check if is an array declaration. */
@@ -264,12 +271,11 @@ function parse_declare_py(text: string) {
             return statement;
         }
     }
-        
     statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1] + " #dec_end;;";
     return statement;
 }
 
-function parse_return(text: string, language: string) {
+function parse_return_c(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isReturn = true;
 
@@ -295,6 +301,51 @@ function parse_return(text: string, language: string) {
         }
         statement.parsedStatement += " " + fragment[1] + ";;";
     }
+    return statement;
+}
+
+function parse_return_py(text: string, language: string) {
+    var statement = new simpleStatement();
+    statement.isReturn = true;
+
+    if (text == "return") {
+        statement.parsedStatement = "return;;";
+        return statement;
+    }
+
+    var splitted_text = text.split(" ");
+    splitted_text.splice(0, 1); // remove "return"
+    var parameter_block = [];
+    if (splitted_text.includes("parameter")) {
+        parameter_block = text.split("parameter");
+        parameter_block = parameter_block.map(x=>x.trim());
+        parameter_block.splice(0, 1);
+    }
+    else parameter_block.push(splitted_text.join(" "));
+
+    statement.parsedStatement = "return";
+
+    if (splitted_text.includes("equal") && parameter_block.length == 1) {
+        var assign_statement = parse_assignment(splitted_text.join(" "), language);
+        if (assign_statement.hasError) return assign_statement;
+        else statement.parsedStatement += " #parameter " + assign_statement.parsedStatement;
+
+        return statement;
+    }
+
+    for (var i = 0; i < parameter_block.length; i++) {
+        /* returning a variable or literal */
+
+        var fragment = fragment_segmenter(parameter_block[i].split(" "), language);
+        if (fragment[0] == "not ready") {
+            statement.logError(fragment[1]);
+            return statement;
+        }
+        statement.parsedStatement += " #parameter " + fragment[1];
+    }
+
+    statement.parsedStatement += ";;";
+
     return statement;
 }
 

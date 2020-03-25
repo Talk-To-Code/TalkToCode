@@ -505,12 +505,13 @@ function parse_finally() {
 function parse_class(splitted_text: string[]) {
     var command = new structCommand("block");
     var text = splitted_text.join(" ");
-    text = text.replace(" with parent", "parent");
+    text = text.replace("with parent", "parent");
     splitted_text = text.split(" ");
 
     if (!splitted_text.includes("parent")) {
         command.parsedCommand = "class " + joinName(splitted_text) + " #class_start";
         command.endCommand = "#class_end;;"
+        return command;
     }
 
     if (splitted_text[splitted_text.length - 1] == "parent") {

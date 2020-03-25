@@ -1,53 +1,75 @@
 import { StructCommandManager } from './struct_command_manager'
 import { fragment_segmenter, parse_statement } from './parse_statements'
 
-export function runTestCases() {
+export function runTestCasesForC() {
 
     var test_cases = [[""], [""]];
     test_cases = generate_test_cases_c("tester");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("declare1");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("declare2");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("declare3");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("declare4");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("return1");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("assign1");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("assign2");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("if_block1");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("if_block2");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("for_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("create_function");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
     
     test_cases = generate_test_cases_c("while_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("do_while_loop");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("switch_case");
-    runTestCase(test_cases[0], test_cases[1]);
+    runTestCase(test_cases[0], test_cases[1], "c");
+}
+
+export function runTestCasesForPy() {
+    var test_cases = [[""], [""]];
+
+    test_cases = generate_test_cases_py("declare1");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("declare2");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("return1");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("for_loop");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("create_function");
+    runTestCase(test_cases[0], test_cases[1], "py");
+
+    test_cases = generate_test_cases_py("create_class");
+    runTestCase(test_cases[0], test_cases[1], "py");
 }
 
 export function test_function() {
@@ -215,9 +237,73 @@ function generate_test_cases_c(cases: string) {
     return test_cases
 }
 
+function generate_test_cases_py(cases: string) {
+    var test_cases = [[""], [""]];
+    if (cases == "declare1") {
+        test_cases[0] = ["declare hello equals 5", "declare hello equals hello", "declare hello equals hello world",
+        "declare hello world equals hello world"];
+
+        test_cases[1] = ["#create #variable hello #value 5 #dec_end;;",
+        "#create #variable hello #variable hello #dec_end;;",
+        "#create #variable hello #variable helloWorld #dec_end;;",
+        "#create #variable helloWorld #variable helloWorld #dec_end;;","#string \"\";;"];
+    }
+
+    if (cases == "declare2") {
+        test_cases[0] = ["declare hello equals make list parameter 5 parameter 2",
+        "declare", "hello", "equals", "5", 
+        "declare hello equals call function get greeting parameter morning end function",
+        "declare hello equals greeting array index 5",
+        "declare hello equals greeting symbol point test array index 5"];
+
+        test_cases[1] = ["#create #variable hello { #list #parameter #value 5 #parameter #value 2 } #dec_end;;",
+        "#create #variable hello #value 5 #dec_end;;","#create #variable hello #function getGreeting( #parameter #variable morning) #dec_end;;",
+        "#create #variable hello #array greeting #indexes #value 5 #index_end #dec_end;;",
+        "#create #variable hello #access #variable greeting #array test #indexes #value 5 #index_end #access_end #dec_end;;",
+        "#string \"\";;"];
+    }
+
+    if (cases == "return1") {
+        test_cases[0] = ["return", "return hello", "return parameter hello", "return parameter hello parameter goodbye",
+        "return hello equals string what is up end string"];
+        
+        test_cases[1] = ["return;;","return #parameter #variable hello;;",
+        "return #parameter #variable hello;;","return #parameter #variable hello #parameter #variable goodbye;;",
+        "return #parameter #assign #variable hello #with #value \"what is up\";;","#string \"\";;"];
+    }
+
+    if (cases == "for_loop") {
+        test_cases[0] = ["begin loop parameter element in list", "exit block",
+        "begin loop parameter key parameter value in my dict symbol point call function items end function"];
+
+        test_cases[1] = ["for #parameter #variable element #variable list #for_start","#for_end;;",
+        "for #parameter #variable key #parameter #variable value #access #variable myDict #function items() #access_end #for_start",
+        "#string \"\";;","#for_end;;"];
+    }
+
+    if (cases == "create_function") {
+        test_cases[0] = ["create function hello begin", "exit block",
+        "create function hello parameter greeting begin", "exit block",
+        "create function hello parameter hello world begin", "exit block"];
+
+        test_cases[1] = ["#function_declare hello #function_start","#function_end;;",
+        "#function_declare hello #parameter greeting #function_start","#function_end;;",
+        "#function_declare hello #parameter helloWorld #function_start","#function_end;;","#string \"\";;"];
+    }
+
+    if (cases == "create_class") {
+        test_cases[0] = ["create class greeting", "exit block", "create class hello with parent greeting"];
+
+        test_cases[1] = ["class greeting #class_start","#class_end;;",
+        "class hello #parent greeting #class_start","#string \"\";;","#class_end;;"];
+    }
+
+    return test_cases;
+}
+
 /* Run and compare my output and correct output using test cases. */
-function runTestCase(test_cases: string[], correct_output: string[]) {
-    var test_manager = new StructCommandManager("c", false);
+function runTestCase(test_cases: string[], correct_output: string[], language: string) {
+    var test_manager = new StructCommandManager(language, false);
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i]);

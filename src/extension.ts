@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-import { runTestCases, test_function } from './tester'
+import { runTestCasesForC, runTestCasesForPy, test_function } from './tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
@@ -41,7 +41,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initManager();
 		// listen();
 		// test_function();
-		runTestCases();
+		// runTestCasesForC();
+		runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);

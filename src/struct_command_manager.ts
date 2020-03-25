@@ -5,8 +5,8 @@ import { structCommand, speech_hist, edit_stack_item } from './struct_command';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
-                    "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
-                    "#case_end", "#function_end", "#catch_end", "#finally_end"];
+                    "#class_end;;", "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end", "#catch_end", "#finally_end", "#class_end"];
 
 var start_branches = ["#if_branch_start", "elseIf_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
                     "#function_start", "catch #catch_start", "switch", "try", "finally"];

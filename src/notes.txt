@@ -109,6 +109,9 @@ todo:
 
 unsigned and signed for c
 
+add testing for struct
+add testing for pointers
+
 declare float literal
 
 dictionary for python
