@@ -13,6 +13,8 @@ var count_lines= [0];
 var manager: StructCommandManager;
 var editManager: EditCommandManager;
 
+var microphone = true;
+
 var codeBuffer = "";
 var errorFlag = false;
 var language = "";
@@ -57,15 +59,6 @@ function initUser(user: string) {
 }
 
 function initManager() {
-	// let editor = vscode.window.activeTextEditor;
-	// if (editor) {
-	// 	var filename = editor.document.fileName;
-	// 	var file_extension = filename.split(".")[1];
-	// 	if (file_extension == "py") language = "py";
-	// 	else language = "c";
-	// }
-	// /* Default case. */
-	// else language = "c";
 	language = "c";
 
 	manager = new StructCommandManager(language, true);
@@ -80,7 +73,17 @@ function listen() {
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 
-		else if (editManager.check_if_edit_command(transcribed_word)){
+		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {
+			microphone = false;
+			vscode.window.showInformationMessage("microphone asleep");
+		}
+
+		else if (transcribed_word == "microphone on" || transcribed_word == "wake up") {
+			microphone = true;
+			vscode.window.showInformationMessage("microphone active");
+		}
+
+		else if (microphone && editManager.check_if_edit_command(transcribed_word)) {
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
 			editManager.checkAll(transcribed_word, code_segments,count_lines);
@@ -89,7 +92,7 @@ function listen() {
 			console.log(manager.managerStatus())
 		}
 
-		else {
+		else if (microphone) {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 			errorFlag = false;
 			codeBuffer = "";
