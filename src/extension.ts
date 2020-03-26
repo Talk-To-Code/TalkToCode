@@ -8,6 +8,7 @@ import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
 var code_segments = [""];
+var cursor_pos = 0;
 var count_lines= [0];
 var manager: StructCommandManager;
 var editManager: EditCommandManager;
@@ -39,10 +40,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
+		listen();
 		// test_function();
 		// runTestCasesForC();
-		runTestCasesForPy();
+		// runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -120,9 +121,9 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-			var code = codeBuffer.split("ASTNode")[0].trim();
+			var code = codeBuffer.split("ASTNode")[0].trimLeft();
 			codeBuffer = ""; // clear code stream
-			writeToEditor(code);
+			writeToEditor(code, struct_command_list);
 		}
 		else if (data.includes("Not Supported Syntax Format")) {
 			console.log("error")
@@ -141,18 +142,30 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	}
 }
 
-function map_lines_to_code(){
+function map_lines_to_code(struct_command_list: string[]){
+	cursor_pos = 0;
 	count_lines = [];
 	var count =0;
 	var j =0;
+	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
-		if (code_segments[i].startsWith("#include") || code_segments[i] == "\r" || code_segments[i] == ""){
+		// console.log(code_segments[i], i+1);
+		includeStatement = false;
+		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
+
+		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t") {
 			count++;
+			if (!includeStatement && j < struct_command_list.length && struct_command_list[j] == "#string \"\";;") {
+				count_lines[j] = count;
+				cursor_pos = count;
+				j++;
+			}
 		}
 		else if (i< code_segments.length-1 && checkIfFunctionPrototype(code_segments[i+1], code_segments[i])){
 			count++;
 		}
 		else {
+			if (struct_command_list[j].startsWith("#string")) cursor_pos = count;
 			count++;
 			count_lines[j]=count;
 			j++;
@@ -160,13 +173,16 @@ function map_lines_to_code(){
 	}
 }
 
-function writeToEditor(code: string) {
+function writeToEditor(code: string, struct_command_list: string[]) {
+	console.log(code)
 	code_segments = code.split("\n");
-	map_lines_to_code();
-	// for (var i=0;i<count_lines.length;i++){
+	map_lines_to_code(struct_command_list);
+	// for (var i=0;i<count_lines.length;i++) {
 	// 	console.log("DEBUG LINE COUNTS: ");
 	// 	console.log(count_lines[i]);
 	// }
+	console.log("cursor position: " + cursor_pos);
+	console.log(JSON.stringify(code));
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
@@ -178,9 +194,18 @@ function writeToEditor(code: string) {
 		editor.edit(editBuilder => {
 			editBuilder.delete(range);
 			editBuilder.insert(start_pos, code);
-		});
+		}).then(() => {
+			if (editor) {
+				var lineAt = editor.document.lineAt(cursor_pos).text;
+				if (lineAt.startsWith("\t") || lineAt == "}") {
+					cursor_pos -= 1;
+				}
+				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, 0), new vscode.Position(cursor_pos, lineAt.length));
+			}
+		})
 	}
 }
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
