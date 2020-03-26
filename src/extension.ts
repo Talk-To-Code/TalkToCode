@@ -149,12 +149,14 @@ function map_lines_to_code(struct_command_list: string[]){
 	var j =0;
 	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
-		// console.log(code_segments[i], i+1);
 		includeStatement = false;
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
 
 		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t") {
 			count++;
+			/* Because cursor position is a blank line in the code so this if-block to detect blank lines is used. 
+			Blank line is a struct command "#string \"\";;", hence this blank line will be mapped to that 
+			struct command as well. */
 			if (!includeStatement && j < struct_command_list.length && struct_command_list[j] == "#string \"\";;") {
 				count_lines[j] = count;
 				cursor_pos = count;
@@ -195,12 +197,14 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			editBuilder.delete(range);
 			editBuilder.insert(start_pos, code);
 		}).then(() => {
+			/* Because editBuilder is a callback function, cursor position cannot be set (it will be outdated) without then().
+			then() is called when the callback function is done editing. */
 			if (editor) {
 				var lineAt = editor.document.lineAt(cursor_pos).text;
 				if (lineAt.startsWith("\t") || lineAt == "}") {
 					cursor_pos -= 1;
 				}
-				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, 0), new vscode.Position(cursor_pos, lineAt.length));
+				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
 			}
 		})
 	}
