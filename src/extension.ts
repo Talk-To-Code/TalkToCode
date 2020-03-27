@@ -10,6 +10,7 @@ const {spawn} = require('child_process');
 var code_segments = [""];
 var cursor_pos = 0;
 var count_lines= [0];
+var count_speech = [0];
 var manager: StructCommandManager;
 var editManager: EditCommandManager;
 
@@ -62,7 +63,7 @@ function initManager() {
 	language = "c";
 
 	manager = new StructCommandManager(language, true);
-	editManager =  new EditCommandManager(manager,count_lines);
+	editManager =  new EditCommandManager(manager,count_lines,count_speech); 
 }
 
 function listen() {
@@ -87,7 +88,7 @@ function listen() {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 
 			console.log(transcribed_word)
-			console.log("IN HERE TO EDIT");
+			console.log("IN HERE TO EDIT -> cursor_index: "+manager.curr_index);
 			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
@@ -157,6 +158,7 @@ function map_lines_to_code(struct_command_list: string[]){
 	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
 		includeStatement = false;
+		code_segments[i] = code_segments[i].trim();
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
 
 		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t" || code_segments[i]=="*/"|| code_segments[i]=="/*") {
@@ -182,14 +184,30 @@ function map_lines_to_code(struct_command_list: string[]){
 	}
 }
 
+function map_speech_to_struct_command(){
+	count_speech = [];
+	var count =0;
+	var j =0;
+	for (var i=0;i<manager.struct_command_list.length;i++){
+		var line = manager.struct_command_list[i];
+		if (line.startsWith("#comment")|| line.startsWith("#if_branch_end;;")|| line.startsWith("#else_branch_end") || line.startsWith("#function_end;;")|| line.startsWith("#while_end;;")|| line.startsWith("#for_end;;")){
+			count++;
+		}
+		else{
+			count_speech[j] = count;
+			j++;
+		}
+	}
+}
+
 function writeToEditor(code: string, struct_command_list: string[]) {
-	console.log(code)
 	code_segments = code.split("\n");
 
-	map_lines_to_code();
-	for (var i=0;i<count_lines.length;i++){
-		console.log("DEBUG LINE COUNTS: ");
-		console.log(count_lines[i]);
+	map_lines_to_code(struct_command_list);
+	map_speech_to_struct_command();
+	for (var i=0;i<count_speech.length;i++){
+		console.log("DEBUG SPEECH COUNT: ");
+		console.log(count_speech[i]);
 	}
 
 	let editor = vscode.window.activeTextEditor;
