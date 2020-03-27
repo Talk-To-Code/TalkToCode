@@ -3,14 +3,17 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-import { runTestCases, test_function } from './tester'
+import { runTestCasesForC, runTestCasesForPy, test_function } from './tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
 var code_segments = [""];
+var cursor_pos = 0;
 var count_lines= [0];
 var manager: StructCommandManager;
 var editManager: EditCommandManager;
+
+var microphone = true;
 
 var codeBuffer = "";
 var errorFlag = false;
@@ -41,7 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
 		initManager();
 		listen();
 		// test_function();
-		// runTestCases();
+		// runTestCasesForC();
+		// runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -55,18 +59,9 @@ function initUser(user: string) {
 }
 
 function initManager() {
-	// let editor = vscode.window.activeTextEditor;
-	// if (editor) {
-	// 	var filename = editor.document.fileName;
-	// 	var file_extension = filename.split(".")[1];
-	// 	if (file_extension == "py") language = "py";
-	// 	else language = "c";
-	// }
-	// /* Default case. */
-	// else language = "c";
 	language = "c";
 
-	manager = new StructCommandManager(language);
+	manager = new StructCommandManager(language, true);
 	editManager =  new EditCommandManager(manager,count_lines);
 }
 
@@ -78,8 +73,19 @@ function listen() {
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 
-		else if (editManager.check_if_edit_command(transcribed_word)){
+		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {
+			microphone = false;
+			vscode.window.showInformationMessage("microphone asleep");
+		}
+
+		else if (transcribed_word == "microphone on" || transcribed_word == "wake up") {
+			microphone = true;
+			vscode.window.showInformationMessage("microphone active");
+		}
+
+		else if (microphone && editManager.check_if_edit_command(transcribed_word)) {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
+
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
 			// writeToEditor(manager.managerStatus());
@@ -88,7 +94,7 @@ function listen() {
 			console.log(manager.managerStatus())
 		}
 
-		else {
+		else if (microphone) {
 			vscode.window.showInformationMessage("You just said: " + transcribed_word);
 			errorFlag = false;
 			codeBuffer = "";
@@ -121,9 +127,9 @@ function displayCode(struct_command_list: string[]) {
 		codeBuffer += data;
 
         if (data.includes("AST construction complete") && !errorFlag) {
-			var code = codeBuffer.split("ASTNode")[0].trim();
+			var code = codeBuffer.split("ASTNode")[0].trimLeft();
 			codeBuffer = ""; // clear code stream
-			writeToEditor(code);
+			writeToEditor(code, struct_command_list);
 		}
 		else if (data.includes("Not Supported Syntax Format")) {
 			console.log("error")
@@ -143,18 +149,32 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	}
 }
 
-function map_lines_to_code(){
+function map_lines_to_code(struct_command_list: string[]){
+	cursor_pos = 0;
 	count_lines = [];
 	var count =0;
 	var j =0;
+	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
-		if (code_segments[i].startsWith("#include") || code_segments[i] == "\r" || code_segments[i] == ""|| code_segments[i]=="*/"|| code_segments[i]=="/*"){
+		includeStatement = false;
+		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
+
+		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t" || code_segments[i]=="*/"|| code_segments[i]=="/*") {
 			count++;
+			/* Because cursor position is a blank line in the code so this if-block to detect blank lines is used. 
+			Blank line is a struct command "#string \"\";;", hence this blank line will be mapped to that 
+			struct command as well. */
+			if (!includeStatement && j < struct_command_list.length && struct_command_list[j] == "#string \"\";;") {
+				count_lines[j] = count;
+				cursor_pos = count;
+				j++;
+			}
 		}
 		else if (i< code_segments.length-1 && checkIfFunctionPrototype(code_segments[i+1], code_segments[i])){
 			count++;
 		}
 		else {
+			if (struct_command_list[j].startsWith("#string")) cursor_pos = count;
 			count++;
 			count_lines[j]=count;
 			j++;
@@ -162,8 +182,10 @@ function map_lines_to_code(){
 	}
 }
 
-function writeToEditor(code: string) {
+function writeToEditor(code: string, struct_command_list: string[]) {
+	console.log(code)
 	code_segments = code.split("\n");
+
 	map_lines_to_code();
 	for (var i=0;i<count_lines.length;i++){
 		console.log("DEBUG LINE COUNTS: ");
@@ -180,9 +202,20 @@ function writeToEditor(code: string) {
 		editor.edit(editBuilder => {
 			editBuilder.delete(range);
 			editBuilder.insert(start_pos, code);
-		});
+		}).then(() => {
+			/* Because editBuilder is a callback function, cursor position cannot be set (it will be outdated) without then().
+			then() is called when the callback function is done editing. */
+			if (editor) {
+				var lineAt = editor.document.lineAt(cursor_pos).text;
+				if (lineAt.startsWith("\t") || lineAt == "}") {
+					cursor_pos -= 1;
+				}
+				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
+			}
+		})
 	}
 }
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}

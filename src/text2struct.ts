@@ -23,10 +23,11 @@ Declaration: Python requires that variable be declared with something. Variable 
 */
 
 export function get_struct(input_speech_segments: string[], prev_input_speech: string, prev_struct_command: string,
-    language: string) {
-    console.log("prev input speech: " + prev_input_speech)
-    console.log("prev struct command: " + prev_struct_command)
-
+    language: string, debugMode: boolean) {
+    if (debugMode) {
+        console.log("prev input speech: " + prev_input_speech)
+        console.log("prev struct command: " + prev_struct_command)
+    }
     var input_speech = input_speech_segments.join(" ");
 
     var removePreviousStatement = false;
@@ -39,12 +40,12 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 
     input_speech = replace_infix_operators(input_speech);
 
-    console.log("text going in: " + input_speech);
+    if (debugMode) console.log("text going in: " + input_speech);
     var struct_command = parse_command(input_speech, language);
-    console.log("segmented results: " + struct_command.parsedCommand);
+    if (debugMode) console.log("segmented results: " + struct_command.parsedCommand);
 
     if (struct_command.hasError) {
-        console.log("Error: " + struct_command.errorMessage)
+        if (debugMode) console.log("Error: " + struct_command.errorMessage);
         return struct_command;
     }
 
@@ -75,10 +76,10 @@ function replace_infix_operators(text: string) {
         text = text.replace(/equal/g, '==');
 
         /* Infix segmenting operator */
-        text = text.replace(/and/g, "&&");
-        text = text.replace(/or/g, "||");
         text = text.replace(/bit_and/g, "&");
         text = text.replace(/bit_or/g, "|");
+        text = text.replace(/and/g, "&&");
+        text = text.replace(/or/g, "||");
     }
 
     if (text.includes("begin loop")) {
@@ -92,7 +93,13 @@ function checkPrevStatement(input_text: string, prev_struct_command: string, lan
     
     /* A declare statement without an assignment */
     if (prev_struct_command.includes("#create") && language == "c") {
+        /* normal variable */
         if (prev_struct_command.split(" ").length == 5 && input_text.split(" ")[0] == "equal") {
+            return true;
+        }
+        /* Array declaration */
+        if (prev_struct_command.split(" ").length == 9 && prev_struct_command.includes("#array") &&
+        input_text.split(" ")[0] == "equal") {
             return true;
         }
         if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {

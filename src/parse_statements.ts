@@ -48,7 +48,8 @@ export function parse_statement(text: string, typeOfStatement: string, language:
         case "postfix": // For now just postfix man.
             return parse_postfix(text);
         case "return":
-            return parse_return(text, language);
+            if (language == "c") return parse_return_c(text, language);
+            else return parse_return_py(text, language);
         case "break":
             return parse_break();
         case "continue":
@@ -122,7 +123,7 @@ declare <var_type> array <var name> size <literal> equal make array parameter ..
 function parse_declare_c(text: string) {
     var statement = new simpleStatement();
     statement.isDeclare = true;
-    statement.parsedStatement = "#create #variable";
+    statement.parsedStatement = "#create";
 
     var splitted_text = text.split(" ");
 
@@ -133,15 +134,17 @@ function parse_declare_c(text: string) {
         statement.logError("var type is the last word mentioned.");
         return statement;
     }
+
     else statement.parsedStatement += " " + splitted_text[1]; // Add var_type. 
     var fragment1 = ""
     var fragment2 = ""
     var equalPresent = false;
+    var equal_idx = 0;
 
     /* Check if equal is present. Then assign fragment1 and fragment2 values. */
     if (splitted_text.includes("equal")) {
         equalPresent = true;
-        var equal_idx = splitted_text.indexOf("equal");
+        equal_idx = splitted_text.indexOf("equal");
         if (equal_idx == splitted_text.length-1) {
             statement.logError("equal was last word mentioned.");
             return statement;
@@ -151,8 +154,23 @@ function parse_declare_c(text: string) {
     }
     else fragment1 = splitted_text.slice(2).join(" ");
 
+    if (fragment1.length == 0) {
+        statement.logError("no variable name mentioned.");
+        return statement;
+    }
+
+    var arrayDeclaration = false;
+    /* check if is an array declaration. */
+    if (equalPresent) {
+        /* Only check before the "equal" keyword. */
+        if (splitted_text.slice(0, equal_idx).includes("array")) arrayDeclaration = true;
+    }
+    else {
+        if (splitted_text.includes("array")) arrayDeclaration = true;
+    }
+
     /* Check for array declaration. */
-    if (splitted_text.includes("array")) {
+    if (arrayDeclaration) {
         /* remove array, size and int from fragment. */
         fragment1 = fragment1.replace("array ", "");
         fragment1 = fragment1.replace("size ", "");
@@ -196,7 +214,7 @@ function parse_declare_c(text: string) {
     }
     /* Not array declaration */
     else {
-        statement.parsedStatement += " " + joinName(fragment1.split(" "));
+        statement.parsedStatement += " #variable " + joinName(fragment1.split(" "));
 
         if (equalPresent) {
             var parsedFragment2 = fragment_segmenter(fragment2.split(" "), "c");
@@ -246,6 +264,13 @@ function parse_declare_py(text: string) {
             return statement;
         }
     }
+    else if (preFragment.length > 3 && preFragment.slice(0, 2).join(" ") == "make dictionary") {
+        var fragment2 = parse_dictionary(preFragment);
+        if (fragment2[0] == "not ready") {
+            statement.logError("error with grouped fragment. " + fragment2[1]);
+            return statement;
+        }
+    }
     else {
         fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), "py");
         if (fragment2[0] == "not ready") {
@@ -253,15 +278,20 @@ function parse_declare_py(text: string) {
             return statement;
         }
     }
-        
     statement.parsedStatement += " " + fragment1[1] + " " + fragment2[1] + " #dec_end;;";
     return statement;
 }
 
-function parse_return(text: string, language: string) {
+function parse_return_c(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isReturn = true;
-    statement.parsedStatement = "return #paramater";
+
+    if (text == "return") {
+        statement.parsedStatement = "return;;";
+        return statement;
+    }
+
+    statement.parsedStatement = "return #parameter";
     var splitted_text = text.split(" ");
     /* Return has an assign statement */
     if (splitted_text.includes("equal")) {
@@ -281,25 +311,91 @@ function parse_return(text: string, language: string) {
     return statement;
 }
 
+function parse_return_py(text: string, language: string) {
+    var statement = new simpleStatement();
+    statement.isReturn = true;
+
+    if (text == "return") {
+        statement.parsedStatement = "return;;";
+        return statement;
+    }
+
+    var splitted_text = text.split(" ");
+    splitted_text.splice(0, 1); // remove "return"
+    var parameter_block = [];
+    if (splitted_text.includes("parameter")) {
+        parameter_block = text.split("parameter");
+        parameter_block = parameter_block.map(x=>x.trim());
+        parameter_block.splice(0, 1);
+    }
+    else parameter_block.push(splitted_text.join(" "));
+
+    statement.parsedStatement = "return";
+
+    if (splitted_text.includes("equal") && parameter_block.length == 1) {
+        var assign_statement = parse_assignment(splitted_text.join(" "), language);
+        if (assign_statement.hasError) return assign_statement;
+        else statement.parsedStatement += " #parameter " + assign_statement.parsedStatement;
+
+        return statement;
+    }
+
+    for (var i = 0; i < parameter_block.length; i++) {
+        /* returning a variable or literal */
+
+        var fragment = fragment_segmenter(parameter_block[i].split(" "), language);
+        if (fragment[0] == "not ready") {
+            statement.logError(fragment[1]);
+            return statement;
+        }
+        statement.parsedStatement += " #parameter " + fragment[1];
+    }
+
+    statement.parsedStatement += ";;";
+
+    return statement;
+}
+
 function parse_assignment(text: string, language: string) {
     var statement = new simpleStatement();
     statement.isAssign = true;
     var splitted_text = text.split(" ");
     var equal_idx = splitted_text.indexOf("equal");
 
+    var haveCompound = false;
+
     if (equal_idx == splitted_text.length-1) {
         statement.logError("equal was last word mentioned.");
         return statement;
     }
 
-    var fragment1 = fragment_segmenter(splitted_text.slice(0, equal_idx), language);
-    var fragment2 = fragment_segmenter(splitted_text.slice(equal_idx + 1), language);
+    var frag1_input = splitted_text.slice(0, equal_idx);
+    var frag2_input = splitted_text.slice(equal_idx + 1);
+
+    if (arithmetic_operators.includes(splitted_text[equal_idx-1])) {
+        haveCompound = true;
+        frag1_input = splitted_text.slice(0, equal_idx - 1);
+    }
+
+    var fragment1 = fragment_segmenter(frag1_input, language);
+    var fragment2 = fragment_segmenter(frag2_input, language);
 
     if (fragment1[0] == "not ready" || fragment2[0] == "not ready") {
         statement.logError(fragment1[1]);
         return statement;
     }
-    statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
+
+    if (haveCompound) {
+        var compoundSpeech = splitted_text.slice(equal_idx-1, equal_idx+1).join(" ");
+        var compoundOperator = "";
+        if (compoundSpeech == "plus equal") compoundOperator = " += ";
+        else if (compoundSpeech == "minus equal") compoundOperator = " -= "
+        else if (compoundSpeech == "multiply equal") compoundOperator = " *= "
+        else compoundOperator = " /= "
+        
+        statement.parsedStatement = "#assign " + fragment1[1] + compoundOperator + fragment2[1] + ";;";
+    }
+    else statement.parsedStatement = "#assign " + fragment1[1] + " #with " + fragment2[1] + ";;";
     return statement;
 }
 
@@ -546,7 +642,7 @@ function parse_fragment(splitted_text: string[]) {
                 var fragment: string[] = parse_fragment(parameter_blocks[i].split(" "));
                 if (fragment[0] == "not ready") 
                     return ["not ready", "parameter fragment wrong. " + fragment[1]];
-                parsed_result += "#parameter " + fragment[1];
+                parsed_result += " #parameter " + fragment[1];
             }
             parsed_result += ")";
             return ["ready", parsed_result];
@@ -634,4 +730,28 @@ function parse_grouped_fragment(groupType: string, splitted_text: string[]) {
     }
     parsedFragment += " }"
     return ["ready", parsedFragment];
+}
+
+function parse_dictionary(splitted_text: string[]) {
+    var parsed_result = "{ #dictionary";
+    /* Remove make dictionary */
+    splitted_text.splice(0, 2);
+
+    var key_blocks = splitted_text.join(" ").split("key")
+    key_blocks = key_blocks.map(x=>x.trim());
+    key_blocks = key_blocks.slice(1);
+
+    for (var i = 0; i < key_blocks.length; i++) {
+        var splitted_key_blocks = key_blocks[i].split(" ");
+        if (splitted_key_blocks[0] == "value") return ["not ready", "no key mentioned."];
+        if (splitted_key_blocks.length != 3) return ["not ready", "missing stuff."]
+        if (isNaN(Number(splitted_key_blocks[0]))) return ["not ready", "no integer literal mentioned."];
+        if (isNaN(Number(splitted_key_blocks[2]))) return ["not ready", "no integer literal mentioned."];
+
+        parsed_result += " #key " + splitted_key_blocks[0] + " #value #value " + splitted_key_blocks[2];
+    }
+
+    parsed_result += " }"
+
+    return ["ready", parsed_result];
 }

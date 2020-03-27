@@ -14,15 +14,24 @@ declare <var name> equal <var_name>
 declare <var name> equal <literal>
 declare <var name> equal <complex fragment>
 
-declare <var name> equal make array parameter ... parameter ...
+declare <var name> equal make list parameter ... parameter ...
+
+declare <var name> equal make dictionary key ... value ... key ... value ...
 
 - Assign variable (c and py version)
 <var name> equal <var_name>
 <var name> equal <literal>
 <var name> equal <complex fragment>
 
-- return or continue statements
+- return or continue statements (c version)
 return
+return <complex fragment>
+continue
+
+- return or continue statements (py version)
+return
+return <complex fragment>
+return parameter <complex fragment> parameter <complex fragment>
 continue
 
 - comment
@@ -102,8 +111,10 @@ todo:
 
 unsigned and signed for c
 
+add testing for pointers
+
 declare float literal
 
+dictionary for python
+
 maybe add a spelling command.
-
-
