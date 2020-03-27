@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
 		// test_function();
@@ -62,12 +62,12 @@ function initManager() {
 	language = "c";
 
 	manager = new StructCommandManager(language, true);
-	editManager =  new EditCommandManager(manager, code_segments, count_lines);
+	editManager =  new EditCommandManager(manager,count_lines);
 }
 
 function listen() {
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
@@ -84,10 +84,12 @@ function listen() {
 		}
 
 		else if (microphone && editManager.check_if_edit_command(transcribed_word)) {
+			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
+
 			console.log(transcribed_word)
 			console.log("IN HERE TO EDIT");
-			editManager.checkAll(transcribed_word, code_segments,count_lines);
 			// writeToEditor(manager.managerStatus());
+			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus())
 		}
@@ -113,7 +115,8 @@ function displayCode(struct_command_list: string[]) {
 
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-    const other_child = spawn('java', ['ast/ASTParser 1'], {shell:true, cwd: ast_cwd});
+    const other_child = spawn('java', ['ast/ASTParser 0'], {shell:true, cwd: ast_cwd});
+
 	other_child.stdin.setEncoding('utf8');
 
     other_child.stdin.write(commands);
@@ -140,6 +143,7 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	if (text2.endsWith(";")){
 		text2 = text2.substring(0,text2.length-1); 
 	} 
+
 	if (text1.indexOf(text2)!=-1){
 		return true;
 	}
@@ -155,7 +159,7 @@ function map_lines_to_code(struct_command_list: string[]){
 		includeStatement = false;
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
 
-		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t") {
+		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t" || code_segments[i]=="*/"|| code_segments[i]=="/*") {
 			count++;
 			/* Because cursor position is a blank line in the code so this if-block to detect blank lines is used. 
 			Blank line is a struct command "#string \"\";;", hence this blank line will be mapped to that 
@@ -181,13 +185,12 @@ function map_lines_to_code(struct_command_list: string[]){
 function writeToEditor(code: string, struct_command_list: string[]) {
 	console.log(code)
 	code_segments = code.split("\n");
-	map_lines_to_code(struct_command_list);
-	// for (var i=0;i<count_lines.length;i++) {
-	// 	console.log("DEBUG LINE COUNTS: ");
-	// 	console.log(count_lines[i]);
-	// }
-	console.log("cursor position: " + cursor_pos);
-	console.log(JSON.stringify(code));
+
+	map_lines_to_code();
+	for (var i=0;i<count_lines.length;i++){
+		console.log("DEBUG LINE COUNTS: ");
+		console.log(count_lines[i]);
+	}
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {

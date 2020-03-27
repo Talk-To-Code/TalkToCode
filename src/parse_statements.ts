@@ -431,6 +431,7 @@ function parse_function(text: string, language: string) {
         return statement;
     }
     statement.parsedStatement = fragment[1] + ";;";
+
     return statement;
 }
 
