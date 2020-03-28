@@ -3,7 +3,12 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
+<<<<<<< HEAD
 import { runTestCasesForC, runTestCasesForPy, test_function } from './tester'
+=======
+import { runTestCases } from './tester'
+import {runEditTests} from './edit_tester'
+>>>>>>> patching
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
@@ -44,9 +49,14 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
+		//runEditTests();
 		// test_function();
+<<<<<<< HEAD
 		// runTestCasesForC();
 		// runTestCasesForPy();
+=======
+		//runTestCases();
+>>>>>>> patching
 
 	});
 	context.subscriptions.push(disposable);
@@ -88,7 +98,6 @@ function listen() {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 
 			console.log(transcribed_word)
-			console.log("IN HERE TO EDIT -> cursor_index: "+manager.curr_index);
 			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
@@ -150,8 +159,12 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	}
 }
 
+<<<<<<< HEAD
 function map_lines_to_code(struct_command_list: string[]){
 	cursor_pos = 0;
+=======
+export function map_lines_to_code(){
+>>>>>>> patching
 	count_lines = [];
 	var count =0;
 	var j =0;
@@ -190,11 +203,11 @@ function map_speech_to_struct_command(){
 	var j =0;
 	for (var i=0;i<manager.struct_command_list.length;i++){
 		var line = manager.struct_command_list[i];
-		if (line.startsWith("#comment")|| line.startsWith("#if_branch_end;;")|| line.startsWith("#else_branch_end") || line.startsWith("#function_end;;")|| line.startsWith("#while_end;;")|| line.startsWith("#for_end;;")){
+		if (line.startsWith("#comment" || line.indexOf("cursor here")!=-1)|| line.startsWith("#if_branch_end;;")|| line.startsWith("#else_branch_end") || line.startsWith("#function_end;;")|| line.startsWith("#while_end;;")|| line.startsWith("#for_end;;")){
 			count++;
 		}
 		else{
-			count_speech[j] = count;
+			count_speech[j] = count++;
 			j++;
 		}
 	}
@@ -205,10 +218,9 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 
 	map_lines_to_code(struct_command_list);
 	map_speech_to_struct_command();
-	for (var i=0;i<count_speech.length;i++){
-		console.log("DEBUG SPEECH COUNT: ");
-		console.log(count_speech[i]);
-	}
+	
+	console.log("LINE_COUNT: "+JSON.stringify(count_lines));
+	console.log("SPEECH_COUNT: "+JSON.stringify(count_speech));
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
