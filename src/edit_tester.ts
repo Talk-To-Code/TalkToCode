@@ -9,7 +9,7 @@ let existing_code = ["#create int #variable first #value 1 #dec_end;;"
     ,"#if_branch_end;;"
     ,"#function subtract();;"
     ,"#function_declare subtract int #function_start"
-    ,"#comment #value \" cursor here \";; #comment_end;;"
+    ,"#string \"\";;"
     ,"#function_end;;"
 ];
 
@@ -22,7 +22,7 @@ var line_count = [3,5,7,9,10,11,14,17,18,20];
 
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
-var insert_comment = "#comment #value \" insert here \";; #comment_end;;";
+var insert_cursor = "#string \"\";;";
 
 export function runEditTests() {
 
@@ -146,12 +146,12 @@ function generate_test_cases(cases: String){
 
     else if (cases=="insert_before_line") {
         command = "insert before line 5";
-        expected.splice(1,0,insert_comment);
+        expected.splice(1,0,insert_cursor);
     }
 
     else if (cases =="insert_before_block"){
         command = "insert before if block";
-        expected.splice(3,0,insert_comment);
+        expected.splice(3,0,insert_cursor);
     }
 
     else if (cases == "search_and_replace"){
