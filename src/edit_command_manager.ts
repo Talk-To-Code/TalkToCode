@@ -4,6 +4,7 @@ import { edit_stack_item } from "./struct_command";
 
 
 var insert_comment = "#comment #value \" insert here \";; #comment_end;;";
+var insert_cursor = "#string \"\";;";
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
 
@@ -103,6 +104,7 @@ export class EditCommandManager {
                     if (countNestedFunctions==0) end = i;
                 }
             }
+            console.log("START: "+start+" END: "+end);
             this.manager.splice(start,(end-start)+1);
         } 
     }
@@ -252,6 +254,13 @@ export class EditCommandManager {
             console.log("IN HERE TO PASTE ABOVE/BELOW LINE");
             var line_num = parseInt(arr[3]);
             var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
+            if (index==-1){
+                index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
+            }
+            if (index==-1){
+                vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                return;
+            }
             this.push_to_edit_stack();
             if (arr[1]=="above"){
                 this.manager.struct_command_list.splice(index,0,...this.cut_copy_struct_buffer);
@@ -365,6 +374,13 @@ export class EditCommandManager {
             console.log("IN HERE to insert before line");
                 let line_num = parseInt(arr[3]);
                 let index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
+                if (index==-1){
+                    index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
+                }
+                if (index==-1){
+                    vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                    return;
+                }
                 this.push_to_edit_stack();
                 this.manager.struct_command_list.splice(index,0,insert_comment);
                 this.manager.curr_index = index;
