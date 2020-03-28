@@ -2,8 +2,6 @@ import { StructCommandManager } from "./struct_command_manager";
 import * as vscode from 'vscode';
 import { edit_stack_item } from "./struct_command";
 
-
-var insert_comment = "#comment #value \" insert here \";; #comment_end;;";
 var insert_cursor = "#string \"\";;";
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
@@ -122,19 +120,41 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
-                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            
-                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                 if (line.startsWith(block_name)){
+                var res = this.resolve_block_name(arr[2]);
+                console.log("BLOCK_NAME: "+res.block_name+" BLOCK_NAME_END :"+res.block_name_end);
+                 if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
 
                     start = index;
-                    end = this.determine_end(index,block_name,block_name_end);
+                    end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.splice(start,(end-start)+1);
                 }
             }
         }
+    }
+
+    resolve_block_name(text: string){
+        var block_name = text;
+        var block_name_end = text;
+        if (text=="else"){
+            block_name=="#else_branch_start";
+            block_name_end = "#else_branch_end";
+        }
+        else if (text=="do-while" || text=="do") {
+            block_name = "do";
+            block_name_end="#while_end";
+        }
+        else if (text=="switch_case"|| text=="switch"){
+            block_name = "switch"; 
+            block_name_end = "#case_end";
+        }
+        else {
+            block_name = text;
+            block_name_end = "#"+text+"_end";
+            if (block_name =="if") block_name_end = "#if_branch_end";
+        }
+        return {block_name,block_name_end};
     }
 
     //WORKS NOT ON BLOCKS
@@ -166,14 +186,13 @@ export class EditCommandManager {
                 var start = -1;
                 var end = -1;
                 if (arr[2]=="is") arr[2]="if";
-                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                if (line.startsWith(block_name)){
+                var res = this.resolve_block_name(arr[2]);
+                if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
                     this.push_to_edit_stack();
                     start = index;
-                    end = this.determine_end(index,block_name,block_name_end);
+                    end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.struct_command_list[start] = start_comment +  this.manager.struct_command_list[start]
                     this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + end_comment;  
                 }
@@ -316,15 +335,13 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
-                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            
-                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                 if (line.startsWith(block_name)){
+                var res = this.resolve_block_name(arr[2]);
+                 if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
                     if (index==-1) return;
 
                     start = index;
-                    end = this.determine_end(index, block_name,block_name_end);
+                    end = this.determine_end(index, res.block_name,res.block_name_end);
 
                     for (var j=start;j<=end;j++){
                         this.cut_copy_struct_buffer[j-start]=this.manager.struct_command_list[j];
@@ -347,15 +364,13 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
-                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-            
-                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                 if (line.startsWith(block_name)){
+                var res = this.resolve_block_name(arr[2]);
+                 if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
                     if (index==-1) return;
 
                     start = index;
-                    end = this.determine_end(index,block_name,block_name_end);
+                    end = this.determine_end(index,res.block_name,res.block_name_end);
 
                     for (var j=start;j<=end;j++){
                         this.cut_copy_struct_buffer[j-start]=this.manager.struct_command_list[j];
@@ -382,7 +397,7 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
-                this.manager.struct_command_list.splice(index,0,insert_comment);
+                this.manager.struct_command_list.splice(index,0,insert_cursor);
                 this.manager.curr_index = index;
         }
     }
@@ -407,7 +422,7 @@ export class EditCommandManager {
                 }
             }
             this.push_to_edit_stack();
-            this.manager.struct_command_list.splice(minIndex,0,insert_comment);
+            this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
             this.manager.curr_index = minIndex;
         }
     }
@@ -440,15 +455,13 @@ export class EditCommandManager {
                 var line_num = parseInt(arr[5]);
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
-                var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
-
-                var block_name_end = (arr[2] == "if" || arr[2] == "else")? "#"+arr[2]+"_branch_end": "#"+arr[2]+"_end";
-                if (line.indexOf(block_name)!=-1 && line.indexOf(block_name)==line.lastIndexOf(block_name)){
+                var res = this.resolve_block_name(arr[2]);
+                if (line.indexOf(res.block_name)!=-1 && line.indexOf(res.block_name)==line.lastIndexOf(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
 
                     start = index;
-                    var end = this.determine_end(index,block_name,block_name_end);
+                    var end = this.determine_end(index,res.block_name,res.block_name_end);
                     if (!this.manager.struct_command_list[start].startsWith(start_comment)) return;
                     this.push_to_edit_stack();
                     this.manager.struct_command_list[start] = this.manager.struct_command_list[start].substring(start_comment.length);
@@ -591,6 +604,7 @@ export class EditCommandManager {
             }
             else if (line.startsWith("#while_end")){
                 this.is_stack_poppable("while",line_stack,index_stack);
+                this.is_stack_poppable("do",line_stack,index_stack);
             }
             else if (line.startsWith("#function_end")){
                 this.is_stack_poppable("#function_declare",line_stack,index_stack);
@@ -598,6 +612,7 @@ export class EditCommandManager {
             else if (line.startsWith("#else_branch_end")){
                 this.is_stack_poppable("#else_branch_start",line_stack,index_stack);
             }
+
         }
         start = (index_stack.length==0)?-1: index_stack[index_stack.length-1];
 
