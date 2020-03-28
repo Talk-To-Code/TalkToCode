@@ -1,5 +1,6 @@
 import { StructCommandManager } from './struct_command_manager'
 import {EditCommandManager} from './edit_command_manager'
+import * as vscode from 'vscode';
 
 let existing_code = ["#create int #variable first #value 1 #dec_end;;"
     ,"#create int #variable hello #value 6 #dec_end;;"
@@ -65,6 +66,9 @@ export function runEditTests() {
     runEditTest(test_cases.command, test_cases.expected);
 
     test_cases = generate_test_cases("insert_before_block");
+    runEditTest(test_cases.command, test_cases.expected);
+
+    test_cases = generate_test_cases("search_and_replace");
     runEditTest(test_cases.command, test_cases.expected);
 }
 
@@ -147,14 +151,23 @@ function generate_test_cases(cases: String){
     }
 
     else if (cases =="insert_before_block"){
-        command = "insert before for block";
-        expected.splice()
+        command = "insert before if block";
+        expected.splice(3,0,insert_comment);
+    }
+
+    else if (cases == "search_and_replace"){
+        command = "find first and replace with third";
+        expected[0] = "#create int #variable third #value 1 #dec_end;;";
+        expected[3] = "if #condition #variable hello > #variable third #if_branch_start";
+        expected[4] = "#assign #variable hello #with #variable third;;";
     }
 
     return {command,expected};
 }
 
 function runEditTest(command: string, correct_output: string[]) {
+    var count_correct = 0;
+    var count_error = 0;
     var test_manager = new StructCommandManager("c");
     var edit_manager = new EditCommandManager(test_manager,line_count,speech_count);
     for (var i=0;i<existing_speech.length;i++){
