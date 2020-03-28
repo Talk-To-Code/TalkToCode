@@ -1,6 +1,5 @@
 import { StructCommandManager } from './struct_command_manager'
 import {EditCommandManager} from './edit_command_manager'
-import * as vscode from 'vscode';
 
 let existing_code = ["#create int #variable first #value 1 #dec_end;;"
     ,"#create int #variable hello #value 6 #dec_end;;"
@@ -166,9 +165,7 @@ function generate_test_cases(cases: String){
 }
 
 function runEditTest(command: string, correct_output: string[]) {
-    var count_correct = 0;
-    var count_error = 0;
-    var test_manager = new StructCommandManager("c");
+    var test_manager = new StructCommandManager("c",true);
     var edit_manager = new EditCommandManager(test_manager,line_count,speech_count);
     for (var i=0;i<existing_speech.length;i++){
         test_manager.parse_speech(existing_speech[i]);

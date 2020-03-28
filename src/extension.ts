@@ -3,12 +3,8 @@
 import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
-<<<<<<< HEAD
 import { runTestCasesForC, runTestCasesForPy, test_function } from './tester'
-=======
-import { runTestCases } from './tester'
 import {runEditTests} from './edit_tester'
->>>>>>> patching
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
@@ -51,12 +47,8 @@ export function activate(context: vscode.ExtensionContext) {
 		listen();
 		//runEditTests();
 		// test_function();
-<<<<<<< HEAD
 		// runTestCasesForC();
 		// runTestCasesForPy();
-=======
-		//runTestCases();
->>>>>>> patching
 
 	});
 	context.subscriptions.push(disposable);
@@ -159,12 +151,8 @@ function checkIfFunctionPrototype(text1: string, text2: string){
 	}
 }
 
-<<<<<<< HEAD
 function map_lines_to_code(struct_command_list: string[]){
 	cursor_pos = 0;
-=======
-export function map_lines_to_code(){
->>>>>>> patching
 	count_lines = [];
 	var count =0;
 	var j =0;
