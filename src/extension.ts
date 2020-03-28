@@ -4,12 +4,14 @@ import * as vscode from 'vscode';
 import { StructCommandManager } from './struct_command_manager'
 import { EditCommandManager } from './edit_command_manager';
 import { runTestCasesForC, runTestCasesForPy, test_function } from './tester'
+import {runEditTests} from './edit_tester'
 import { getUserSpecs } from './user_specs'
 const {spawn} = require('child_process');
 
 var code_segments = [""];
 var cursor_pos = 0;
 var count_lines= [0];
+var count_speech = [0];
 var manager: StructCommandManager;
 var editManager: EditCommandManager;
 
@@ -43,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
+		//runEditTests();
 		// test_function();
 		// runTestCasesForC();
 		// runTestCasesForPy();
@@ -62,7 +65,7 @@ function initManager() {
 	language = "c";
 
 	manager = new StructCommandManager(language, true);
-	editManager =  new EditCommandManager(manager,count_lines);
+	editManager =  new EditCommandManager(manager,count_lines,count_speech); 
 }
 
 function listen() {
@@ -87,7 +90,6 @@ function listen() {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 
 			console.log(transcribed_word)
-			console.log("IN HERE TO EDIT");
 			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
@@ -157,6 +159,7 @@ function map_lines_to_code(struct_command_list: string[]){
 	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
 		includeStatement = false;
+		code_segments[i] = code_segments[i].trim();
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
 
 		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t" || code_segments[i]=="*/"|| code_segments[i]=="/*") {
@@ -182,15 +185,30 @@ function map_lines_to_code(struct_command_list: string[]){
 	}
 }
 
+function map_speech_to_struct_command(){
+	count_speech = [];
+	var count =0;
+	var j =0;
+	for (var i=0;i<manager.struct_command_list.length;i++){
+		var line = manager.struct_command_list[i];
+		if (line.startsWith("#comment" || line.indexOf("cursor here")!=-1)|| line.startsWith("#if_branch_end;;")|| line.startsWith("#else_branch_end") || line.startsWith("#function_end;;")|| line.startsWith("#while_end;;")|| line.startsWith("#for_end;;")){
+			count++;
+		}
+		else{
+			count_speech[j] = count++;
+			j++;
+		}
+	}
+}
+
 function writeToEditor(code: string, struct_command_list: string[]) {
-	console.log(code)
 	code_segments = code.split("\n");
 
-	map_lines_to_code();
-	for (var i=0;i<count_lines.length;i++){
-		console.log("DEBUG LINE COUNTS: ");
-		console.log(count_lines[i]);
-	}
+	map_lines_to_code(struct_command_list);
+	map_speech_to_struct_command();
+	
+	console.log("LINE_COUNT: "+JSON.stringify(count_lines));
+	console.log("SPEECH_COUNT: "+JSON.stringify(count_speech));
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
