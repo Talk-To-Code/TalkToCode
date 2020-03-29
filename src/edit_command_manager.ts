@@ -134,29 +134,6 @@ export class EditCommandManager {
         }
     }
 
-    resolve_block_name(text: string){
-        var block_name = text;
-        var block_name_end = text;
-        if (text=="else"){
-            block_name=="#else_branch_start";
-            block_name_end = "#else_branch_end";
-        }
-        else if (text=="do-while" || text=="do") {
-            block_name = "do";
-            block_name_end="#while_end";
-        }
-        else if (text=="switch_case"|| text=="switch"){
-            block_name = "switch"; 
-            block_name_end = "#case_end";
-        }
-        else {
-            block_name = text;
-            block_name_end = "#"+text+"_end";
-            if (block_name =="if") block_name_end = "#if_branch_end";
-        }
-        return {block_name,block_name_end};
-    }
-
     //WORKS NOT ON BLOCKS
      check_if_comment_line(text: String) {
         var arr = text.split(" ");
@@ -397,6 +374,7 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
+                this.manager.splice(this.manager.curr_index,1);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
                 this.manager.curr_index = index;
         }
@@ -413,6 +391,7 @@ export class EditCommandManager {
             var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             var minDistance = 1000000;
             var minIndex = -1;
+            this.manager.struct_command_list.splice(this.manager.curr_index,1);
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].startsWith(block_name)){
                     if (Math.abs(i-this.manager.curr_index)<minDistance){
@@ -422,6 +401,8 @@ export class EditCommandManager {
                 }
             }
             this.push_to_edit_stack();
+            console.log("CURR_INDEX IN HERE: "+this.manager.curr_index);
+            console.log("DEBUG HERE: "+JSON.stringify(this.manager.struct_command_list));
             this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
             this.manager.curr_index = minIndex;
         }
@@ -647,6 +628,29 @@ export class EditCommandManager {
             }
         }
         return res;
+    }
+
+    resolve_block_name(text: string){
+        var block_name = text;
+        var block_name_end = text;
+        if (text=="else"){
+            block_name=="#else_branch_start";
+            block_name_end = "#else_branch_end";
+        }
+        else if (text=="do-while" || text=="do") {
+            block_name = "do";
+            block_name_end="#while_end";
+        }
+        else if (text=="switch_case"|| text=="switch"){
+            block_name = "switch"; 
+            block_name_end = "#case_end";
+        }
+        else {
+            block_name = text;
+            block_name_end = "#"+text+"_end";
+            if (block_name =="if") block_name_end = "#if_branch_end";
+        }
+        return {block_name,block_name_end};
     }
 
 
