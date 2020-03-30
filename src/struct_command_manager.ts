@@ -338,6 +338,8 @@ export class StructCommandManager {
     splice(start_pos: number, amt_to_remove: number) {
         console.log(start_pos + " " + amt_to_remove)
 
+        this.curr_speech = [""];
+
         var copiedStructCommand = this.deepCopyStructCommand()
         var copiedSpeechHist = this.deepCopySpeechHist()
         var oldIdx = this.curr_index;

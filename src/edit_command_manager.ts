@@ -2,7 +2,7 @@ import { StructCommandManager } from "./struct_command_manager";
 import * as vscode from 'vscode';
 
 
-var insert_comment = "#comment #value \" insert here \";; #comment_end;;";
+var insert_comment = "#string \"insert here \";;";
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
 

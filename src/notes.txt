@@ -115,6 +115,4 @@ add testing for pointers
 
 declare float literal
 
-dictionary for python
-
 maybe add a spelling command.

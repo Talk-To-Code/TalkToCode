@@ -40,7 +40,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
 		// test_function();
@@ -67,7 +67,7 @@ function initManager() {
 
 function listen() {
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
@@ -115,7 +115,7 @@ function displayCode(struct_command_list: string[]) {
 
 	for (var i=0; i<struct_command_list.length; i++) commands += struct_command_list[i] + "\n"
 	commands += ' #program_end';
-    const other_child = spawn('java', ['ast/ASTParser 0'], {shell:true, cwd: ast_cwd});
+    const other_child = spawn('java', ['ast/ASTParser 1'], {shell:true, cwd: ast_cwd});
 
 	other_child.stdin.setEncoding('utf8');
 
@@ -156,6 +156,7 @@ function map_lines_to_code(struct_command_list: string[]){
 	var j =0;
 	var includeStatement = false;
 	for (var i=0;i<code_segments.length;i++) {
+		console.log(JSON.stringify(code_segments[i]) + " " + i + " " + count);
 		includeStatement = false;
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
 
@@ -166,7 +167,7 @@ function map_lines_to_code(struct_command_list: string[]){
 			struct command as well. */
 			if (!includeStatement && j < struct_command_list.length && struct_command_list[j] == "#string \"\";;") {
 				count_lines[j] = count;
-				cursor_pos = count;
+				cursor_pos = i;
 				j++;
 			}
 		}
@@ -176,21 +177,21 @@ function map_lines_to_code(struct_command_list: string[]){
 		else {
 			if (struct_command_list[j].startsWith("#string")) cursor_pos = count;
 			count++;
-			count_lines[j]=count;
+			count_lines[j] = count;
 			j++;
 		}
 	}
 }
 
 function writeToEditor(code: string, struct_command_list: string[]) {
-	console.log(code)
 	code_segments = code.split("\n");
 
-	map_lines_to_code();
-	for (var i=0;i<count_lines.length;i++){
-		console.log("DEBUG LINE COUNTS: ");
-		console.log(count_lines[i]);
-	}
+	map_lines_to_code(struct_command_list);
+	// for (var i=0;i<count_lines.length;i++){
+	// 	console.log("DEBUG LINE COUNTS: ");
+	// 	console.log(count_lines[i]);
+	// }
+	console.log("cursor pos: " + cursor_pos)
 
 	let editor = vscode.window.activeTextEditor;
 	if (editor) {
@@ -207,9 +208,6 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			then() is called when the callback function is done editing. */
 			if (editor) {
 				var lineAt = editor.document.lineAt(cursor_pos).text;
-				if (lineAt.startsWith("\t") || lineAt == "}") {
-					cursor_pos -= 1;
-				}
 				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
 			}
 		})
