@@ -92,7 +92,7 @@ function listen() {
 
 			console.log(transcribed_word)
 			// writeToEditor(manager.managerStatus());
-			editManager.checkAll(transcribed_word,count_lines);
+			editManager.checkAll(transcribed_word,count_lines, count_speech);
 			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus())
 		}
