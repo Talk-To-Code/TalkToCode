@@ -158,8 +158,11 @@ export class speech_hist {
     insert_item_in_between(index: number, numToDelete: number, input: string[]){
         var temp = [];
         temp.push(new speech_item(0,input));
-        
-        this.hist.splice(index,numToDelete,...temp);
+        for (var i= this.length()-1;i>=index;i--){
+            this.update_item_index(i, i+1);
+        }
+        this.hist.splice(index,numToDelete,new speech_item(index,input));
+
     }
 
     get_item(index: number) {
