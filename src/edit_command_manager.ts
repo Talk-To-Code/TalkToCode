@@ -1,6 +1,6 @@
 import { StructCommandManager } from "./struct_command_manager";
 import * as vscode from 'vscode';
-import { edit_stack_item, speech_hist } from "./struct_command";
+import { edit_stack_item } from "./struct_command";
 
 var insert_cursor = "#string \"\";;";
 var start_comment = "#comment ";
@@ -14,8 +14,6 @@ export class EditCommandManager {
     /* A buffer to save the line(s) copied or cut by the user to be used for pasting */
     cut_copy_struct_buffer: string[]
 
-    cut_copy_speech_buffer: string[]
-
     speech_counts: number[]
 
     constructor(manager: StructCommandManager, line_counts: number[], speech_counts: number[]) {
@@ -23,12 +21,10 @@ export class EditCommandManager {
         this.line_counts = line_counts;
         this.cut_copy_struct_buffer = [""];
         this.speech_counts = speech_counts;
-        this.cut_copy_speech_buffer = [""];
     }
 
-    checkAll(transcribedWord: String, line_counts: number[], speech_counts: number[]){
+    checkAll(transcribedWord: String, line_counts: number[]){
         this.line_counts  = line_counts;
-        this.speech_counts = speech_counts;
         transcribedWord = transcribedWord.toLowerCase();
         this.check_if_delete_line(transcribedWord);
         this.check_if_delete_function(transcribedWord);
@@ -227,7 +223,6 @@ export class EditCommandManager {
                     this.manager.struct_command_list[i] = text.join(" ");
                 }  
             }
-
         }
     }
 
@@ -278,7 +273,6 @@ export class EditCommandManager {
             console.log("IN HERE TO PASTE ABOVE/BELOW LINE");
             var line_num = parseInt(arr[3]);
             var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
-            var speech_index = this.binarySearch(index,0,this.speech_counts.length, this.speech_counts);
             if (index==-1){
                 index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
             }
@@ -286,23 +280,12 @@ export class EditCommandManager {
                 vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
                 return;
             }
-            if (speech_index==-1){
-                speech_index = this.binarySearch(index+1,0,this.speech_counts.length,this.speech_counts);
-            }
             this.push_to_edit_stack();
             if (arr[1]=="above"){
-                console.log("GOT IN HERE above: "+speech_index);
-                console.log("SPEECH BUFFER: "+JSON.stringify(this.cut_copy_speech_buffer));
                 this.manager.struct_command_list.splice(index,0,...this.cut_copy_struct_buffer);
-                this.manager.speech_hist.insert_item_in_between(speech_index,0,this.cut_copy_speech_buffer);
-                console.log(JSON.stringify(this.manager.speech_hist));
             }
             else if (arr[1]=="below"){
-                console.log("GOT IN HERE below: "+speech_index);
-                console.log("SPEECH BUFFER: "+JSON.stringify(this.cut_copy_speech_buffer));
                 this.manager.struct_command_list.splice(index+1,0,...this.cut_copy_struct_buffer);
-                this.manager.speech_hist.insert_item_in_between(speech_index+1,0,this.cut_copy_speech_buffer);
-                console.log(JSON.stringify(this.manager.speech_hist));
             }
         }
     }
@@ -314,14 +297,11 @@ export class EditCommandManager {
         if (arr[0] == "cut" && arr[1]=="line") {
             console.log("IN HERE to cut line");
             this.cut_copy_struct_buffer=[""]
-            this.cut_copy_speech_buffer = [""];
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
-            var speech_index = this.binarySearch(index,0,this.speech_counts.length,this.speech_counts);
             if (index!=-1){
                 this.push_to_edit_stack();
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
-                this.cut_copy_speech_buffer[0] = this.manager.speech_hist.get_item(speech_index).join(" ");
                 this.manager.splice(index,1);
             }
         }
@@ -334,14 +314,10 @@ export class EditCommandManager {
         if (arr[0] == "copy" && arr[1]=="line") {
             console.log("IN HERE to copy line");
             this.cut_copy_struct_buffer=[""]
-            this.cut_copy_speech_buffer = [""];
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
-            var speech_index = this.binarySearch(index,0,this.speech_counts.length,this.speech_counts);
-
             if (index!=-1){
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
-                this.cut_copy_speech_buffer[0] = this.manager.speech_hist.get_item(speech_index).join(" ");
             }
         }
     }
@@ -550,7 +526,6 @@ export class EditCommandManager {
     binarySearch(line_num: number, left: number, right: number, arr: number[]): number{
         if (right>=left){
             var mid = Math.floor(left+(right-left)/2);
-            console.log("MID: "+mid+" KEY: "+line_num);
             if (arr[mid]==line_num){
                 return mid;
             }
