@@ -120,7 +120,6 @@ export class EditCommandManager {
                 var start = -1;
                 var end = -1;
                 var res = this.resolve_block_name(arr[2]);
-                console.log("BLOCK_NAME: "+res.block_name+" BLOCK_NAME_END :"+res.block_name_end);
                  if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
