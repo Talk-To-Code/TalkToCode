@@ -39,6 +39,10 @@ export class StructCommandManager {
     /* is true when command is being held */
     holding: boolean;
 
+    stay_speech: string;
+
+    line_cursor_pos: number;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -50,6 +54,8 @@ export class StructCommandManager {
         this.edit_stack = [];
         this.debugMode = debugMode;
         this.holding = false;
+        this.stay_speech = "";
+        this.line_cursor_pos = -1;
     }
 
     reset() {
@@ -73,7 +79,7 @@ export class StructCommandManager {
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
         else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
-        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
+        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand();
 
         /* Normal process. */
         else {
@@ -160,16 +166,35 @@ export class StructCommandManager {
         else {
             var speech = this.curr_speech.join(" ")
             var commented_speech = "#string \"" + speech + "\";;"
-            if (this.holding) commented_speech = "#string \"" + speech + " ...stay on this line\";;"
+            if (this.holding) {
+                this.stay_speech = speech;
+                commented_speech = "#string \"" + speech + " *stay*\";;"
+                this.line_cursor_pos = 0;
+            }
             this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
     }
 
-    backspaceCommand(cleaned_speech: string) {
+    backspaceCommand() {
         /* for achu to do */
-        
+        if (!this.holding){
+            vscode.window.showInformationMessage("Cannot apply backspace on line that is not held");
+            return;
+        }
+        var temp = this.stay_speech.split(" ");
+        temp.splice(temp.length-1,1);
+        this.stay_speech = temp.join(" ");
+
+        var temp_speech = this.curr_speech[this.curr_speech.length-1];
+        temp = temp_speech.split(" ");
+        temp.splice(temp.length-1,1);
+        this.curr_speech[this.curr_speech.length-1] = temp.join(" ");
+        this.speech_hist.update_item(this.speech_hist.length()-1,temp);
+
+        var commented_speech = "#string \"" + this.stay_speech + " *stay*\";;"
+        this.struct_command_list.splice(this.curr_index,1,commented_speech);
     }
 
     holdCommand(cleaned_speech: string) {
@@ -180,6 +205,7 @@ export class StructCommandManager {
 
     releaseCommand() {
         this.holding = false;
+        this.stay_speech = "";
     }
 
     exitBlockCommand() {
