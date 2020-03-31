@@ -2,6 +2,7 @@ import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist, edit_stack_item } from './struct_command';
+import { start } from 'repl';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
@@ -71,7 +72,7 @@ export class StructCommandManager {
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
         else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
-        else if (cleaned_speech.startsWith("hold")) this.holdCommand();
+        else if (cleaned_speech.startsWith("hold")) this.holdCommand(cleaned_speech);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
 
         /* Normal process. */
@@ -159,15 +160,19 @@ export class StructCommandManager {
         else {
             var speech = this.curr_speech.join(" ")
             var commented_speech = "#string \"" + speech + "\";;"
+            if (this.holding) commented_speech = "#string \"" + speech + "\" *hold;;"
             this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
     }
 
-    holdCommand() {
+    holdCommand(cleaned_speech: string) {
         /* Perform basic hold */
         this.holding = true;
+
+        var splitted_speech = cleaned_speech.split(" ");
+
     }
 
     releaseCommand() {
@@ -360,9 +365,20 @@ export class StructCommandManager {
         var copiedSpeechHist = this.deepCopySpeechHist()
         var oldIdx = this.curr_index;
 
-        if (this.curr_index < amt_to_remove) this.curr_index = start_pos;
-        else this.curr_index -= amt_to_remove;
-
+        var lostCursor = false;
+        /* delete line */
+        if (amt_to_remove == 1) {
+            if (this.curr_index == start_pos) lostCursor = true;
+            if (this.curr_index > start_pos) this.curr_index -= 1;
+        }
+        /* delete a chunk */
+        else {
+            if (this.curr_index > start_pos + amt_to_remove - 1) this.curr_index -= amt_to_remove;
+            else if (this.curr_index >= start_pos && this.curr_index <= start_pos + amt_to_remove - 1) {
+                this.curr_index = start_pos;
+                lostCursor = true;
+            }
+        }
         /* Remove the speech inputs from speech hist */
         for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
             this.speech_hist.remove_item(i);
@@ -374,11 +390,15 @@ export class StructCommandManager {
         }
         this.struct_command_list.splice(start_pos, amt_to_remove);
 
-        /* If cursor is within block of code being deleted. */
         /* Case 1: Nothing left */
         if (this.struct_command_list.length == 0) {
             this.struct_command_list = [cursor_struct];
             this.speech_hist.add_item(0, [""]);
+        }
+        /* Case 2: the line being deleted is the same as the cursor position */
+        else if (lostCursor) {
+            this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
+            this.speech_hist.add_item(this.curr_index, [""]);
         }
         this.edit_stack.push(new edit_stack_item(["delete", copiedStructCommand, copiedSpeechHist, oldIdx]));
     }

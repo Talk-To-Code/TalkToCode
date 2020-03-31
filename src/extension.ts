@@ -66,6 +66,7 @@ function initManager() {
 }
 
 function listen() {
+	displayCode([""]);
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
