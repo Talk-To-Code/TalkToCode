@@ -375,7 +375,7 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
-                this.manager.splice(this.manager.curr_index,1);
+                this.manager.splice(this.manager.curr_index, 1);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
                 this.manager.curr_index = index;
         }
