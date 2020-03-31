@@ -94,7 +94,6 @@ function listen() {
 			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
-			console.log(manager.managerStatus())
 		}
 
 		else if (microphone) {
@@ -102,10 +101,9 @@ function listen() {
 			errorFlag = false;
 			codeBuffer = "";
 
-			manager.parse_speech(transcribed_word);
+			manager.parse_speech(transcribed_word, count_lines);
 			// writeToEditor(manager.managerStatus());
 			displayCode(manager.struct_command_list);
-			console.log(manager.managerStatus())
 		}
 	});
 }
@@ -214,6 +212,18 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 	console.log("SPEECH_COUNT: "+JSON.stringify(count_speech));
 
 	let editor = vscode.window.activeTextEditor;
+
+	if (manager.holding) {
+		var line = code_segments[manager.heldline];
+		var numTabs = "";
+		for (var i = 0; i < line.length; i++) {
+			if (line[i] == "\t") numTabs += "\t";
+		}
+		code_segments.splice(manager.heldline - 1, 1, numTabs + manager.curr_speech.join(" ") + " *stay");
+		code = code_segments.join("\n");
+		cursor_pos = manager.heldline - 1;
+	}
+
 	if (editor) {
 		/* Get range to delete */
 		var lineCount = editor.document.lineCount;

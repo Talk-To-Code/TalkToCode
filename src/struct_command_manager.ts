@@ -39,6 +39,12 @@ export class StructCommandManager {
     /* is true when command is being held */
     holding: boolean;
 
+    heldCommand: string[];
+
+    heldline: number;
+
+    justReleased: boolean;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -50,6 +56,9 @@ export class StructCommandManager {
         this.edit_stack = [];
         this.debugMode = debugMode;
         this.holding = false;
+        this.heldCommand = [""];
+        this.heldline = 0;
+        this.justReleased = false;
     }
 
     reset() {
@@ -61,9 +70,12 @@ export class StructCommandManager {
         this.speech_hist = new speech_hist();
         this.edit_stack = []
         this.holding = false;
+        this.heldCommand = [""];
+        this.heldline = 0;
+        this.justReleased = false;
     }
 
-    parse_speech(transcribed_word: string) {
+    parse_speech(transcribed_word: string, countlines: number[]) {
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
         /* Check for undo or navigation command */
@@ -71,7 +83,7 @@ export class StructCommandManager {
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
         else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
-        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech);
+        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
         else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
 
@@ -92,8 +104,8 @@ export class StructCommandManager {
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
-        var struct_command = get_struct(this.curr_speech, prev_input_speech, 
-                            prev_struct_command, this.language, this.debugMode, this.holding);
+        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, 
+                            this.language, this.debugMode, this.holding);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
@@ -103,6 +115,11 @@ export class StructCommandManager {
 
     /* Updating the struct command list */
     updateStructCommandList(struct_command: structCommand) {
+        if (this.justReleased) {
+            /* make sure that if it is a block command, nothing is broken */
+            this.checkValidity();
+            /* if not valid, set struct command to have error. */
+        }
         /* Previous statement is extendable. */
         if (struct_command.removePreviousStatement) {
             /* join extendable speech to prev input speech */
@@ -160,8 +177,7 @@ export class StructCommandManager {
         else {
             var speech = this.curr_speech.join(" ")
             var commented_speech = "#string \"" + speech + "\";;"
-            if (this.holding) commented_speech = "#string \"" + speech + " ...stay on this line\";;"
-            this.struct_command_list.splice(this.curr_index, 1, commented_speech);
+            if (!this.holding) this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
@@ -172,14 +188,58 @@ export class StructCommandManager {
         
     }
 
-    holdCommand(cleaned_speech: string) {
+    /* look out for end branches */
+    holdCommand(cleaned_speech: string, countlines: number[]) {
         /* Perform basic hold */
         this.holding = true;
         var splitted_speech = cleaned_speech.split(" ");
+        this.heldline = countlines[this.curr_index];
+
+        if (cleaned_speech.startsWith("stay on line") || cleaned_speech.startsWith("stay online")) {
+            var lastArg = splitted_speech[splitted_speech.length-1];
+            var line = 0;
+            /* If the second argument is a valid number */
+            if (!isNaN(Number(lastArg))) {
+                line = parseInt(lastArg);
+                var struct_line = -1;
+                for (var i = 0; i < countlines.length; i++) {
+                    if (countlines[i] == line) {
+                        struct_line = i;
+                        break;
+                    }
+                }
+                /* it is a valid line. */
+                if (struct_line != -1) {
+                    this.heldCommand = this.speech_hist.get_item(struct_line);
+                    /* change cursor position */
+                    if (this.curr_index != struct_line) {
+                        this.speech_hist.remove_item(this.curr_index);
+                        for (var i = this.curr_index + 1; i < this.struct_command_list.length; i++) {
+                            if (end_branches.includes(this.struct_command_list[i])) continue
+                            else {
+                                console.log(this.speech_hist.get_item(i))
+                                this.speech_hist.update_item_index(i, i - 1);
+                            }
+                        }
+                        this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
+                    }
+                    this.curr_index = struct_line;
+                    this.curr_speech = this.heldCommand;
+                    this.heldline = line;
+                }
+            }
+        }
     }
 
     releaseCommand() {
         this.holding = false;
+        this.justReleased = true;
+    }
+
+    /* check if curr speech and held command is the same block type */
+    checkValidity() {
+        /* to be done once backspace works */
+        return true;
     }
 
     exitBlockCommand() {

@@ -328,7 +328,7 @@ function runTestCase(test_cases: string[], correct_output: string[], language: s
     var i;
     for (i = 0; i < test_cases.length; i++) {
         console.log("DEBUG IN OG TEST: "+JSON.stringify(test_cases[i])+" index: "+i);
-        test_manager.parse_speech(test_cases[i]);
+        test_manager.parse_speech(test_cases[i], []);
     }
 
     var output = test_manager.struct_command_list;
