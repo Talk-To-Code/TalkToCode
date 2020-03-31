@@ -79,7 +79,7 @@ export class StructCommandManager {
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
         else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
-        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand();
+        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
 
         /* Normal process. */
         else {
@@ -177,24 +177,35 @@ export class StructCommandManager {
         }
     }
 
-    backspaceCommand() {
+    backspaceCommand(command: string) {
         /* for achu to do */
-        if (!this.holding){
-            vscode.window.showInformationMessage("Cannot apply backspace on line that is not held");
-            return;
-        }
+        vscode.window.showInformationMessage("COMMAND SAID: "+command);
+        var arr = command.split(" ");
+        var num_to_delete = parseInt(arr[1]);
+
         var temp = this.stay_speech.split(" ");
-        temp.splice(temp.length-1,1);
-        this.stay_speech = temp.join(" ");
-
-        var temp_speech = this.curr_speech[this.curr_speech.length-1];
-        temp = temp_speech.split(" ");
-        temp.splice(temp.length-1,1);
-        this.curr_speech[this.curr_speech.length-1] = temp.join(" ");
-        this.speech_hist.update_item(this.speech_hist.length()-1,temp);
-
-        var commented_speech = "#string \"" + this.stay_speech + " *stay*\";;"
+        for (var i=1;i<=num_to_delete;i++){
+            temp.splice(temp.length-i,1);
+        }
+        var commented_speech = "#string \"" + temp.join(" ")+ " *stay*\";;"
         this.struct_command_list.splice(this.curr_index,1,commented_speech);
+
+        while(num_to_delete>0){
+            var temp_speech = this.curr_speech[this.curr_speech.length-1];
+            temp = temp_speech.split(" ");
+            var count = (temp.length-num_to_delete>=0)?num_to_delete: temp.length;
+            temp.splice(-count,count);
+
+            if (temp.length==0 || temp.join(" ")==" "){
+                this.curr_speech.splice(-1,1);
+            }
+            else{
+                this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
+            }
+    
+            num_to_delete-=count;
+        }
+       
     }
 
     holdCommand(cleaned_speech: string) {
