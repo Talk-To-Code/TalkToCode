@@ -23,6 +23,8 @@ var line_count = [3,5,7,9,10,11,14,17,18,20];
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
 var insert_cursor = "#string \"\";;";
+var count_correct = 0;
+var count_incorrect = 0;
 
 export function runEditTests() {
 
@@ -69,6 +71,8 @@ export function runEditTests() {
 
     test_cases = generate_test_cases("search_and_replace");
     runEditTest(test_cases.command, test_cases.expected);
+
+    console.log("PASSED: "+count_correct+" TESTS,  FAILED: "+count_incorrect+" TESTS");
 }
 
 
@@ -146,11 +150,13 @@ function generate_test_cases(cases: String){
 
     else if (cases=="insert_before_line") {
         command = "insert before line 5";
+        expected.splice(8,1);
         expected.splice(1,0,insert_cursor);
     }
 
     else if (cases =="insert_before_block"){
         command = "insert before if block";
+        expected.splice(8,1);
         expected.splice(3,0,insert_cursor);
     }
 
@@ -197,9 +203,11 @@ function runEditTest(command: string, correct_output: string[]) {
 function are_arrays_equal(arr1: String[], arr2: String[]){
     if (JSON.stringify(arr1) != JSON.stringify(arr2)) {
         print_error(arr1,arr2);
+        count_incorrect++;
     }
     else if (JSON.stringify(arr1)==JSON.stringify(arr2)){
         console.log("### PASSED TEST ###")
+        count_correct++;
     }
 }
 
