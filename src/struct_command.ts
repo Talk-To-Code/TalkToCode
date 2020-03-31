@@ -112,12 +112,12 @@ export class simpleStatement {
 export class edit_stack_item {
 
     /* What type of command was used.
-    types include: non-edit, go-down, go-up, delete*/
+    types include: non-edit, go-down, go-up, delete, comment*/
     type : string;
 
-    OldIdx: number;
-    snapshotSpeechHist: speech_hist;
-    snapshotStructCommand: string[];
+    OldIdx: number = 0;
+    snapshotSpeechHist: speech_hist = new speech_hist();
+    snapshotStructCommand: string[] = [""];
 
     /* For non-edit commands */
     constructor(type: any) {
@@ -126,15 +126,10 @@ export class edit_stack_item {
         if (type[0] == "exit-block") this.OldIdx = parseInt(type[1]);
         else this.OldIdx = 0;
 
-        if (type[0] == "delete") {
+        if (type[0]=="edit") {
             this.snapshotStructCommand = type[1];
             this.snapshotSpeechHist = type[2];
             this.OldIdx = type[3];
-        }
-        else {
-            this.snapshotSpeechHist = new speech_hist();
-            this.snapshotStructCommand = [""];
-            this.OldIdx = 0;
         }
     }
 }
@@ -158,6 +153,13 @@ export class speech_hist {
                 break;
             }
         }   
+    }
+
+    insert_item_in_between(index: number, numToDelete: number, input: string[]){
+        var temp = [];
+        temp.push(new speech_item(0,input));
+        
+        this.hist.splice(index,numToDelete,...temp);
     }
 
     get_item(index: number) {
@@ -220,4 +222,5 @@ class speech_item {
         this.speech_input = speech_input;
         this.index = index;
     }
+
 }

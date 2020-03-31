@@ -337,7 +337,8 @@ export class StructCommandManager {
         else if (edit_item != null && edit_item.type == "go-up") this.goDownCommand();
         /* Perform enter block */
         else if (edit_item != null && edit_item.type == "go-down") this.goUpCommand();
-        else if (edit_item != null && edit_item.type == "delete") this.undoDelete(edit_item);
+        /* Perform undoing edit commands */
+        else if (edit_item!=null && edit_item.type == "edit") this.undoEdit(edit_item);
         
     }
     
@@ -400,10 +401,10 @@ export class StructCommandManager {
             this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
             this.speech_hist.add_item(this.curr_index, [""]);
         }
-        this.edit_stack.push(new edit_stack_item(["delete", copiedStructCommand, copiedSpeechHist, oldIdx]));
+        this.edit_stack.push(new edit_stack_item(["edit", copiedStructCommand, copiedSpeechHist, oldIdx]));
     }
 
-    undoDelete(edit_item: edit_stack_item) {
+    undoEdit(edit_item: edit_stack_item){
         this.speech_hist = edit_item.snapshotSpeechHist;
         this.struct_command_list = edit_item.snapshotStructCommand;
         this.curr_index = edit_item.OldIdx;
