@@ -18,10 +18,13 @@ export function clean(input_speech: string) {
 /* Perform basic cleaning for common errors */
 function fix_common_errors(text: string) {
     text = text.replace(/equals/g, 'equal');
-    text = text.replace('Eko', 'equal');
+    text = text.replace('eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('and function', 'end function');
     text = text.replace('begin is', 'begin if');
+
+    /* line errors */
+    text = text.replace('line v', 'line 5');
     return text;
 }
 

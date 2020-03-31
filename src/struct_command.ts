@@ -176,7 +176,13 @@ export class speech_hist {
             if (this.hist[i].index == index) idxToRemove = i;
         }
 
-        if (idxToRemove != -1) this.hist.splice(idxToRemove, 1);
+        if (idxToRemove != -1) {
+            this.hist.splice(idxToRemove, 1);
+            /* shift every position after index back by 1. */
+            for (var i = 0; i < this.hist.length; i++) {
+                if (this.hist[i].index > index) this.hist[i].index -= 1;
+            }
+        }
     }
 
     concat_item(index: number, concat_item: string) {

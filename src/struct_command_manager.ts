@@ -190,6 +190,8 @@ export class StructCommandManager {
 
     /* look out for end branches */
     holdCommand(cleaned_speech: string, countlines: number[]) {
+
+        console.log(cleaned_speech)
         /* Perform basic hold */
         this.holding = true;
         var splitted_speech = cleaned_speech.split(" ");
@@ -197,6 +199,9 @@ export class StructCommandManager {
 
         if (cleaned_speech.startsWith("stay on line") || cleaned_speech.startsWith("stay online")) {
             var lastArg = splitted_speech[splitted_speech.length-1];
+
+            console.log("last arg: " + lastArg)
+
             var line = 0;
             /* If the second argument is a valid number */
             if (!isNaN(Number(lastArg))) {
@@ -209,20 +214,17 @@ export class StructCommandManager {
                     }
                 }
                 /* it is a valid line. */
-                if (struct_line != -1) {
+                if (struct_line != -1 && struct_line < this.struct_command_list.length) {
                     this.heldCommand = this.speech_hist.get_item(struct_line);
-                    /* change cursor position */
+
+                    /* if hold line on different line, have to change cursor location. */
                     if (this.curr_index != struct_line) {
+                        /* remove old cursor position. */
                         this.speech_hist.remove_item(this.curr_index);
-                        for (var i = this.curr_index + 1; i < this.struct_command_list.length; i++) {
-                            if (end_branches.includes(this.struct_command_list[i])) continue
-                            else {
-                                console.log(this.speech_hist.get_item(i))
-                                this.speech_hist.update_item_index(i, i - 1);
-                            }
-                        }
+
                         this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
                     }
+                    /* set new curr_index and remember held command. heldline is for extension.ts */
                     this.curr_index = struct_line;
                     this.curr_speech = this.heldCommand;
                     this.heldline = line;
@@ -446,11 +448,6 @@ export class StructCommandManager {
         /* Remove the speech inputs from speech hist */
         for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
             this.speech_hist.remove_item(i);
-        }
-        /* Update the index for the speech_hist */
-        for (var i = start_pos + amt_to_remove; i < this.struct_command_list.length; i++) {
-            if (end_branches.includes(this.struct_command_list[i])) continue
-            else this.speech_hist.update_item_index(i, i - amt_to_remove);
         }
         this.struct_command_list.splice(start_pos, amt_to_remove);
 
