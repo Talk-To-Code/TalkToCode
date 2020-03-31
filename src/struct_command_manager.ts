@@ -2,7 +2,6 @@ import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist, edit_stack_item } from './struct_command';
-import { start } from 'repl';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
@@ -72,8 +71,9 @@ export class StructCommandManager {
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
         else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
-        else if (cleaned_speech.startsWith("hold")) this.holdCommand(cleaned_speech);
+        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
+        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
 
         /* Normal process. */
         else {
@@ -160,19 +160,22 @@ export class StructCommandManager {
         else {
             var speech = this.curr_speech.join(" ")
             var commented_speech = "#string \"" + speech + "\";;"
-            if (this.holding) commented_speech = "#string \"" + speech + "\" *hold;;"
+            if (this.holding) commented_speech = "#string \"" + speech + " ...stay on this line\";;"
             this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
     }
 
+    backspaceCommand(cleaned_speech: string) {
+        /* for achu to do */
+        
+    }
+
     holdCommand(cleaned_speech: string) {
         /* Perform basic hold */
         this.holding = true;
-
         var splitted_speech = cleaned_speech.split(" ");
-
     }
 
     releaseCommand() {

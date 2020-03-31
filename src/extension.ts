@@ -44,8 +44,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
-		runEditTests();
+		listen();
+		// runEditTests();
 		// test_function();
 		//runTestCasesForC();
 		// runTestCasesForPy();
