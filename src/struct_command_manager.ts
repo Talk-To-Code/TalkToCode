@@ -124,7 +124,7 @@ export class StructCommandManager {
         if (struct_command.removePreviousStatement) {
             /* join extendable speech to prev input speech */
             var extendable_speech = this.speech_hist.get_item(this.curr_index).join(" ");
-            this.speech_hist.remove_item(this.curr_index);
+            this.speech_hist.remove_item(this.curr_index, 1);
             this.speech_hist.concat_item(this.curr_index-1, extendable_speech);
 
             this.curr_index -= 1;
@@ -220,7 +220,7 @@ export class StructCommandManager {
                     /* if hold line on different line, have to change cursor location. */
                     if (this.curr_index != struct_line) {
                         /* remove old cursor position. */
-                        this.speech_hist.remove_item(this.curr_index);
+                        this.speech_hist.remove_item(this.curr_index, 1);
 
                         this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
                     }
@@ -294,9 +294,13 @@ export class StructCommandManager {
         }
         /* Else update both index */
         else {
+            
             var temp_speech = this.speech_hist.get_item(this.curr_index);
+            console.log("temp speech: " + temp_speech)
+            console.log(this.speech_hist)
             this.speech_hist.update_item(oldIdx, temp_speech);
             this.speech_hist.update_item(this.curr_index, [""]);
+            console.log(this.speech_hist)
         }
     }
 
@@ -351,9 +355,6 @@ export class StructCommandManager {
 
             /* If curr speech is empty. e.g. just enterd new line. */
             if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
-                /* Remove blank item from the cursor position. Do this to prevent multiple entries
-                of new speech item with the same index. */
-                this.speech_hist.remove_item(this.curr_index);
 
                 /* Amount from the struct command list to remove. There is a difference for undoing a block command
                 and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
@@ -366,6 +367,10 @@ export class StructCommandManager {
 
                 /* Case 2: Entered new line after finishing a statement */
                 else amountToSplice = 2; // Remove prev statement and cursor comment.
+
+                /* Remove blank item from the cursor position. Do this to prevent multiple entries
+                of new speech item with the same index. */
+                this.speech_hist.remove_item(this.curr_index, amountToSplice-1);
 
                 this.curr_index -= 1;
                 this.struct_command_list.splice(this.curr_index, amountToSplice, cursor_struct);
@@ -447,19 +452,19 @@ export class StructCommandManager {
         }
         /* Remove the speech inputs from speech hist */
         for (var i = start_pos; i < start_pos + amt_to_remove; i++) {
-            this.speech_hist.remove_item(i);
+            this.speech_hist.remove_item(i, 1);
         }
         this.struct_command_list.splice(start_pos, amt_to_remove);
 
         /* Case 1: Nothing left */
         if (this.struct_command_list.length == 0) {
             this.struct_command_list = [cursor_struct];
-            this.speech_hist.add_item(0, [""]);
+            this.speech_hist.add_item(0, [""], 1);
         }
         /* Case 2: the line being deleted is the same as the cursor position */
         else if (lostCursor) {
             this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
-            this.speech_hist.add_item(this.curr_index, [""]);
+            this.speech_hist.add_item(this.curr_index, [""], 1);
         }
         this.edit_stack.push(new edit_stack_item(["edit", copiedStructCommand, copiedSpeechHist, oldIdx]));
     }
@@ -480,12 +485,12 @@ export class StructCommandManager {
 
     deepCopySpeechHist() {
         var copiedSpeechHist = new speech_hist;
-        copiedSpeechHist.remove_item(0);
+        copiedSpeechHist.remove_item(0, 1);
 
         for (var i = 0; i < this.speech_hist.length(); i++) {
             var index = this.speech_hist.hist[i].index
             var speech = this.speech_hist.hist[i].speech_input
-            copiedSpeechHist.add_item(index, speech)
+            copiedSpeechHist.add_item(index, speech, 1);
         }
         return copiedSpeechHist;
     }
@@ -493,30 +498,15 @@ export class StructCommandManager {
     /* append speech hist every time a successful command is made. */
     appendSpeechHist(type: string) {
         if (type == "line") {
-            /* check if anymore commands below this one. Have to correct their index values.
-            Have to start from the end for proper updating */
-            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
-                this.speech_hist.update_item_index(i, i + 1)
-            }
-            this.speech_hist.add_item(this.curr_index, [""]);
+            this.speech_hist.add_item(this.curr_index, [""], 1);
         }
         /* type == block */
         else if (type == "block") {
-            /* check if anymore commands below this one. Have to correct their index values.
-            Have to start from the end for proper updating */
-            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
-                this.speech_hist.update_item_index(i, i + 2)
-            }
-            this.speech_hist.add_item(this.curr_index, [""]);
+            this.speech_hist.add_item(this.curr_index, [""], 2);
         }
         /* type == try */
         else {
-            /* check if anymore commands below this one. Have to correct their index values.
-            Have to start from the end for proper updating */
-            for (var i = this.struct_command_list.length-2; i >= this.curr_index; i--) {
-                this.speech_hist.update_item_index(i, i + 3)
-            }
-            this.speech_hist.add_item(this.curr_index, [""]);
+            this.speech_hist.add_item(this.curr_index, [""], 3);
         }
     }
 

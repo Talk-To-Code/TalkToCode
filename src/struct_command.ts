@@ -142,7 +142,10 @@ export class speech_hist {
         this.hist.push(new speech_item(0, [""]));
     }
 
-    add_item(index: number, speech_input: string[]) {
+    add_item(index: number, speech_input: string[], amtToAdd: number) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index >= index) this.hist[i].index += amtToAdd;
+        }
         this.hist.push(new speech_item(index, speech_input));
     }
 
@@ -163,14 +166,14 @@ export class speech_hist {
     }
 
     get_item(index: number) {
-        var speech_input = [""];
+        var speech_input = ["Error - Not mapped correctly"];
         for (var i = 0; i < this.hist.length; i++) {
             if (this.hist[i].index == index) speech_input = this.hist[i].speech_input;
         }
         return speech_input;
     }
 
-    remove_item(index: number) {
+    remove_item(index: number, amtToRemove: number) {
         var idxToRemove = -1;
         for (var i = 0; i < this.hist.length; i++) {
             if (this.hist[i].index == index) idxToRemove = i;
@@ -178,9 +181,9 @@ export class speech_hist {
 
         if (idxToRemove != -1) {
             this.hist.splice(idxToRemove, 1);
-            /* shift every position after index back by 1. */
+            /* shift every position after index back by amtToRemove. */
             for (var i = 0; i < this.hist.length; i++) {
-                if (this.hist[i].index > index) this.hist[i].index -= 1;
+                if (this.hist[i].index > index) this.hist[i].index -= amtToRemove;
             }
         }
     }

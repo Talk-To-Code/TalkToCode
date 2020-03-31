@@ -44,11 +44,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		listen();
+		// listen();
 		// runEditTests();
 		// test_function();
-		//runTestCasesForC();
-		// runTestCasesForPy();
+		runTestCasesForC();
+		runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -94,6 +94,7 @@ function listen() {
 			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
+			console.log(manager.managerStatus());
 		}
 
 		else if (microphone) {

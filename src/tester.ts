@@ -4,8 +4,6 @@ import { fragment_segmenter, parse_statement } from './parse_statements'
 export function runTestCasesForC() {
 
     var test_cases = [[""], [""]];
-    test_cases = generate_test_cases_c("tester");
-    runTestCase(test_cases[0], test_cases[1], "c");
 
     test_cases = generate_test_cases_c("declare1");
     runTestCase(test_cases[0], test_cases[1], "c");
@@ -141,8 +139,8 @@ function generate_test_cases_c(cases: string) {
 
     else if (cases == "return1") {
         test_cases[0] = ["return", "return hello", "return hello equals 6"];
-        test_cases[1] = ["return;;","return #paramater #variable hello;;",
-        "return #paramater #assign #variable hello #with #value 6;;","#string \"\";;"];
+        test_cases[1] = ["return;;","return #parameter #variable hello;;",
+        "return #parameter #assign #variable hello #with #value 6;;","#string \"\";;"];
     }
 
     else if (cases == "assign1") {
@@ -327,19 +325,20 @@ function runTestCase(test_cases: string[], correct_output: string[], language: s
     var test_manager = new StructCommandManager(language, false);
     var i;
     for (i = 0; i < test_cases.length; i++) {
-        console.log("DEBUG IN OG TEST: "+JSON.stringify(test_cases[i])+" index: "+i);
         test_manager.parse_speech(test_cases[i], []);
     }
 
     var output = test_manager.struct_command_list;
 
-    console.log(test_manager.managerStatus());
-
     /* To compare JS arrays. Convert to JSON */
     if (JSON.stringify(output) != JSON.stringify(correct_output)) {
+        console.log(test_manager.managerStatus());
         console.log("### ERROR ###");
         console.log(JSON.stringify(output));
         console.log(JSON.stringify(correct_output));
+    }
+    else {
+        console.log("### PASSED ###");
     }
 }
 
