@@ -119,6 +119,7 @@ function generate_test_cases(cases: String){
     else if (cases == "delete_function"){
         command = "delete function subtract";
         expected.splice(7,3);
+        expected.push("#string \"\";;");
     }
 
     else if (cases == "typecast_variable"){
@@ -165,7 +166,7 @@ function generate_test_cases(cases: String){
 }
 
 function runEditTest(command: string, correct_output: string[]) {
-    var test_manager = new StructCommandManager("c",true);
+    var test_manager = new StructCommandManager("c",false);
     var edit_manager = new EditCommandManager(test_manager,line_count,speech_count);
     for (var i=0;i<existing_speech.length;i++){
         test_manager.parse_speech(existing_speech[i]);

@@ -2,6 +2,7 @@ import { StructCommandManager } from "./struct_command_manager";
 import * as vscode from 'vscode';
 import { edit_stack_item } from "./struct_command";
 
+
 var insert_cursor = "#string \"\";;";
 var start_comment = "#comment ";
 var end_comment= " #comment_end;;";
@@ -49,7 +50,7 @@ export class EditCommandManager {
 
     check_if_edit_command(text: String){
         var arr = text.toLowerCase().split(" ");
-        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy" || arr[0]=="uncomment" || arr[0]=="find" || arr[0]=="typecast" || arr[0]=="hold" || arr[0]=="release"){
+        if (arr[0]=="delete" || arr[0]=="rename" || arr[0]=="comment" || arr[0]=="insert"|| arr[0]=="cut"|| arr[0]=="paste" || arr[0]=="copy" || arr[0]=="uncomment" || arr[0]=="find" || arr[0]=="typecast"){
             return true;
         }
         return false;
