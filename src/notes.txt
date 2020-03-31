@@ -116,3 +116,5 @@ add testing for pointers
 declare float literal
 
 maybe add a spelling command.
+
+compound += -= stuff. not sure if done??

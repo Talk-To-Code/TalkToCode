@@ -132,7 +132,7 @@ function displayCode(struct_command_list: string[]) {
 			writeToEditor(code, struct_command_list);
 		}
 		else if (data.includes("Not Supported Syntax Format")) {
-			console.log("error")
+			console.log("error");
 			codeBuffer = ""
 			errorFlag = true;
 		}

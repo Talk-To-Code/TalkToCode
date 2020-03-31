@@ -36,6 +36,8 @@ export class StructCommandManager {
     edit_stack: edit_stack_item[];
 
     debugMode: boolean;
+    /* is true when command is being held */
+    holding: boolean;
 
     constructor(language: string, debugMode: boolean) {
         this.language = language;
@@ -47,6 +49,7 @@ export class StructCommandManager {
         this.speech_hist = new speech_hist();
         this.edit_stack = [];
         this.debugMode = debugMode;
+        this.holding = false;
     }
 
     reset() {
@@ -57,6 +60,7 @@ export class StructCommandManager {
         this.functions_list = [""];
         this.speech_hist = new speech_hist();
         this.edit_stack = []
+        this.holding = false;
     }
 
     parse_speech(transcribed_word: string) {
@@ -67,6 +71,8 @@ export class StructCommandManager {
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
         else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
         else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
+        else if (cleaned_speech.startsWith("hold")) this.holdCommand();
+        else if (cleaned_speech.startsWith("release")) this.releaseCommand();
 
         /* Normal process. */
         else {
@@ -85,7 +91,8 @@ export class StructCommandManager {
             prev_input_speech = this.speech_hist.get_item(this.curr_index-1).join(" ");
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
-        var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, this.language, this.debugMode);
+        var struct_command = get_struct(this.curr_speech, prev_input_speech, 
+                            prev_struct_command, this.language, this.debugMode, this.holding);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
@@ -156,6 +163,15 @@ export class StructCommandManager {
             /* Display to user what the error message is. */
             vscode.window.showInformationMessage(struct_command.errorMessage);
         }
+    }
+
+    holdCommand() {
+        /* Perform basic hold */
+        this.holding = true;
+    }
+
+    releaseCommand() {
+        this.holding = false;
     }
 
     exitBlockCommand() {
