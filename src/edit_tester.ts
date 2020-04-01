@@ -175,7 +175,7 @@ function runEditTest(command: string, correct_output: string[]) {
     var test_manager = new StructCommandManager("c",false);
     var edit_manager = new EditCommandManager(test_manager,line_count,speech_count);
     for (var i=0;i<existing_speech.length;i++){
-        test_manager.parse_speech(existing_speech[i]);
+        test_manager.parse_speech(existing_speech[i], []);
     }
 
     if (command.startsWith("uncomment")){

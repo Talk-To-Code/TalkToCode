@@ -18,10 +18,13 @@ export function clean(input_speech: string) {
 /* Perform basic cleaning for common errors */
 function fix_common_errors(text: string) {
     text = text.replace(/equals/g, 'equal');
-    text = text.replace('Eko', 'equal');
+    text = text.replace('eko', 'equal');
     text = text.replace('and declare', 'end declare');
     text = text.replace('and function', 'end function');
     text = text.replace('begin is', 'begin if');
+
+    /* line errors */
+    text = text.replace('line v', 'line 5');
     return text;
 }
 
@@ -63,7 +66,7 @@ function find_symbol(text: string) {
                 else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
                 else if (splitted_text[i] == "colon") splitted_text[i] = ":";
                 else if (splitted_text[i] == "equal") splitted_text[i] = "=";
-                else if (splitted_text[i] == "dot" || splitted_text[i] == "point") splitted_text[i] = ".";
+                else if (splitted_text[i] == "dot" || splitted_text[i] == "point" || splitted_text[i] == "points") splitted_text[i] = ".";
                 else if (splitted_text[i] == "star") splitted_text[i] = "*";
 
                 symbol_flag = false;

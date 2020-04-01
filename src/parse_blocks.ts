@@ -424,7 +424,6 @@ function parse_function_c(splitted_text: string[]) {
             }
         }
         else { // If parameter of function is not an array.
-            console.log("heree")
             command.parsedCommand += " #parameter #type " + splitted_param[0]; // Add variable type
             command.parsedCommand += " " + joinName(splitted_param.slice(1));
         }
@@ -482,8 +481,6 @@ function parse_structure(splitted_text: string[]) {
         command.logError("no term mentioned");
         return command;
     }
-
-    console.log(splitted_text)
 
     command.parsedCommand = "#struct_declare " + joinName(splitted_text) + " #struct_start";
     command.endCommand = "#struct_end;;"
