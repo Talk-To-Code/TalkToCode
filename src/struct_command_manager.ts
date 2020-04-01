@@ -39,9 +39,8 @@ export class StructCommandManager {
     /* is true when command is being held */
     holding: boolean;
 
-    stay_speech: string;
+    speech_len: number;
 
-    line_cursor_pos: number;
 
     constructor(language: string, debugMode: boolean) {
         this.language = language;
@@ -54,8 +53,7 @@ export class StructCommandManager {
         this.edit_stack = [];
         this.debugMode = debugMode;
         this.holding = false;
-        this.stay_speech = "";
-        this.line_cursor_pos = -1;
+        this.speech_len = -1;
     }
 
     reset() {
@@ -167,9 +165,7 @@ export class StructCommandManager {
             var speech = this.curr_speech.join(" ")
             var commented_speech = "#string \"" + speech + "\";;"
             if (this.holding) {
-                this.stay_speech = speech;
                 commented_speech = "#string \"" + speech + " *stay*\";;"
-                this.line_cursor_pos = 0;
             }
             this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
@@ -182,12 +178,12 @@ export class StructCommandManager {
         vscode.window.showInformationMessage("COMMAND SAID: "+command);
         var arr = command.split(" ");
         var num_to_delete = parseInt(arr[1]);
-
-        var temp = this.stay_speech.split(" ");
+        
+        var temp = this.curr_speech.join(" ").split(" ");
         for (var i=1;i<=num_to_delete;i++){
             temp.splice(temp.length-i,1);
         }
-        var commented_speech = "#string \"" + temp.join(" ")+ " *stay*\";;"
+        var commented_speech = "#string \"" + temp.join(" ")+"\";;"
         this.struct_command_list.splice(this.curr_index,1,commented_speech);
 
         while(num_to_delete>0){
@@ -216,7 +212,6 @@ export class StructCommandManager {
 
     releaseCommand() {
         this.holding = false;
-        this.stay_speech = "";
     }
 
     exitBlockCommand() {
