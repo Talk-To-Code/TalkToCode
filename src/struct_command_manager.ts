@@ -174,7 +174,6 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
-        /* for achu to do */
         vscode.window.showInformationMessage("COMMAND SAID: "+command);
         var arr = command.split(" ");
         var num_to_delete = parseInt(arr[1]);
