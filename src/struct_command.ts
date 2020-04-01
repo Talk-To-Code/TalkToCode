@@ -112,12 +112,15 @@ export class simpleStatement {
 export class edit_stack_item {
 
     /* What type of command was used.
-    types include: non-edit, go-down, go-up, delete, comment*/
+    types include: non-edit, go-down, go-up, edit*/
     type : string;
 
     OldIdx: number = 0;
     snapshotSpeechHist: speech_hist = new speech_hist();
     snapshotStructCommand: string[] = [""];
+    oldCurrSpeech: string[] = [""];
+    oldHeldCommand: string[] = [""];
+    oldHeldLine: number = 0;
 
     /* For non-edit commands */
     constructor(type: any) {
@@ -126,10 +129,18 @@ export class edit_stack_item {
         if (type[0] == "exit-block") this.OldIdx = parseInt(type[1]);
         else this.OldIdx = 0;
 
-        if (type[0]=="edit") {
+        if (type[0]=="edit" || type[0] == "stay change") {
             this.snapshotStructCommand = type[1];
             this.snapshotSpeechHist = type[2];
             this.OldIdx = type[3];
+        }
+        else if (type[0] == "release") {
+            this.snapshotStructCommand = type[1];
+            this.snapshotSpeechHist = type[2];
+            this.OldIdx = type[3];
+            this.oldCurrSpeech = type[4];
+            this.oldHeldCommand = type[5];
+            this.oldHeldLine = type[6];
         }
     }
 }
@@ -142,7 +153,10 @@ export class speech_hist {
         this.hist.push(new speech_item(0, [""]));
     }
 
-    add_item(index: number, speech_input: string[]) {
+    add_item(index: number, speech_input: string[], amtToAdd: number) {
+        for (var i = 0; i < this.hist.length; i++) {
+            if (this.hist[i].index >= index) this.hist[i].index += amtToAdd;
+        }
         this.hist.push(new speech_item(index, speech_input));
     }
 
@@ -163,20 +177,26 @@ export class speech_hist {
     }
 
     get_item(index: number) {
-        var speech_input = [""];
+        var speech_input = ["Error - Not mapped correctly"];
         for (var i = 0; i < this.hist.length; i++) {
             if (this.hist[i].index == index) speech_input = this.hist[i].speech_input;
         }
         return speech_input;
     }
 
-    remove_item(index: number) {
+    remove_item(index: number, amtToRemove: number) {
         var idxToRemove = -1;
         for (var i = 0; i < this.hist.length; i++) {
             if (this.hist[i].index == index) idxToRemove = i;
         }
 
-        if (idxToRemove != -1) this.hist.splice(idxToRemove, 1);
+        if (idxToRemove != -1) {
+            this.hist.splice(idxToRemove, 1);
+            /* shift every position after index back by amtToRemove. */
+            for (var i = 0; i < this.hist.length; i++) {
+                if (this.hist[i].index > index) this.hist[i].index -= amtToRemove;
+            }
+        }
     }
 
     concat_item(index: number, concat_item: string) {

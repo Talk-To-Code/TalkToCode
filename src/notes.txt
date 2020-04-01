@@ -22,6 +22,11 @@ declare <var name> equal make dictionary key ... value ... key ... value ...
 <var name> equal <var_name>
 <var name> equal <literal>
 <var name> equal <complex fragment>
+<complex fragment> equal <complex fragment>
+<var name> <arithmetic operator> equal <var_name>
+<var name> <arithmetic operator> equal <literal>
+<var name> <arithmetic operator> equal <complex fragment>
+<complex fragment> <arithmetic operator> equal <complex fragment>
 
 - return or continue statements (c version)
 return
@@ -98,10 +103,16 @@ finally
 string "what you want to say" end string
 
 - <complex fragment> - basically a never ending list of stuff
-<var name / literal / <call function>> <operator> <var name / literal / <call function>> <operator> ...
-* <call function> refers to the long command to call function.
-* <var name> can have [] as well
+<var name / literal / <call function> / <array referencing>>
+
+- <call function>
+call function <function name> end function
+call function <function name> parameter <fragment> end function
+call function <function name> parameter <fragment> parameter <fragment> end function
+
+ - <array referencing>
 <var name> array index <literal / complex fragment>
+
 * <complex fragment> can have "." as well
 <complex fragment> symbol point <complex fragment>
 
@@ -116,5 +127,3 @@ add testing for pointers
 declare float literal
 
 maybe add a spelling command.
-
-compound += -= stuff. not sure if done??
