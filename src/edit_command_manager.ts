@@ -45,7 +45,6 @@ export class EditCommandManager {
         this.check_if_uncomment_block(transcribedWord);
         this.check_if_search_and_replace(transcribedWord);
         this.check_if_typecast_variable(transcribedWord);
-        this.check_if_hold_command(transcribedWord);
     }
 
     check_if_edit_command(text: String){
@@ -122,7 +121,6 @@ export class EditCommandManager {
                 var start = -1;
                 var end = -1;
                 var res = this.resolve_block_name(arr[2]);
-                console.log("BLOCK_NAME: "+res.block_name+" BLOCK_NAME_END :"+res.block_name_end);
                  if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
@@ -216,7 +214,7 @@ export class EditCommandManager {
             var end =-1;
            
             var index = this.find_nearest_creation_of_variable(this.manager.curr_index,wordToReplace);
-            var temp = this.find_start_of_function_or_block(index);
+            var temp = this.find_start_of_function_or_block(index, this.manager.struct_command_list);
             start = temp;
             end = (start==-1)? -1 :this.find_end_of_function_or_block(temp, index);
             
@@ -375,7 +373,7 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
-                this.manager.splice(this.manager.curr_index,1);
+                this.manager.struct_command_list.splice(this.manager.curr_index,1);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
                 this.manager.curr_index = index;
         }
@@ -392,7 +390,6 @@ export class EditCommandManager {
             var block_name = (arr[2]=="else")? "#else_branch_start": arr[2];
             var minDistance = 1000000;
             var minIndex = -1;
-            this.manager.struct_command_list.splice(this.manager.curr_index,1);
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].startsWith(block_name)){
                     if (Math.abs(i-this.manager.curr_index)<minDistance){
@@ -402,8 +399,7 @@ export class EditCommandManager {
                 }
             }
             this.push_to_edit_stack();
-            console.log("CURR_INDEX IN HERE: "+this.manager.curr_index);
-            console.log("DEBUG HERE: "+JSON.stringify(this.manager.struct_command_list));
+            this.manager.struct_command_list.splice(this.manager.curr_index,1);
             this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
             this.manager.curr_index = minIndex;
         }
@@ -492,167 +488,158 @@ export class EditCommandManager {
         }
     }
 
-    check_if_hold_command(text: String){
-        var arr = text.split(" ");
-        if (arr[0]=="hold"){
-            var line_num = parseInt(arr[2]);
-            var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
-            if (index!=this.line_counts.length-1 || index!=this.line_counts.length-2){
-                vscode.window.showInformationMessage("Sorry! Can't hold this line. It is not the most recent.");
-            }
-            var index_speech_hist = this.binarySearch(index,0,this.speech_counts.length,this.speech_counts);
-            
-        }
-    }
-
-    binarySearch(line_num: number, left: number, right: number, arr: number[]): number{
-        if (right>=left){
-            var mid = Math.floor(left+(right-left)/2);
-            if (arr[mid]==line_num){
-                return mid;
-            }
-            else if (arr[mid]> line_num){
-                return this.binarySearch(line_num,left, mid-1, arr);
-            }
-            else {
-                return this.binarySearch(line_num,mid+1,right, arr);
-            }
-        }
-        return -1;
-    }
-
-    determine_end(index: number, block_name: string, block_name_end: string){
-        var count_block = 0;
-        var end = -1;
-        for (var i=index;i<this.manager.struct_command_list.length;i++){
-            if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
-                count_block++;
-            }
-
-            else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
-                if (count_block==0){
-                    end = i;
-                    break;
-                }
-                else if (count_block>0){
-                    count_block--;
-                }
-            }
-        }
-        return end;
-    }
-
     push_to_edit_stack(){
         this.manager.edit_stack.push(new edit_stack_item(["edit",this.manager.deepCopyStructCommand(),this.manager.deepCopySpeechHist(),this.manager.curr_index]))
     }
 
-    find_end_of_function_or_block(start: number, index: number){
-        var end = -1;
-        var branch_end_phrase = "";
-        var line = this.manager.struct_command_list[start];
-        if (line.length==0|| line==undefined) return end;
 
-        if (line.startsWith("if")) branch_end_phrase = "#if_branch_end;;";
-        else if (line.startsWith("for")) branch_end_phrase = "#for_end;;";
-        else if (line.startsWith("while")) branch_end_phrase = "#while_end;;";
-        else if (line.startsWith("#else_branch_start")) branch_end_phrase = "#else_branch_end;;";
-        else if (line.startsWith("#function_declare")) branch_end_phrase = "#function_end;;";
-        for (var j= index;j<=this.manager.struct_command_list.length;j++){
-            if (this.manager.struct_command_list[j].startsWith(branch_end_phrase)){
-                end = j;
-                break;
-            }
+
+binarySearch(line_num: number, left: number, right: number, arr: number[]): number{
+    if (right>=left){
+        var mid = Math.floor(left+(right-left)/2);
+        if (arr[mid]==line_num){
+            return mid;
         }
-        
-        
-        return end;
-    }
-
-    find_start_of_function_or_block(index: number){
-        let line_stack = [];
-        let index_stack = [];
-        var start = -1;
-        for (var i=0;i<index;i++){
-            var line =this.manager.struct_command_list[i];
-            if (line.startsWith("if")|| line.startsWith("for") || line.startsWith("while")|| line.startsWith("#function_declare")|| line.startsWith("#else_branch_start")){
-                line_stack.push(line);
-                index_stack.push(i);
-            }
-            else if (line.startsWith("#if_branch_end")){
-                this.is_stack_poppable("if",line_stack,index_stack);
-            }
-            else if (line.startsWith("#for_end")){
-                this.is_stack_poppable("for",line_stack,index_stack);
-            }
-            else if (line.startsWith("#while_end")){
-                this.is_stack_poppable("while",line_stack,index_stack);
-                this.is_stack_poppable("do",line_stack,index_stack);
-            }
-            else if (line.startsWith("#function_end")){
-                this.is_stack_poppable("#function_declare",line_stack,index_stack);
-            }
-            else if (line.startsWith("#else_branch_end")){
-                this.is_stack_poppable("#else_branch_start",line_stack,index_stack);
-            }
-
-        }
-        start = (index_stack.length==0)?-1: index_stack[index_stack.length-1];
-
-        return start;
-
-    }
-
-    is_stack_poppable(text: string, line_stack: string[],index_stack:number[]){
-        if (line_stack.length!=0 && line_stack[line_stack.length-1].startsWith(text)){
-            line_stack.pop();
-            index_stack.pop();
-        }
-    }
-
-    find_nearest_creation_of_variable(index:number, variable_name: string){
-        var res = -1;
-        for (var i = index;i>=0;i--){
-            var line = this.manager.struct_command_list[i];
-            let text = line.split(" ");
-            var found = false;
-            if (line.startsWith("#create")){
-                console.log("GOT IN HERE CREATE: "+line);
-                for (var j=1;j<text.length;j++){
-                    if (text[j].startsWith(variable_name) && text[j-1]=="#variable"){
-                        console.log("GOT IN HERE: "+variable_name);
-                        res = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (found) break;
-            }
-        }
-        return res;
-    }
-
-    resolve_block_name(text: string){
-        var block_name = text;
-        var block_name_end = text;
-        if (text=="else"){
-            block_name=="#else_branch_start";
-            block_name_end = "#else_branch_end";
-        }
-        else if (text=="do-while" || text=="do") {
-            block_name = "do";
-            block_name_end="#while_end";
-        }
-        else if (text=="switch_case"|| text=="switch"){
-            block_name = "switch"; 
-            block_name_end = "#case_end";
+        else if (arr[mid]> line_num){
+            return this.binarySearch(line_num,left, mid-1, arr);
         }
         else {
-            block_name = text;
-            block_name_end = "#"+text+"_end";
-            if (block_name =="if") block_name_end = "#if_branch_end";
+            return this.binarySearch(line_num,mid+1,right, arr);
         }
-        return {block_name,block_name_end};
     }
+    return -1;
+}
+
+determine_end(index: number, block_name: string, block_name_end: string){
+    var count_block = 0;
+    var end = -1;
+    for (var i=index;i<this.manager.struct_command_list.length;i++){
+        if (i>index && this.manager.struct_command_list[i].startsWith(block_name)){
+            count_block++;
+        }
+
+        else if (this.manager.struct_command_list[i].startsWith(block_name_end)){
+            if (count_block==0){
+                end = i;
+                break;
+            }
+            else if (count_block>0){
+                count_block--;
+            }
+        }
+    }
+    return end;
+}
+
+
+
+find_end_of_function_or_block(start: number, index: number){
+    var end = -1;
+    var branch_end_phrase = "";
+    var line = this.manager.struct_command_list[start];
+    if (line.length==0|| line==undefined) return end;
+
+    if (line.startsWith("if")) branch_end_phrase = "#if_branch_end;;";
+    else if (line.startsWith("for")) branch_end_phrase = "#for_end;;";
+    else if (line.startsWith("while")) branch_end_phrase = "#while_end;;";
+    else if (line.startsWith("#else_branch_start")) branch_end_phrase = "#else_branch_end;;";
+    else if (line.startsWith("#function_declare")) branch_end_phrase = "#function_end;;";
+    for (var j= index;j<=this.manager.struct_command_list.length;j++){
+        if (this.manager.struct_command_list[j].startsWith(branch_end_phrase)){
+            end = j;
+            break;
+        }
+    }
+    
+    
+    return end;
+}
+
+find_start_of_function_or_block(index: number, struct_command_list: string[]){
+    let line_stack = [];
+    let index_stack = [];
+    var start = -1;
+    for (var i=0;i<index;i++){
+        var line =struct_command_list[i];
+        if (line.startsWith("if")|| line.startsWith("for") || line.startsWith("while")|| line.startsWith("#function_declare")|| line.startsWith("#else_branch_start")){
+            line_stack.push(line);
+            index_stack.push(i);
+        }
+        else if (line.startsWith("#if_branch_end")){
+            this.is_stack_poppable("if",line_stack,index_stack);
+        }
+        else if (line.startsWith("#for_end")){
+            this.is_stack_poppable("for",line_stack,index_stack);
+        }
+        else if (line.startsWith("#while_end")){
+            this.is_stack_poppable("while",line_stack,index_stack);
+            this.is_stack_poppable("do",line_stack,index_stack);
+        }
+        else if (line.startsWith("#function_end")){
+            this.is_stack_poppable("#function_declare",line_stack,index_stack);
+        }
+        else if (line.startsWith("#else_branch_end")){
+            this.is_stack_poppable("#else_branch_start",line_stack,index_stack);
+        }
+
+    }
+    start = (index_stack.length==0)?-1: index_stack[index_stack.length-1];
+
+    return start;
+
+}
+
+is_stack_poppable(text: string, line_stack: string[],index_stack:number[]){
+    if (line_stack.length!=0 && line_stack[line_stack.length-1].startsWith(text)){
+        line_stack.pop();
+        index_stack.pop();
+    }
+}
+
+find_nearest_creation_of_variable(index:number, variable_name: string){
+    var res = -1;
+    for (var i = index;i>=0;i--){
+        var line = this.manager.struct_command_list[i];
+        let text = line.split(" ");
+        var found = false;
+        if (line.startsWith("#create")){
+            console.log("GOT IN HERE CREATE: "+line);
+            for (var j=1;j<text.length;j++){
+                if (text[j].startsWith(variable_name) && text[j-1]=="#variable"){
+                    console.log("GOT IN HERE: "+variable_name);
+                    res = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+    }
+    return res;
+}
+
+resolve_block_name(text: string){
+    var block_name = text;
+    var block_name_end = text;
+    if (text=="else"){
+        block_name=="#else_branch_start";
+        block_name_end = "#else_branch_end";
+    }
+    else if (text=="do-while" || text=="do") {
+        block_name = "do";
+        block_name_end="#while_end";
+    }
+    else if (text=="switch_case"|| text=="switch"){
+        block_name = "switch"; 
+        block_name_end = "#case_end";
+    }
+    else {
+        block_name = text;
+        block_name_end = "#"+text+"_end";
+        if (block_name =="if") block_name_end = "#if_branch_end";
+    }
+    return {block_name,block_name_end};
+}
 
 
 
