@@ -9,7 +9,7 @@ The Command for enabling the Talk To Code extension is "Hello World" for now.
 
 ## Requirements
 
-I am currently using :
+We are currently using :
 * VSCode version     : 1.39.1 (If you are using a version older than 1.18.1, it might not work.)
 * Node JS version    : 10.16.3 (Make sure Node JS is updated. google-cloud speech requires updated version.)
 * NPM version        : 6.11.3 
