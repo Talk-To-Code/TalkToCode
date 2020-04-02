@@ -5,8 +5,8 @@ import { structCommand, speech_hist, edit_stack_item } from './struct_command';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
-                    "#class_end;;", "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
-                    "#case_end", "#function_end", "#catch_end", "#finally_end", "#class_end"];
+                    "#class_end;;", "#struct_end;;", "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end", "#catch_end", "#finally_end", "#class_end", "#struct_end"];
 
 var start_branches = ["#if_branch_start", "elseIf_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
                     "#function_start", "catch #catch_start", "switch", "try", "finally"];
@@ -188,34 +188,38 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
-        /* for achu to do */
-        vscode.window.showInformationMessage("COMMAND SAID: "+command);
-        var arr = command.split(" ");
-        var num_to_delete = parseInt(arr[1]);
-        
-        var temp = this.curr_speech.join(" ").split(" ");
-        for (var i=1;i<=num_to_delete;i++){
-            temp.splice(temp.length-i,1);
-        }
-        var commented_speech = "#string \"" + temp.join(" ")+"\";;"
-        this.struct_command_list.splice(this.curr_index,1,commented_speech);
 
-        while(num_to_delete>0){
-            var temp_speech = this.curr_speech[this.curr_speech.length-1];
-            temp = temp_speech.split(" ");
-            var count = (temp.length-num_to_delete>=0)?num_to_delete: temp.length;
+        /* nothing to backspace */
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
+            console.log("Nothing to backspace");
+            return;
+        }
+
+        this.edit_stack.push(new edit_stack_item(["backspace", this.deepCopyStringList(this.curr_speech)]));
+
+        var arr = command.split(" ");
+        var num_to_delete = 0;
+        /* if only "backspace" is said */
+        if (arr.length == 1) num_to_delete = 1;
+        else {
+            var number = arr[1];
+            /* check if it is parseable */
+            if (!isNaN(Number(number))) num_to_delete = parseInt(arr[1]);
+        }
+
+        while (num_to_delete > 0) {
+            var latest_speech_input = this.curr_speech[this.curr_speech.length-1];
+            var temp = latest_speech_input.split(" ");
+            var count = (temp.length-num_to_delete >= 0) ? num_to_delete: temp.length;
             temp.splice(-count,count);
 
-            if (temp.length==0 || temp.join(" ")==" "){
-                this.curr_speech.splice(-1,1);
-            }
-            else{
-                this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
-            }
+            if (temp.length == 0 || temp.join(" ") == " ") this.curr_speech.splice(-1,1);
+            else this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
     
-            num_to_delete-=count;
+            num_to_delete -= count;
         }
-       
+
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([])) this.curr_speech = [""];  
     }
 
     /* look out for end branches */
@@ -276,7 +280,9 @@ export class StructCommandManager {
             var copiedStructCommand = this.deepCopyStructCommand();
             var copiedSpeechHist = this.deepCopySpeechHist();
             var oldIdx = this.curr_index;
-            this.edit_stack.push(new edit_stack_item(["release", copiedStructCommand, copiedSpeechHist, oldIdx, this.curr_speech, this.heldCommand, this.heldline]));
+            var oldCurrSpeech = this.deepCopyStringList(this.curr_speech);
+            var oldHeldCommand = this.deepCopyStringList(this.heldCommand);
+            this.edit_stack.push(new edit_stack_item(["release", copiedStructCommand, copiedSpeechHist, oldIdx, oldCurrSpeech, oldHeldCommand, this.heldline]));
         }
     }
 
@@ -459,6 +465,8 @@ export class StructCommandManager {
         else if (edit_item!=null && edit_item.type == "stay change") this.undoStayChange(edit_item);
         /* Perform undo of release command */
         else if (edit_item!=null && edit_item.type == "release") this.undoRelease(edit_item);
+
+        else if (edit_item!=null && edit_item.type == "backspace") this.undoBackspace(edit_item);
         
     }
     
@@ -552,6 +560,10 @@ export class StructCommandManager {
         this.curr_index = edit_item.OldIdx;
     }
 
+    undoBackspace(edit_item: edit_stack_item) {
+        this.curr_speech = edit_item.oldCurrSpeech;
+    }
+
     checkIfCanNav() {
         if (this.holding || JSON.stringify(this.curr_speech) != JSON.stringify([""])) {
             vscode.window.showInformationMessage("Cannot navigate in middle of construction.");
@@ -578,6 +590,15 @@ export class StructCommandManager {
             copiedSpeechHist.add_item(index, speech, 1);
         }
         return copiedSpeechHist;
+    }
+
+    deepCopyStringList(stringList: string[]) {
+        var copiedList = [];
+        for (var i = 0; i < stringList.length; i++) {
+            copiedList.push(stringList[i]);
+        }
+
+        return copiedList;
     }
 
     /* append speech hist every time a successful command is made. */

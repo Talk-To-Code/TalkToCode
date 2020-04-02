@@ -5,50 +5,53 @@ export function runTestCasesForC() {
 
     var test_cases = [[""], [""]];
 
-    test_cases = generate_test_cases_c("declare1");
+    test_cases = generate_test_cases_c("tester");
     runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("declare2");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("declare1");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("declare3");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("declare2");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("declare4");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("declare3");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("return1");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("declare4");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("assign1");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("return1");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("assign2");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("assign1");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("if_block1");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("assign2");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("if_block2");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("if_block1");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("for_loop");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("if_block2");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("create_function");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("for_loop");
+    // runTestCase(test_cases[0], test_cases[1], "c");
+
+    // test_cases = generate_test_cases_c("create_function");
+    // runTestCase(test_cases[0], test_cases[1], "c");
     
-    test_cases = generate_test_cases_c("while_loop");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("while_loop");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("do_while_loop");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("do_while_loop");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("switch_case");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("switch_case");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 
-    test_cases = generate_test_cases_c("structure");
-    runTestCase(test_cases[0], test_cases[1], "c");
+    // test_cases = generate_test_cases_c("structure");
+    // runTestCase(test_cases[0], test_cases[1], "c");
 }
 
 export function runTestCasesForPy() {
@@ -87,7 +90,7 @@ function generate_test_cases_c(cases: string) {
     var test_cases = [[""], [""]];
 
     if (cases == "tester") {
-        test_cases[0] = ["hello equals 5"];
+        test_cases[0] = ["declare int hello equal call function hello parameter test symbol point hello end function symbol point hello symbol point call function tester end function"];
 
         test_cases[1] = [""];
     }
@@ -322,7 +325,7 @@ function generate_test_cases_py(cases: string) {
 
 /* Run and compare my output and correct output using test cases. */
 function runTestCase(test_cases: string[], correct_output: string[], language: string) {
-    var test_manager = new StructCommandManager(language, false);
+    var test_manager = new StructCommandManager(language, true);
     var i;
     for (i = 0; i < test_cases.length; i++) {
         test_manager.parse_speech(test_cases[i], []);
