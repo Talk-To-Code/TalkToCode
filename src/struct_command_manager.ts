@@ -48,6 +48,8 @@ export class StructCommandManager {
 
     len_cursor: number;
 
+    count_lines: number[];
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -63,6 +65,7 @@ export class StructCommandManager {
         this.heldline = 0;
         this.justReleased = false;
         this.len_cursor = -1;
+        this.count_lines = [];
 
     }
 
@@ -81,6 +84,7 @@ export class StructCommandManager {
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
+        this.count_lines = countlines;
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
         var cleaned_speech = clean(transcribed_word);
         /* Check for undo or navigation command */
@@ -93,6 +97,7 @@ export class StructCommandManager {
         else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
         else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
+        else if (cleaned_speech.startsWith("scroll to top")) this.scrollToTopCommand();
 
         /* Normal process. */
         else {
@@ -342,6 +347,15 @@ export class StructCommandManager {
         console.log("ARR[0]: "+arr[0]);
         this.len_cursor+=(arr[0].length+1);
         console.log("FINALLY in RIGHT: "+this.len_cursor);
+    }
+
+    scrollToTopCommand(){
+        let editor = vscode.window.activeTextEditor;
+
+        if (editor){
+            let range = editor.document.lineAt(0).range;
+            editor.revealRange(range,0);
+        }
     }
 
     /* move up. */
