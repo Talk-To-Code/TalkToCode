@@ -40,8 +40,8 @@ public class PrefixPyTest extends TestCase {
 				count++;
 			}
 			inChannel.position(0);
-			parser = new ASTParser(in);
-			//ASTParser.ReInit(in);
+			//parser = new ASTParser(in);
+			ASTParser.ReInit(in);
 			count = 0;
 			while((temp=br.readLine())!=null){
 				expectedOutput.add(temp);

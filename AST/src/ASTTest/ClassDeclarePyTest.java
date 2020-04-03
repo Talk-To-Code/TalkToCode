@@ -26,8 +26,8 @@ public class ClassDeclarePyTest extends TestCase {
 			ArrayList<String> expectedOutput = new ArrayList<String>();
 			String temp;
 			int count = 0;
-			//parser = new ASTParser(in);
-			ASTParser.ReInit(in);
+			parser = new ASTParser(in);
+			//ASTParser.ReInit(in);
 			String currentTemp = "";
 			if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp + "\n");
 			while((temp=br.readLine())!=null){
