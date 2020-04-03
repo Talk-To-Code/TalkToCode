@@ -47,6 +47,8 @@ export class StructCommandManager {
 
     speech_len: number;
 
+    spelling: boolean;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -62,6 +64,7 @@ export class StructCommandManager {
         this.heldline = 0;
         this.justReleased = false;
         this.speech_len = -1;
+        this.spelling = false;
 
     }
 
@@ -77,26 +80,32 @@ export class StructCommandManager {
         this.heldCommand = [""];
         this.heldline = 0;
         this.justReleased = false;
+        this.spelling = false;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
-        var cleaned_speech = clean(transcribed_word);
+
         /* Check for undo or navigation command */
-        if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
-        else if (cleaned_speech == "exit block") this.exitBlockCommand();
-        else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
-        else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
-        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
-        else if (cleaned_speech.startsWith("release")) this.releaseCommand();
-        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
+        if (transcribed_word == "scratch that" || transcribed_word == "go back") this.scratchThatCommand();
+        else if (transcribed_word == "exit block") this.exitBlockCommand();
+        else if (transcribed_word == "go down" || transcribed_word == "move down") this.goDownCommand();
+        else if (transcribed_word == "go up" || transcribed_word == "move up") this.goUpCommand();
+        else if (transcribed_word.startsWith("stay")) this.holdCommand(transcribed_word, countlines);
+        else if (transcribed_word.startsWith("release")) this.releaseCommand();
+        else if (transcribed_word.startsWith("backspace")) this.backspaceCommand(transcribed_word);
 
         /* Normal process. */
         else {
-            this.edit_stack.push(new edit_stack_item(["non-edit"]))
+
+            if (transcribed_word.split(" ").includes("spell")) this.spelling = true;
+            var cleaned_speech = clean(transcribed_word, this.spelling);
+            if (cleaned_speech.split(" ").includes("end_spell")) this.spelling = false;
+
+            this.edit_stack.push(new edit_stack_item(["non-edit"]));
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
-            this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
+            this.curr_speech = this.curr_speech.filter(function(value) {
                 return value != "";
             });
             this.speech_hist.update_item(this.curr_index, this.curr_speech); /* Update speech hist. */
@@ -179,7 +188,17 @@ export class StructCommandManager {
         }
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
-            var speech = this.curr_speech.join(" ")
+            var speech = this.curr_speech.join(" ");
+            var temp = speech.split(" ");
+
+            if (speech.includes("spell") && speech.includes("end_spell")) {
+                
+                var spellIdx = temp.indexOf("spell");
+                var spellEndIdx = temp.indexOf("end_spell");
+
+                speech = temp.slice(0, spellIdx).join(" ").trim() + " " + temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + temp.slice(spellEndIdx + 1).join(" ").trim();
+                speech = speech.trim();
+            }
             var commented_speech = "#string \"" + speech + "\";;"
             if (!this.holding) this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
@@ -249,24 +268,34 @@ export class StructCommandManager {
                 }
                 /* it is a valid line. */
                 if (struct_line != -1 && struct_line < this.struct_command_list.length) {
-                    this.holding = true;
-                    var copiedStructCommand = this.deepCopyStructCommand();
-                    var copiedSpeechHist = this.deepCopySpeechHist();
-                    var oldIdx = this.curr_index;
-                    this.heldCommand = this.speech_hist.get_item(struct_line);
 
-                    /* if hold line on different line, have to change cursor location. */
-                    if (this.curr_index != struct_line) {
-                        /* remove old cursor position. */
-                        this.speech_hist.remove_item(this.curr_index, 1);
-                        this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
+                    if (struct_line == this.curr_index) {
+                        /* Perform basic hold */
+                        this.holding = true;
+                        this.heldline = countlines[this.curr_index];
+                        this.edit_stack.push(new edit_stack_item(["stay same"]));
                     }
-                    /* set new curr_index and remember held command. heldline is for extension.ts */
-                    this.curr_index = struct_line;
-                    this.curr_speech = this.heldCommand;
-                    this.heldline = line;
 
-                    this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
+                    else {
+                        this.holding = true;
+                        var copiedStructCommand = this.deepCopyStructCommand();
+                        var copiedSpeechHist = this.deepCopySpeechHist();
+                        var oldIdx = this.curr_index;
+                        this.heldCommand = this.speech_hist.get_item(struct_line);
+    
+                        /* if hold line on different line, have to change cursor location. */
+                        if (this.curr_index != struct_line) {
+                            /* remove old cursor position. */
+                            this.speech_hist.remove_item(this.curr_index, 1);
+                            this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
+                        }
+                        /* set new curr_index and remember held command. heldline is for extension.ts */
+                        this.curr_index = struct_line;
+                        this.curr_speech = this.heldCommand;
+                        this.heldline = line;
+    
+                        this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
+                    }
                 }
             }
         }

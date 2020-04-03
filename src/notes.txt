@@ -134,6 +134,9 @@ error when variable name is an integer. fix it later.
 
 the way replace is done is wrong. do it in parse statement
 
+can just use condition to display the spellings correctly. 
+
+when u undo "spell", this.spelling is still true. goota fix that
 
 
 

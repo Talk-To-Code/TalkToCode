@@ -246,7 +246,18 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 		for (var i = 0; i < line.length; i++) {
 			if (line[i] == "\t") numTabs += "\t";
 		}
-		code_segments.splice(manager.heldline - 1, 1, numTabs + manager.curr_speech.join(" ") + " *stay");
+
+		var speech = manager.curr_speech.join(" ");
+		var temp = speech.split(" ");
+		if (speech.includes("spell") && speech.includes("end_spell")) {
+			var spellIdx = temp.indexOf("spell");
+			var spellEndIdx = temp.indexOf("end_spell");
+			speech = temp.slice(0, spellIdx).join(" ").trim() + " " + 
+			temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + 
+			temp.slice(spellEndIdx + 1).join(" ").trim();
+		}
+
+		code_segments.splice(manager.heldline - 1, 1, numTabs + speech + " *stay");
 		code = code_segments.join("\n");
 		cursor_pos = manager.heldline - 1;
 	}
