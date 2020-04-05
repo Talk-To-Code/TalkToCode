@@ -50,6 +50,8 @@ export class StructCommandManager {
 
     count_lines: number[];
 
+    scroll_position: number;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -66,6 +68,7 @@ export class StructCommandManager {
         this.justReleased = false;
         this.len_cursor = -1;
         this.count_lines = [];
+        this.scroll_position = -1;
 
     }
 
@@ -81,6 +84,9 @@ export class StructCommandManager {
         this.heldCommand = [""];
         this.heldline = 0;
         this.justReleased = false;
+        this.len_cursor = -1;
+        this.count_lines = [];
+        this.scroll_position = -1;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
@@ -97,7 +103,8 @@ export class StructCommandManager {
         else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
         else if (cleaned_speech.startsWith("release")) this.releaseCommand();
         else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
-        else if (cleaned_speech.startsWith("scroll to top")) this.scrollToTopCommand();
+        else if (cleaned_speech.startsWith("scroll up")) this.scrollUpCommand();
+        else if (cleaned_speech.startsWith("scroll down")) this.scrollDownCommand();
 
         /* Normal process. */
         else {
@@ -349,13 +356,14 @@ export class StructCommandManager {
         console.log("FINALLY in RIGHT: "+this.len_cursor);
     }
 
-    scrollToTopCommand(){
-        let editor = vscode.window.activeTextEditor;
+    /* Scroll up by one window*/
+    scrollUpCommand(){
+        vscode.commands.executeCommand('editorScroll',{to: 'up', by: 'page', revealCursor: false});
+    }
 
-        if (editor){
-            let range = editor.document.lineAt(0).range;
-            editor.revealRange(range,0);
-        }
+    /* Scroll down by one window */
+    scrollDownCommand(){
+        vscode.commands.executeCommand('editorScroll',{to: 'down', by: 'page', revealCursor: false})
     }
 
     /* move up. */
