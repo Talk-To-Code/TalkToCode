@@ -50,6 +50,8 @@ export class StructCommandManager {
 
     count_lines: number[];
 
+    speech_len: number;
+
     spelling: boolean;
 
     constructor(language: string, debugMode: boolean) {
@@ -96,17 +98,17 @@ export class StructCommandManager {
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
 
         /* Check for undo or navigation command */
-        if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
-        else if (cleaned_speech == "exit block") this.exitBlockCommand();
-        else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
-        else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
-        else if (cleaned_speech=="move left"|| cleaned_speech =="go left") this.goLeftCommand();
-        else if (cleaned_speech=="move right"|| cleaned_speech =="go right") this.goRightCommand();
-        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
-        else if (cleaned_speech.startsWith("release")) this.releaseCommand();
-        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
-        else if (cleaned_speech.startsWith("scroll up")) this.scrollUpCommand();
-        else if (cleaned_speech.startsWith("scroll down")) this.scrollDownCommand();
+        if (transcribed_word == "scratch that" || transcribed_word == "go back") this.scratchThatCommand();
+        else if (transcribed_word == "exit block") this.exitBlockCommand();
+        else if (transcribed_word == "go down" || transcribed_word == "move down") this.goDownCommand();
+        else if (transcribed_word == "go up" || transcribed_word == "move up") this.goUpCommand();
+        else if (transcribed_word=="move left"|| transcribed_word =="go left") this.goLeftCommand();
+        else if (transcribed_word=="move right"|| transcribed_word =="go right") this.goRightCommand();
+        else if (transcribed_word.startsWith("stay")) this.holdCommand(transcribed_word, countlines);
+        else if (transcribed_word.startsWith("release")) this.releaseCommand();
+        else if (transcribed_word.startsWith("backspace")) this.backspaceCommand(transcribed_word);
+        else if (transcribed_word.startsWith("scroll up")) this.scrollUpCommand();
+        else if (transcribed_word.startsWith("scroll down")) this.scrollDownCommand();
 
 
         /* Normal process. */

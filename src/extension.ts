@@ -48,8 +48,8 @@ export function activate(context: vscode.ExtensionContext) {
 		listen();
 		//runEditTests();
 		// test_function();
-		runTestCasesForC();
-		runTestCasesForPy();
+		//runTestCasesForC();
+		//runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
