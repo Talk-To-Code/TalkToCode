@@ -25,6 +25,8 @@ var cwd = "";
 var ast_cwd = "";
 var cred = "";
 
+var datatypes = ["int", "float", "long", "double", "char"];
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -38,17 +40,16 @@ export function activate(context: vscode.ExtensionContext) {
 	// The commandId parameter must match the command field in package.json
 	let disposable = vscode.commands.registerCommand('extension.helloWorld', () => {
 		// The code you place here will be executed every time your command is executed
-
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		listen();
+		// listen();
 		// runEditTests();
 		// test_function();
-		// runTestCasesForC();
-		// runTestCasesForPy();
+		runTestCasesForC();
+		runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -141,17 +142,43 @@ function displayCode(struct_command_list: string[]) {
 	});
 }
 
-function checkIfFunctionPrototype(text1: string, text2: string){
-	if (text2.endsWith(";")){
-		text2 = text2.substring(0,text2.length-1); 
-	} 
+/* text2 - function prototype, text1 - actual function
+Conditions for a function prototype and function:
+- one ends with ";", the other ends with "{"
+- both start with same data type value
+- function name has to be the same
 
-	if (text1.indexOf(text2)!=-1){
-		return true;
-	}
+Only function declarations end with "{" and begins with a datatype value
+statements that end with ";" and begin with datatype are declaration statements.  However, they do not
+include "(" in the second word.
+*/
+function checkIfFunctionPrototype(text1: string, text2: string){
+	if (!text2.endsWith(";")) return false;
+	if (!text1.endsWith("{")) return false;
+
+	/* Not needed because blank lines should alr be caught before entering this function call.
+	Just as a precaution. */
+	if (text1.length < 2 || text2.length < 2) return false;
+
+	text2 = text2.substring(0,text2.length-1);
+	text1 = text1.substring(0,text1.length-1);
+	text2 = text2.replace(/  +/g, ' ');
+	text1 = text1.replace(/  +/g, ' ');
+
+	/* Convert text1 to function prototype for comparision */
+	var splitted_text1 = text1.split(" ");
+	var splitted_text2 = text2.split(" ");
+
+	if (splitted_text1.length < 2 || splitted_text2.length < 2) return false;
+	if (!datatypes.includes(splitted_text1[0]) || !datatypes.includes(splitted_text2[0])) return false;
+	if (!splitted_text1[1].includes("(") || !splitted_text2[1].includes("(")) return false;
+	if (splitted_text1[0] != splitted_text2[0]) return false;
+	if (splitted_text1[1] != splitted_text2[1]) return false;
+	else return true;
 }
 
 function map_lines_to_code(struct_command_list: string[]){
+	console.log(JSON.stringify(code_segments));
 	cursor_pos = 0;
 	count_lines = [];
 	var count =0;
@@ -162,7 +189,6 @@ function map_lines_to_code(struct_command_list: string[]){
 		includeStatement = false;
 		code_segments[i] = code_segments[i].trim();
 		if (code_segments[i].startsWith("#include") || code_segments[i].startsWith("import")) includeStatement = true;
-
 		if (includeStatement || code_segments[i] == "\r" || code_segments[i] == "" || code_segments[i] == "\t" || code_segments[i]=="*/"|| code_segments[i]=="/*") {
 			count++;
 			/* Because cursor position is a blank line in the code so this if-block to detect blank lines is used. 
@@ -220,7 +246,18 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 		for (var i = 0; i < line.length; i++) {
 			if (line[i] == "\t") numTabs += "\t";
 		}
-		code_segments.splice(manager.heldline - 1, 1, numTabs + manager.curr_speech.join(" ") + " *stay");
+
+		var speech = manager.curr_speech.join(" ");
+		var temp = speech.split(" ");
+		if (speech.includes("spell") && speech.includes("end_spell")) {
+			var spellIdx = temp.indexOf("spell");
+			var spellEndIdx = temp.indexOf("end_spell");
+			speech = temp.slice(0, spellIdx).join(" ").trim() + " " + 
+			temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + 
+			temp.slice(spellEndIdx + 1).join(" ").trim();
+		}
+
+		code_segments.splice(manager.heldline - 1, 1, numTabs + speech + " *stay");
 		code = code_segments.join("\n");
 		cursor_pos = manager.heldline - 1;
 	}
