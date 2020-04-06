@@ -68,6 +68,7 @@ export class EditCommandManager {
             if (index!=-1){
                 this.manager.splice(index,1);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -102,7 +103,6 @@ export class EditCommandManager {
                     if (countNestedFunctions==0) end = i;
                 }
             }
-            console.log("START: "+start+" END: "+end);
             this.manager.splice(start,(end-start)+1);
         } 
     }
@@ -145,6 +145,7 @@ export class EditCommandManager {
                 this.push_to_edit_stack();
                 this.manager.struct_command_list[index] = start_comment + this.manager.struct_command_list[index] + end_comment;
             }
+            else this.show_no_index_message(line_num);
         }      
     }
 
@@ -253,7 +254,7 @@ export class EditCommandManager {
                 index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
             }
             if (index==-1){
-                vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                this.show_no_index_message(line_num);
                 return;
             }
             this.push_to_edit_stack();
@@ -280,6 +281,7 @@ export class EditCommandManager {
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
                 this.manager.splice(index,1);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -295,6 +297,7 @@ export class EditCommandManager {
             if (index!=-1){
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -369,7 +372,7 @@ export class EditCommandManager {
                     index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
                 }
                 if (index==-1){
-                    vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                    this.show_no_index_message(line_num);
                     return;
                 }
                 this.push_to_edit_stack();
@@ -418,6 +421,7 @@ export class EditCommandManager {
                 this.push_to_edit_stack();
                 this.manager.struct_command_list[index] = this.manager.struct_command_list[index].substring(start_comment.length,this.manager.struct_command_list[index].length-end_comment.length);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -476,6 +480,10 @@ export class EditCommandManager {
             var data_type = arr[4];
             var line_num = parseInt(arr[7]);
             var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
+            if (index==-1){
+                this.show_no_index_message(line_num);
+                return;
+            }
             var phrase = "#variable "+variable_name;
             var substring_index = this.manager.struct_command_list[index].indexOf(phrase);
             if (substring_index!=-1){
@@ -639,6 +647,10 @@ resolve_block_name(text: string){
         if (block_name =="if") block_name_end = "#if_branch_end";
     }
     return {block_name,block_name_end};
+}
+
+show_no_index_message(line: number){
+    vscode.window.showInformationMessage("Sorry! No code on line "+line+". Please provide a line number that has code.")
 }
 
 
