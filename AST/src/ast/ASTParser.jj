@@ -411,7 +411,7 @@ ASTExpressionUnitPointer pointer(programType pType) :
           ((ASTFunctionC) result).addParameter(type, id);
         }
       )    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {
-      if (!s.toSyntax().equals("\n"))
+      if (!s.toSyntax().equals("\n") || s instanceof ASTDebugStatement)
       {
         result.addStatement(s);      	//System.out.println(s.toSyntax());
       }    }  )*  < FUNCTION_END > < TERMINATOR >  {    return result;  }}ASTIfStatement if_statement(ASTNode parent, programType pType, int indent) :{  ASTExpression condition;
@@ -548,7 +548,7 @@ ASTForStatementP forStatementP(programType pType, int indent) :
   < CONDITION > exp = expression(pType)  {    ASTDoWhileStatement result = new ASTDoWhileStatement(exp);    result.addParent(parent);
     result.setIndent(indent);    //System.out.println(exp.toSyntax());  }  < WHILE_START >  (    temp = statement(result, pType, indent+1)    {      result.addStatement(temp);      //System.out.println(temp.toSyntax());    }  )*  < WHILE_END > < TERMINATOR >  {    return result;  }}ASTSwitchStatement switchStatement(ASTNode parent, programType pType, int indent) :{  ASTExpression condition;  ASTExpression case_condition;  ASTStatement temp;}{  < SWITCH > < CONDITION > condition = expression(pType)  {
     if (pType == programType.P) throw new ParseException("Not supported in Python!\n");    ASTSwitchStatement result = new ASTSwitchStatement(condition);    result.addParent(parent);
-    result.setIndent(indent);    //System.out.println(condition.toSyntax());  }  (    < CASE > case_condition = expression(pType)    {      result.addCase(case_condition);      //System.out.println(case_condition.toSyntax());    }    < CASE_START >    (      temp = statement(result, pType, indent+1)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )*  (    < _DEFAULT >    {      result.addDefault();    }    < CASE_START >    (      temp = statement(result, pType, indent+1)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )?  < TERMINATOR >  {    return result;  }}
+    result.setIndent(indent);    //System.out.println(condition.toSyntax());  }  (    < CASE > case_condition = expression(pType)    {      result.addCase(case_condition);      //System.out.println(case_condition.toSyntax());    }    < CASE_START >    (      temp = statement(result, pType, indent+1)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )*  (    < _DEFAULT >    {      result.addDefault();    }    < CASE_START >    (      temp = statement(result, pType, indent+1)      {        result.addStatement(temp);        //System.out.println(temp.toSyntax());      }    )*    < CASE_END >  )?  < SWITCH_END >< TERMINATOR >  {    return result;  }}
 
 ASTComment comment(ASTNode parent, programType pType, int indent) :
 {

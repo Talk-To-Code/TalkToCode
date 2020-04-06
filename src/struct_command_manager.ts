@@ -6,8 +6,8 @@ import { join } from 'path';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
-                    "#class_end;;", "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
-                    "#case_end", "#function_end", "#catch_end", "#finally_end", "#class_end"];
+                    "#class_end;;", "#struct_end;;", "#if_branch_end", "#elseIf_branch_end", "#else_branch_end", "#for_end", "#while_end", 
+                    "#case_end", "#function_end", "#catch_end", "#finally_end", "#class_end", "#struct_end"];
 
 var start_branches = ["#if_branch_start", "elseIf_branch_start", "#else_branch_start", "#for_start", "#while_start", "#case_start", 
                     "#function_start", "catch #catch_start", "switch", "try", "finally"];
@@ -50,7 +50,7 @@ export class StructCommandManager {
 
     count_lines: number[];
 
-    scroll_position: number;
+    spelling: boolean;
 
     constructor(language: string, debugMode: boolean) {
         this.language = language;
@@ -68,7 +68,8 @@ export class StructCommandManager {
         this.justReleased = false;
         this.len_cursor = -1;
         this.count_lines = [];
-        this.scroll_position = -1;
+        this.speech_len = -1;
+        this.spelling = false;
 
     }
 
@@ -86,13 +87,14 @@ export class StructCommandManager {
         this.justReleased = false;
         this.len_cursor = -1;
         this.count_lines = [];
-        this.scroll_position = -1;
+
+        this.spelling = false;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
         this.count_lines = countlines;
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
-        var cleaned_speech = clean(transcribed_word);
+
         /* Check for undo or navigation command */
         if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
         else if (cleaned_speech == "exit block") this.exitBlockCommand();
@@ -106,12 +108,18 @@ export class StructCommandManager {
         else if (cleaned_speech.startsWith("scroll up")) this.scrollUpCommand();
         else if (cleaned_speech.startsWith("scroll down")) this.scrollDownCommand();
 
+
         /* Normal process. */
         else {
-            this.edit_stack.push(new edit_stack_item(["non-edit"]))
+
+            if (transcribed_word.split(" ").includes("spell")) this.spelling = true;
+            var cleaned_speech = clean(transcribed_word, this.spelling);
+            if (cleaned_speech.split(" ").includes("end_spell")) this.spelling = false;
+
+            this.edit_stack.push(new edit_stack_item(["non-edit"]));
             this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
-            this.curr_speech = this.curr_speech.filter(function(value, index, arr) {
+            this.curr_speech = this.curr_speech.filter(function(value) {
                 return value != "";
             });
             this.speech_hist.update_item(this.curr_index, this.curr_speech); /* Update speech hist. */
@@ -194,7 +202,17 @@ export class StructCommandManager {
         }
         /* Not ready to parse, add normal speech to struct_command_list */
         else {
-            var speech = this.curr_speech.join(" ")
+            var speech = this.curr_speech.join(" ");
+            var temp = speech.split(" ");
+
+            if (speech.includes("spell") && speech.includes("end_spell")) {
+                
+                var spellIdx = temp.indexOf("spell");
+                var spellEndIdx = temp.indexOf("end_spell");
+
+                speech = temp.slice(0, spellIdx).join(" ").trim() + " " + temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + temp.slice(spellEndIdx + 1).join(" ").trim();
+                speech = speech.trim();
+            }
             var commented_speech = "#string \"" + speech + "\";;"
             if (!this.holding) this.struct_command_list.splice(this.curr_index, 1, commented_speech);
             /* Display to user what the error message is. */
@@ -203,33 +221,37 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
-        vscode.window.showInformationMessage("COMMAND SAID: "+command);
-        var arr = command.split(" ");
-        var num_to_delete = parseInt(arr[1]);
-        
-        var temp = this.curr_speech.join(" ").split(" ");
-        for (var i=1;i<=num_to_delete;i++){
-            temp.splice(temp.length-i,1);
+        /* nothing to backspace */
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
+            console.log("Nothing to backspace");
+            return;
         }
-        var commented_speech = "#string \"" + temp.join(" ")+"\";;"
-        this.struct_command_list.splice(this.curr_index,1,commented_speech);
 
-        while(num_to_delete>0){
-            var temp_speech = this.curr_speech[this.curr_speech.length-1];
-            temp = temp_speech.split(" ");
-            var count = (temp.length-num_to_delete>=0)?num_to_delete: temp.length;
+        this.edit_stack.push(new edit_stack_item(["backspace", this.deepCopyStringList(this.curr_speech)]));
+
+        var arr = command.split(" ");
+        var num_to_delete = 0;
+        /* if only "backspace" is said */
+        if (arr.length == 1) num_to_delete = 1;
+        else {
+            var number = arr[1];
+            /* check if it is parseable */
+            if (!isNaN(Number(number))) num_to_delete = parseInt(arr[1]);
+        }
+
+        while (num_to_delete > 0) {
+            var latest_speech_input = this.curr_speech[this.curr_speech.length-1];
+            var temp = latest_speech_input.split(" ");
+            var count = (temp.length-num_to_delete >= 0) ? num_to_delete: temp.length;
             temp.splice(-count,count);
 
-            if (temp.length==0 || temp.join(" ")==" "){
-                this.curr_speech.splice(-1,1);
-            }
-            else{
-                this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
-            }
+            if (temp.length == 0 || temp.join(" ") == " ") this.curr_speech.splice(-1,1);
+            else this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
     
-            num_to_delete-=count;
+            num_to_delete -= count;
         }
-       
+
+        if (JSON.stringify(this.curr_speech) == JSON.stringify([])) this.curr_speech = [""];  
     }
 
     /* look out for end branches */
@@ -259,24 +281,34 @@ export class StructCommandManager {
                 }
                 /* it is a valid line. */
                 if (struct_line != -1 && struct_line < this.struct_command_list.length) {
-                    this.holding = true;
-                    var copiedStructCommand = this.deepCopyStructCommand();
-                    var copiedSpeechHist = this.deepCopySpeechHist();
-                    var oldIdx = this.curr_index;
-                    this.heldCommand = this.speech_hist.get_item(struct_line);
 
-                    /* if hold line on different line, have to change cursor location. */
-                    if (this.curr_index != struct_line) {
-                        /* remove old cursor position. */
-                        this.speech_hist.remove_item(this.curr_index, 1);
-                        this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
+                    if (struct_line == this.curr_index) {
+                        /* Perform basic hold */
+                        this.holding = true;
+                        this.heldline = countlines[this.curr_index];
+                        this.edit_stack.push(new edit_stack_item(["stay same"]));
                     }
-                    /* set new curr_index and remember held command. heldline is for extension.ts */
-                    this.curr_index = struct_line;
-                    this.curr_speech = this.heldCommand;
-                    this.heldline = line;
 
-                    this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
+                    else {
+                        this.holding = true;
+                        var copiedStructCommand = this.deepCopyStructCommand();
+                        var copiedSpeechHist = this.deepCopySpeechHist();
+                        var oldIdx = this.curr_index;
+                        this.heldCommand = this.speech_hist.get_item(struct_line);
+    
+                        /* if hold line on different line, have to change cursor location. */
+                        if (this.curr_index != struct_line) {
+                            /* remove old cursor position. */
+                            this.speech_hist.remove_item(this.curr_index, 1);
+                            this.struct_command_list.splice(this.curr_index, 1); /* remove old cursor position */
+                        }
+                        /* set new curr_index and remember held command. heldline is for extension.ts */
+                        this.curr_index = struct_line;
+                        this.curr_speech = this.heldCommand;
+                        this.heldline = line;
+    
+                        this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
+                    }
                 }
             }
         }
@@ -290,7 +322,9 @@ export class StructCommandManager {
             var copiedStructCommand = this.deepCopyStructCommand();
             var copiedSpeechHist = this.deepCopySpeechHist();
             var oldIdx = this.curr_index;
-            this.edit_stack.push(new edit_stack_item(["release", copiedStructCommand, copiedSpeechHist, oldIdx, this.curr_speech, this.heldCommand, this.heldline]));
+            var oldCurrSpeech = this.deepCopyStringList(this.curr_speech);
+            var oldHeldCommand = this.deepCopyStringList(this.heldCommand);
+            this.edit_stack.push(new edit_stack_item(["release", copiedStructCommand, copiedSpeechHist, oldIdx, oldCurrSpeech, oldHeldCommand, this.heldline]));
         }
     }
 
@@ -452,11 +486,9 @@ export class StructCommandManager {
 
             /* If curr speech is empty. e.g. just enterd new line. */
             if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
-
                 /* Amount from the struct command list to remove. There is a difference for undoing a block command
                 and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
                 var amountToSplice = 0;
-
                 /* Case 1: Entered new line after finishing a block */
                 // Check if there is start branch just before this one.
                 if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x)))
@@ -485,7 +517,6 @@ export class StructCommandManager {
             }
             /* User made a mistake during curr speech */
             else {
-                console.log("user made a mistake during curr speech");
                 /* Remove latest speech input. */
                 if (this.speech_hist.get_item(this.curr_index).length == 1)
                     this.speech_hist.update_item(this.curr_index, [""]);
@@ -495,7 +526,9 @@ export class StructCommandManager {
 
                 /* Remove latest struct command. It will be updated by updateStructCommand later. */
                 this.struct_command_list.splice(this.curr_index, 1, cursor_struct);
-            }   
+            }
+            /* check if "spell" still within the curr_speech */
+            if (!this.curr_speech.join(" ").includes("spell")) this.spelling = false;
         }
 
         /* Perform enter block */
@@ -511,6 +544,8 @@ export class StructCommandManager {
         else if (edit_item!=null && edit_item.type == "stay change") this.undoStayChange(edit_item);
         /* Perform undo of release command */
         else if (edit_item!=null && edit_item.type == "release") this.undoRelease(edit_item);
+
+        else if (edit_item!=null && edit_item.type == "backspace") this.undoBackspace(edit_item);
         
     }
     
@@ -604,6 +639,10 @@ export class StructCommandManager {
         this.curr_index = edit_item.OldIdx;
     }
 
+    undoBackspace(edit_item: edit_stack_item) {
+        this.curr_speech = edit_item.oldCurrSpeech;
+    }
+
     checkIfCanNav() {
         if (this.holding || JSON.stringify(this.curr_speech) != JSON.stringify([""])) {
             vscode.window.showInformationMessage("Cannot navigate in middle of construction.");
@@ -630,6 +669,15 @@ export class StructCommandManager {
             copiedSpeechHist.add_item(index, speech, 1);
         }
         return copiedSpeechHist;
+    }
+
+    deepCopyStringList(stringList: string[]) {
+        var copiedList = [];
+        for (var i = 0; i < stringList.length; i++) {
+            copiedList.push(stringList[i]);
+        }
+
+        return copiedList;
     }
 
     /* append speech hist every time a successful command is made. */

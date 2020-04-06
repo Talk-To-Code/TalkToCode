@@ -142,6 +142,10 @@ export class edit_stack_item {
             this.oldHeldCommand = type[5];
             this.oldHeldLine = type[6];
         }
+
+        else if (type[0] == "backspace") {
+            this.oldCurrSpeech = type[1];
+        }
     }
 }
 

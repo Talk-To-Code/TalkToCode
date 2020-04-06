@@ -4,7 +4,7 @@
 */
 
 // export function correct_words
-export function clean(input_speech: string) {
+export function clean(input_speech: string, spelling: boolean) {
     input_speech = input_speech.toLowerCase();
     input_speech = spellOutArithmeticOperator(input_speech);
     input_speech = fix_common_errors(input_speech);
@@ -12,6 +12,7 @@ export function clean(input_speech: string) {
     input_speech = word_2_num(input_speech);
     input_speech = find_symbol(input_speech);
 
+    if (spelling) input_speech = spellingFunction(input_speech);
     return input_speech;
 }
 
@@ -19,8 +20,10 @@ export function clean(input_speech: string) {
 function fix_common_errors(text: string) {
     text = text.replace(/equals/g, 'equal');
     text = text.replace('eko', 'equal');
+    text = text.replace('creates', 'create');
     text = text.replace('and declare', 'end declare');
     text = text.replace('and function', 'end function');
+    text = text.replace('and string', 'end string');
     text = text.replace('begin is', 'begin if');
 
     /* line errors */
@@ -95,4 +98,49 @@ function word_2_num(text: string) {
     text = text.replace('ten', '10');
 
     return text;
+}
+
+function spellingFunction(text: string) {
+
+    console.log("soelling")
+
+    text = text.replace("and spell", "end_spell");
+    text = text.replace("n spell", "end_spell");
+    text = text.replace("end spell", "end_spell");
+
+    var splitted_text = text.split(" ");
+
+    var startPoint = 0;
+    var newText = "";
+
+    if (splitted_text.includes("spell")) {
+        startPoint = splitted_text.indexOf("spell") + 1;
+        newText = "spell";
+    }
+
+    /* make sure spell is not last word */
+    if (startPoint == splitted_text.length) return text;
+    
+    var stopSpelling = false;
+    for (var i = startPoint; i < splitted_text.length; i++) {
+
+        if (splitted_text[i] == "end_spell") {
+            stopSpelling = true;
+            newText += " end_spell";
+            continue;
+        }
+
+        else if (!stopSpelling) {
+            if (splitted_text[i].length > 1) {
+                if (splitted_text[i] == "zach" || splitted_text[i] == "zack") splitted_text[i] = "z";
+                if (splitted_text[i] == "the") splitted_text[i] = "d";
+                if (splitted_text[i] == "bee") splitted_text[i] = "b";
+                if (splitted_text[i] == "pee") splitted_text[i] = "p";
+            }
+            newText += " " + splitted_text[i].split("").join(" ");
+        }
+        else newText += " " + splitted_text[i];
+    }
+
+    return newText.replace(/  +/g, ' ').trim();
 }

@@ -126,4 +126,13 @@ add testing for pointers
 
 declare float literal
 
-maybe add a spelling command.
+error when stay from the start
+
+error when variable name is an integer. fix it later.
+
+the way replace is done is wrong. do it in parse statement
+
+
+
+
+

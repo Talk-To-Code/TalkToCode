@@ -5,6 +5,9 @@ export function runTestCasesForC() {
 
     var test_cases = [[""], [""]];
 
+    test_cases = generate_test_cases_c("tester");
+    runTestCase(test_cases[0], test_cases[1], "c");
+
     test_cases = generate_test_cases_c("declare1");
     runTestCase(test_cases[0], test_cases[1], "c");
 
@@ -49,6 +52,9 @@ export function runTestCasesForC() {
 
     test_cases = generate_test_cases_c("structure");
     runTestCase(test_cases[0], test_cases[1], "c");
+
+    test_cases = generate_test_cases_c("complex_fragments");
+    runTestCase(test_cases[0], test_cases[1], "c");
 }
 
 export function runTestCasesForPy() {
@@ -77,7 +83,7 @@ export function runTestCasesForPy() {
 }
 
 export function test_function() {
-    var test_fragment = "declare int hello world equal 7 < 6";
+    var test_fragment = "declare integer hello";
     console.log(parse_statement(test_fragment, "normal", "c"));
 }
 
@@ -87,7 +93,7 @@ function generate_test_cases_c(cases: string) {
     var test_cases = [[""], [""]];
 
     if (cases == "tester") {
-        test_cases[0] = ["hello equals 5"];
+        test_cases[0] = ["hello array index 2 equals call function hello parameter 1 parameter call function hello world end function end function"];
 
         test_cases[1] = [""];
     }
@@ -241,9 +247,27 @@ function generate_test_cases_c(cases: string) {
     else if (cases == "structure") {
         test_cases[0] = ["create structure greeting", "declare integer hello", "declare integer goodbye", "exit block"];
 
-        test_cases[1] = ["#struct_declare greeting #struct_start",
-        "#create int #variable hello #dec_end;;",
-        "#create int #variable goodbye #dec_end;;","#string \"\";;","#struct_end;;"];
+        test_cases[1] = ["#struct_declare greeting #struct_start","#create int #variable hello #dec_end;;",
+        "#create int #variable goodbye #dec_end;;","#struct_end;;","#string \"\";;"];
+    }
+
+    else if (cases == "complex_fragments") {
+        test_cases[0] = ["hello equal call function testing end function symbol point call function hello end function",
+        "hello equal call function testing parameter call function testing end function end function",
+        "hello equal call function testerer parameter call function testing parameter call function tested end function end function end function",
+        "hello equal call function testerer parameter call function testing parameter call function tested end function end function parameter call function hello end function end function",
+        "hello equal call function testing parameter call function testing end function parameter 5 end function",
+        "hello equal call function testing parameter call function testing end function symbol point testing end function",
+        "hello equal call function testing parameter call function testing end function symbol point call function testing end function end function"];
+
+        test_cases[1] = ["#assign #variable hello #with #access #function testing() #function hello() #access_end;;",
+        "#assign #variable hello #with #function testing( #parameter #function testing());;",
+        "#assign #variable hello #with #function testerer( #parameter #function testing( #parameter #function tested()));;",
+        "#assign #variable hello #with #function testerer( #parameter #function testing( #parameter #function tested()) #parameter #function hello());;",
+        "#assign #variable hello #with #function testing( #parameter #function testing() #parameter #value 5);;",
+        "#assign #variable hello #with #function testing( #parameter #access #function testing() #variable testing #access_end);;",
+        "#assign #variable hello #with #function testing( #parameter #access #function testing() #function testing() #access_end);;",
+        "#string \"\";;"];
     }
 
     return test_cases
