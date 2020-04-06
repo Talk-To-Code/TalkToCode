@@ -435,11 +435,9 @@ export class StructCommandManager {
 
             /* If curr speech is empty. e.g. just enterd new line. */
             if (JSON.stringify(this.curr_speech) == JSON.stringify([""]) || JSON.stringify(this.curr_speech) == JSON.stringify([])) {
-
                 /* Amount from the struct command list to remove. There is a difference for undoing a block command
                 and a statement command as a block command also creates an additional "end_branch" struct commmand.*/
                 var amountToSplice = 0;
-
                 /* Case 1: Entered new line after finishing a block */
                 // Check if there is start branch just before this one.
                 if (this.struct_command_list[this.curr_index-1].split(" ").some(x=>start_branches.includes(x)))
@@ -468,7 +466,6 @@ export class StructCommandManager {
             }
             /* User made a mistake during curr speech */
             else {
-                console.log("user made a mistake during curr speech");
                 /* Remove latest speech input. */
                 if (this.speech_hist.get_item(this.curr_index).length == 1)
                     this.speech_hist.update_item(this.curr_index, [""]);
@@ -478,7 +475,9 @@ export class StructCommandManager {
 
                 /* Remove latest struct command. It will be updated by updateStructCommand later. */
                 this.struct_command_list.splice(this.curr_index, 1, cursor_struct);
-            }   
+            }
+            /* check if "spell" still within the curr_speech */
+            if (!this.curr_speech.join(" ").includes("spell")) this.spelling = false;
         }
 
         /* Perform enter block */

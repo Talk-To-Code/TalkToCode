@@ -126,17 +126,11 @@ add testing for pointers
 
 declare float literal
 
-maybe add a spelling command. work for both alphabet and nato alphabet
-
 error when stay from the start
 
 error when variable name is an integer. fix it later.
 
 the way replace is done is wrong. do it in parse statement
-
-can just use condition to display the spellings correctly. 
-
-when u undo "spell", this.spelling is still true. goota fix that
 
 
 
