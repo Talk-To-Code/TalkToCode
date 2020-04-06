@@ -228,7 +228,7 @@ export class EditCommandManager {
                 let text = line.split(" ");
                 var changed = false;
                 for (var j=1;j<text.length;j++){
-                    if (text[j].startsWith(wordToReplace) && text[j-1]=="#variable"){
+                    if (text[j].startsWith(wordToReplace) && (text[j-1]=="#variable"|| text[j-1]=="(#variable")){
 
                         text[j] = text[j].replace(wordToReplace,replaceWith);
                         changed = true;

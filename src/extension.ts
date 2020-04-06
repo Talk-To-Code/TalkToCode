@@ -43,10 +43,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
-		// runEditTests();
+		listen();
+		//runEditTests();
 		// test_function();
 		runTestCasesForC();
 		runTestCasesForPy();
@@ -72,7 +72,7 @@ function initManager() {
 function listen() {
 	displayCode([""]);
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 

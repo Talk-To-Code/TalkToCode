@@ -2,6 +2,7 @@ import {get_struct} from './text2struct'
 import { clean } from './clean_text';
 import * as vscode from 'vscode';
 import { structCommand, speech_hist, edit_stack_item } from './struct_command';
+import { join } from 'path';
 
 var end_branches = ["#if_branch_end;;", "#elseIf_branch_end;;", "#else_branch_end;;", "#for_end;;", 
                     "#while_end;;", "#case_end;;", "#function_end;;", "#catch_end;;", "#finally_end;;", 
@@ -45,7 +46,9 @@ export class StructCommandManager {
 
     justReleased: boolean;
 
-    speech_len: number;
+    len_cursor: number;
+
+    count_lines: number[];
 
     spelling: boolean;
 
@@ -63,6 +66,8 @@ export class StructCommandManager {
         this.heldCommand = [""];
         this.heldline = 0;
         this.justReleased = false;
+        this.len_cursor = -1;
+        this.count_lines = [];
         this.speech_len = -1;
         this.spelling = false;
 
@@ -80,20 +85,29 @@ export class StructCommandManager {
         this.heldCommand = [""];
         this.heldline = 0;
         this.justReleased = false;
+        this.len_cursor = -1;
+        this.count_lines = [];
+
         this.spelling = false;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
+        this.count_lines = countlines;
         if (this.debugMode) console.log("####################### NEXT COMMAND #######################");
 
         /* Check for undo or navigation command */
-        if (transcribed_word == "scratch that" || transcribed_word == "go back") this.scratchThatCommand();
-        else if (transcribed_word == "exit block") this.exitBlockCommand();
-        else if (transcribed_word == "go down" || transcribed_word == "move down") this.goDownCommand();
-        else if (transcribed_word == "go up" || transcribed_word == "move up") this.goUpCommand();
-        else if (transcribed_word.startsWith("stay")) this.holdCommand(transcribed_word, countlines);
-        else if (transcribed_word.startsWith("release")) this.releaseCommand();
-        else if (transcribed_word.startsWith("backspace")) this.backspaceCommand(transcribed_word);
+        if (cleaned_speech == "scratch that" || cleaned_speech == "go back") this.scratchThatCommand();
+        else if (cleaned_speech == "exit block") this.exitBlockCommand();
+        else if (cleaned_speech == "go down" || cleaned_speech == "move down") this.goDownCommand();
+        else if (cleaned_speech == "go up" || cleaned_speech == "move up") this.goUpCommand();
+        else if (cleaned_speech=="move left"|| cleaned_speech =="go left") this.goLeftCommand();
+        else if (cleaned_speech=="move right"|| cleaned_speech =="go right") this.goRightCommand();
+        else if (cleaned_speech.startsWith("stay")) this.holdCommand(cleaned_speech, countlines);
+        else if (cleaned_speech.startsWith("release")) this.releaseCommand();
+        else if (cleaned_speech.startsWith("backspace")) this.backspaceCommand(cleaned_speech);
+        else if (cleaned_speech.startsWith("scroll up")) this.scrollUpCommand();
+        else if (cleaned_speech.startsWith("scroll down")) this.scrollDownCommand();
+
 
         /* Normal process. */
         else {
@@ -207,7 +221,6 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
-
         /* nothing to backspace */
         if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
             console.log("Nothing to backspace");
@@ -349,6 +362,44 @@ export class StructCommandManager {
             this.speech_hist.update_item(oldIdx, [""])
         }
     }
+
+    /* Move left */
+    goLeftCommand(){
+        console.log("iN GO LEFT: "+this.len_cursor);
+        if (this.len_cursor==0) return;
+        var joined_speech = this.curr_speech.join(" ").trim();
+        this.len_cursor = (this.len_cursor==-1)?joined_speech.length: this.len_cursor;
+        var temp = joined_speech.substring(0,this.len_cursor).trimRight();
+        var arr = temp.split(" ");
+        console.log("DEBUG IN LEFT: "+JSON.stringify(arr));
+        this.len_cursor-=(arr[arr.length-1].length+1);
+    }
+
+    /* Move right */
+    goRightCommand(){
+        console.log("iN GO RIGHT: "+this.len_cursor);
+        var joined_speech = this.curr_speech.join(" ");
+        console
+        this.len_cursor = (this.len_cursor==-1)?joined_speech.length: this.len_cursor;
+        if (this.len_cursor==joined_speech.length) return;
+        var temp = joined_speech.substring(this.len_cursor,joined_speech.length).trimLeft();
+        console.log("TEMP : "+temp);
+        var arr = temp.split(" ");
+        console.log("ARR[0]: "+arr[0]);
+        this.len_cursor+=(arr[0].length+1);
+        console.log("FINALLY in RIGHT: "+this.len_cursor);
+    }
+
+    /* Scroll up by one window*/
+    scrollUpCommand(){
+        vscode.commands.executeCommand('editorScroll',{to: 'up', by: 'page', revealCursor: false});
+    }
+
+    /* Scroll down by one window */
+    scrollDownCommand(){
+        vscode.commands.executeCommand('editorScroll',{to: 'down', by: 'page', revealCursor: false})
+    }
+
     /* move up. */
     goUpCommand() {
         var check = this.checkIfCanNav();
