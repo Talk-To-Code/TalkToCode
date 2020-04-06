@@ -38,6 +38,16 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         removePreviousStatement = true;
     }
 
+    if (input_speech.includes("spell")) {
+        var check = getSpelling(input_speech);
+        if (check[0] == "not ready") {
+            var rejectedStructCommand = new structCommand("non-block");
+            rejectedStructCommand.logError(check[1]);
+            return rejectedStructCommand;
+        }
+        else input_speech = check[1];
+    }
+
     input_speech = replace_infix_operators(input_speech);
 
     if (debugMode) console.log("text going in: " + input_speech);
@@ -156,4 +166,22 @@ function checkForNewFunction(struct_command: structCommand) {
         newFunction = struct_command.parsedCommand.split(" ")[1];
     }
     return newFunction;
+}
+
+function getSpelling(input_speech: string) {
+
+    if (!input_speech.includes("end_spell")) return ["not ready", "not done spelling"];
+
+    var temp = input_speech.split(" ");
+    var spellIdx = temp.indexOf("spell");
+    var spellEndIdx = temp.indexOf("end_spell");
+
+    if (spellIdx > spellEndIdx) return ["not ready", "wrong order"];
+
+    var spelledWord = temp.slice(spellIdx + 1, spellEndIdx);
+
+    if (spelledWord.length == 0) return ["not ready", "spelled word not mentioned"];
+
+    input_speech = (temp.slice(0, spellIdx).join(" ").trim() + " " + spelledWord.join("").trim() + " " + temp.slice(spellEndIdx+1).join(" ")).trim();
+    return ["ready", input_speech];
 }

@@ -614,30 +614,102 @@ function parse_fragment(splitted_text: string[]) {
         else return ["ready", "#variable " + splitted_text[0]];
     }
     /* Look out for "end function". */
-    else if (splitted_text[0] == "call") {
-        if (splitted_text[1] != "function") return ["not ready", "function not mentioned."];
-        /* Minimal format is "call function" <function name> "end function". */
-        if (splitted_text.length <= 4) return ["not ready", "no function name mentioned."];
-        if (splitted_text.slice(splitted_text.length-2).join(" ") != "end function")
-            return ["not ready", "end function not mentioned."];
+    else if (splitted_text[0].startsWith("call")) {
+        /* combine first "end function" seen into end_function */
+        splitted_text = splitted_text.join(" ").replace(/end function/g, "end_function").split(" ");
+        splitted_text = splitted_text.join(" ").replace(/call function/g, "call_function").split(" ");
+        if (splitted_text[0] != "call_function") return ["not ready", "function not mentioned."];
+        /* Minimal format is "call_function" <function name> "end_function". */
+        if (splitted_text.length <= 2) return ["not ready", "no function name mentioned."];
 
-        splitted_text.splice((splitted_text.length-2));
+        /* if receiving fragment call function <func name> end function . <var name>, end function 
+        will not be last words mentioned. Have to take care of "." scenarios. 
+        Take note that checking for "." within fragment BEFORE checking for "call function" is not the
+        solution. Think about corner case where call function parameter includes "." as well. */
+        
+        var secondFragment = [""]; /* in case there is a "." after "end function" */
+
+        /* check if splitted text includes "end function" */
+        if (splitted_text.join(" ").includes("end_function")) {
+            var callStack = 0;
+            var endFuncIdx = -1;
+            /* Find the correct end function */
+            for (var i = 0; i < splitted_text.length; i++) {
+                if (splitted_text[i] == "call_function") callStack += 1;
+                else if (splitted_text[i] == "end_function") {
+                    callStack -= 1;
+                    /* Found the end function */
+                    if (callStack == 0) {
+                        endFuncIdx = i;
+                        break;
+                    }
+                }
+            }
+            if (endFuncIdx == -1) return ["not ready", "call function and end function not balanced"];
+            /* if end_function is last word mentioned */
+            if (endFuncIdx == splitted_text.length - 1) splitted_text.splice((splitted_text.length-1));
+            /* scenario where received: call function <func name> end function . <complex fragment> */
+            else {
+                if (splitted_text[endFuncIdx+1] != ".") return ["not ready", "end function not last 2 words mentioned."];
+                if (splitted_text.length -1 < endFuncIdx + 2) return ["not ready", "nothing mentioned after \".\""];
+                secondFragment = splitted_text.slice(endFuncIdx+2); // store the second fragment
+                splitted_text.splice(endFuncIdx); // continue with parsing the call function
+            }
+        }
+        else return ["not ready", "end function not mentioned."];
 
         if (!splitted_text.includes("parameter")) {
             /* Not sure if the terminator should be there. since it will be used in assign statement as well.*/
-            var function_name = joinName(splitted_text.slice(2))
+            var function_name = joinName(splitted_text.slice(1))
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
-            return ["ready", "#function " + function_name + "()"];
+
+            var parsedFunction = "#function " + function_name + "()";
+            /* check if "." was present */
+            if (JSON.stringify(secondFragment) != JSON.stringify([""])) {
+                var toReturn = "#access " + parsedFunction;
+                var parsedSecondFragment: string[] = parse_fragment(secondFragment);
+                if (parsedSecondFragment[0] == "not ready") return ["not ready", "Error in fragment, " + parsedSecondFragment[1]];
+                if (parsedSecondFragment[1].startsWith("#access")) {
+                    /* remove #access and #access_end*/
+                    var temp = parsedSecondFragment[1].split(" ")
+                    parsedSecondFragment[1] = temp.slice(1, temp.length-1).join(" ");
+                }
+                toReturn += " " + parsedSecondFragment[1] + " #access_end";
+                return ["ready", toReturn];
+
+            }
+            else return ["ready", parsedFunction];
         }
         else {
-            /* There are parameters. */
-            var parameter_blocks = splitted_text.join(" ").split("parameter");
+            /* There are parameters. Make sure that parameter is not within another call function! */
+            var parameter_pos = []
+            var callStack = 0;
+            /* start i at 1 to ignore the first call_function. */
+            for (var i = 1; i < splitted_text.length; i++) {
+                if (splitted_text[i] == "call_function") callStack += 1;
+                else if (splitted_text[i] == "end_function") callStack -= 1;
+                else if (splitted_text[i] == "parameter" && callStack == 0) parameter_pos.push(i);
+            }
+            /* created the parameter blocks using the parameter pos */
+            var parameter_blocks = [];
+            var startPos = 0;
+            for (var i = 0; i < splitted_text.length; i++) {
+                if (parameter_pos.length != 0 && i == parameter_pos[0]) {
+                    parameter_blocks.push(splitted_text.slice(startPos, i).join(" "));
+                    startPos = i + 1;
+                    parameter_pos.splice(0, 1);
+                }
+                else if (i == splitted_text.length-1) {
+                    parameter_blocks.push(splitted_text.slice(startPos).join(" "));
+                }
+            }
             parameter_blocks = parameter_blocks.map(x=>x.trim());
-            var function_name = joinName(parameter_blocks[0].split(" ").slice(2));
+            var function_name = joinName(parameter_blocks[0].split(" ").slice(1));
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
             var parsed_result = "#function " + function_name + "(";
+
             for (var i = 1; i < parameter_blocks.length; i++) {
                 var fragment: string[] = parse_fragment(parameter_blocks[i].split(" "));
                 if (fragment[0] == "not ready") 
@@ -645,7 +717,23 @@ function parse_fragment(splitted_text: string[]) {
                 parsed_result += " #parameter " + fragment[1];
             }
             parsed_result += ")";
-            return ["ready", parsed_result];
+
+             /* check if "." was present */
+            if (JSON.stringify(secondFragment) != JSON.stringify([""])) {
+
+                var toReturn = "#access " + parsed_result;
+                var parsedSecondFragment: string[] = parse_fragment(secondFragment);
+                if (parsedSecondFragment[0] == "not ready") return ["not ready", "Error in fragment, " + parsedSecondFragment[1]];
+                if (parsedSecondFragment[1].startsWith("#access")) {
+                    /* remove #access and #access_end*/
+                    var temp = parsedSecondFragment[1].split(" ")
+                    parsedSecondFragment[1] = temp.slice(1, temp.length-1).join(" ");
+                }
+                toReturn += " " + parsedSecondFragment[1] + " #access_end";
+                return ["ready", toReturn];
+             }
+
+            else return ["ready", parsed_result];
         }
     }
 
@@ -658,9 +746,9 @@ function parse_fragment(splitted_text: string[]) {
 
         return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-1).join(" ") + "\""];
     }
-    // #access test #function getStuff() #access_end #dec_end;;
-    // #access test hello #access_end #dec_end;;
-    // #access test hello test hello #access_end #dec_end;;
+    // #access test #function getStuff() #access_end
+    // #access test hello #access_end
+    // #access test hello test hello #access_end
     else if (splitted_text.includes(".")) {
         var toReturn = "#access";
         if (splitted_text[0] == ".") return ["not ready", "dot at the start of the fragment."];

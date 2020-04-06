@@ -73,7 +73,7 @@ create_variable() :
 	< TERMINATOR >
 
 switchStatement() :
-	 < SWITCH > < CONDITION > expression() (< CASE > expression() < CASE_START > (statement())*< CASE_END >)* (< _DEFAULT >< CASE_START >< CASE_END >)?< TERMINATOR >
+	 < SWITCH > < CONDITION > expression() (< CASE > expression() < CASE_START > (statement())*< CASE_END >)* (< _DEFAULT >< CASE_START >< CASE_END >)?< SWITCH_END >< TERMINATOR >
 
 doWhileStatement() :
 	< DO > < CONDITION > exp = expression()< WHILE_START >(statement())*< WHILE_END > < TERMINATOR >
