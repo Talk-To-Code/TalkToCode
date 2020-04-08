@@ -23,7 +23,7 @@ Declaration: Python requires that variable be declared with something. Variable 
 */
 
 export function get_struct(input_speech_segments: string[], prev_input_speech: string, prev_struct_command: string,
-    language: string, debugMode: boolean, holding: boolean) {
+    language: string, debugMode: boolean, holding: boolean, variable_list: string[], function_list: string[]) {
     if (debugMode) {
         console.log("prev input speech: " + prev_input_speech)
         console.log("prev struct command: " + prev_struct_command)
@@ -51,7 +51,7 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     input_speech = replace_infix_operators(input_speech);
 
     if (debugMode) console.log("text going in: " + input_speech);
-    var struct_command = parse_command(input_speech, language);
+    var struct_command = parse_command(input_speech, language, variable_list, function_list);
     if (debugMode) console.log("segmented results: " + struct_command.parsedCommand);
 
     if (struct_command.hasError) {

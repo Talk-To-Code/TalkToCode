@@ -84,7 +84,7 @@ export function runTestCasesForPy() {
 
 export function test_function() {
     var test_fragment = "declare integer hello";
-    console.log(parse_statement(test_fragment, "normal", "c"));
+    console.log(parse_statement(test_fragment, "normal", "c", [""], [""]));
 }
 
 function generate_test_cases_c(cases: string) {

@@ -23,7 +23,7 @@ list of struct commands
 variable list
     list of new variables declared by the user. This is only updated when a declare command is given. */
 
-export function parse_command(text: string, language: string) {
+export function parse_command(text: string, language: string, variable_list: string[], function_list: string[]) {
     var starting_command = determine_user_command(text);
 
     /* c does not support exception handling */
@@ -50,25 +50,25 @@ export function parse_command(text: string, language: string) {
 
     switch(starting_command[0]) {
         case "if":
-            return parse_if(splitted_text, language);
+            return parse_if(splitted_text, language, variable_list, function_list);
         case "else":
             return parse_else();
         case "elseIf":
-            return parse_elseIf(splitted_text, language);
+            return parse_elseIf(splitted_text, language, variable_list, function_list);
         case "loop":
-            if (language == "c") return parse_for_loop_c(splitted_text, language);
-            else return parse_for_loop_py(splitted_text, language);
+            if (language == "c") return parse_for_loop_c(splitted_text, language, variable_list, function_list);
+            else return parse_for_loop_py(splitted_text, language, variable_list, function_list);
         case "function":
             if (language == "c") return parse_function_c(splitted_text);
             else return parse_function_py(splitted_text);
         case "while":
-            return parse_while(splitted_text, language);
+            return parse_while(splitted_text, language, variable_list, function_list);
         case "switch":
-            return parse_switch(splitted_text, language);
+            return parse_switch(splitted_text, language, variable_list, function_list);
         case "do":
-            return parse_do(splitted_text, language);
+            return parse_do(splitted_text, language, variable_list, function_list);
         case "case":
-            return parse_case(splitted_text, language);
+            return parse_case(splitted_text, language, variable_list, function_list);
         case "structure":
             return parse_structure(splitted_text);
         case "try":
@@ -78,7 +78,7 @@ export function parse_command(text: string, language: string) {
         case "class":
             return parse_class(splitted_text);
         default:
-            var statement = parse_statement(text, "normal", language);
+            var statement = parse_statement(text, "normal", language, variable_list, function_list);
             return statement.convert2StructCommand();
     }
 }
@@ -106,17 +106,13 @@ function determine_user_command(text: string) {
 }
 
 /* splitted_text e.g: ['hello', '<', '5'] */
-function parse_if(splitted_text: string[], language: string) {
+function parse_if(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "), "infix", language);
+    var statement = parse_statement(splitted_text.join(" "), "infix", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("incomplete condition, " + statement.errorMessage);
-        return command;
-    }
-    if (!statement.isInfix) {
-        command.logError("infix is required.");
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #if_branch_start";
@@ -124,18 +120,14 @@ function parse_if(splitted_text: string[], language: string) {
     return command;
 }
 
-function parse_elseIf(splitted_text: string[], language: string) {
+function parse_elseIf(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.isElseIf = true;
     command.parsedCommand = "else if #condition";
 
-    var statement = parse_statement(splitted_text.join(" "), "infix", language);
+    var statement = parse_statement(splitted_text.join(" "), "infix", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("incomplete condition, " + statement.errorMessage);
-        return command;
-    }
-    if (!statement.isInfix) {
-        command.logError("infix is required.");
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #elseIf_branch_start";
@@ -153,16 +145,12 @@ function parse_else() {
 
 /* [ 'while', 'first hello', '==', 'second' ] 
 I used the exact same code as If block. Will be much more different when If block allows for Else if. */
-function parse_while(splitted_text: string[], language: string) {
+function parse_while(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "while #condition"
-    var statement = parse_statement(splitted_text.join(" "), "infix", language);
+    var statement = parse_statement(splitted_text.join(" "), "infix", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
-        return command;
-    }
-    if (!statement.isInfix) {
-        command.logError("infix is required.");
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #while_start";
@@ -170,16 +158,12 @@ function parse_while(splitted_text: string[], language: string) {
     return command;
 }
 
-function parse_do(splitted_text: string[], language: string) {
+function parse_do(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
-    command.parsedCommand = "do #condition"
-    var statement = parse_statement(splitted_text.join(" "), "infix", language);
+    command.parsedCommand = "do #condition";
+    var statement = parse_statement(splitted_text.join(" "), "infix", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("error in parsing statement, " + statement.errorMessage);
-        return command;
-    }
-    if (!statement.isInfix) {
-        command.logError("infix is required.");
         return command;
     }
     command.parsedCommand += " " + statement.parsedStatement + " #while_start";
@@ -188,7 +172,7 @@ function parse_do(splitted_text: string[], language: string) {
 }
 
 /* splitted_text e.g: [ 'condition','i','==','0','condition','i','<','number','condition','i','++' ] */
-function parse_for_loop_c(splitted_text: string[], language: string) {
+function parse_for_loop_c(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
     /* For loop must have 'condition' key word. */
@@ -206,7 +190,7 @@ function parse_for_loop_c(splitted_text: string[], language: string) {
         return command;
     }
     condition_blocks[0] = condition_blocks[0].replace("==", "equal");
-    var statement = parse_statement(condition_blocks[0], "normal", language);
+    var statement = parse_statement(condition_blocks[0], "normal", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
         return command;
@@ -214,7 +198,7 @@ function parse_for_loop_c(splitted_text: string[], language: string) {
     statement.removeTerminator();
     command.parsedCommand += " #condition " + statement.parsedStatement;
 
-    statement = parse_statement(condition_blocks[1], "infix", language);
+    statement = parse_statement(condition_blocks[1], "infix", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
         return command;
@@ -222,7 +206,7 @@ function parse_for_loop_c(splitted_text: string[], language: string) {
     statement.removeTerminator();
     command.parsedCommand += " #condition " + statement.parsedStatement;
 
-    statement = parse_statement(condition_blocks[2], "normal", language);
+    statement = parse_statement(condition_blocks[2], "normal", language, variable_list, function_list);
     if (statement.hasError) {
         command.logError("something wrong with for-loop infix condition. " + statement.errorMessage);
         return command;
@@ -241,7 +225,7 @@ parameter <var name> parameter <var name> in <var name>
 
 struct_command E.g.:
 for #parameter #variable item #parameter #variable item2 #variable item_list #for_start #for_end;;*/
-function parse_for_loop_py(splitted_text: string[], language: string) {
+function parse_for_loop_py(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.parsedCommand = "for";
 
@@ -277,8 +261,8 @@ function parse_for_loop_py(splitted_text: string[], language: string) {
         var splitted_parameter_block = parameter_block[i].split(" ");
         if (splitted_parameter_block.includes("in")) {
             var inIdx = splitted_parameter_block.indexOf("in");
-            var frag1 = fragment_segmenter(splitted_parameter_block.slice(0, inIdx), "py");
-            var frag2 = fragment_segmenter(splitted_parameter_block.slice(inIdx+1), "py");
+            var frag1 = fragment_segmenter(splitted_parameter_block.slice(0, inIdx), "py", variable_list, function_list);
+            var frag2 = fragment_segmenter(splitted_parameter_block.slice(inIdx+1), "py", variable_list, function_list);
 
             if (frag1[0] == "not ready") {
                 command.logError("Error in fragment. " + frag1[1]);
@@ -291,7 +275,7 @@ function parse_for_loop_py(splitted_text: string[], language: string) {
             command.parsedCommand += " " + frag1[1] + " " + frag2[1];
         }
         else {
-            var frag = fragment_segmenter(splitted_parameter_block, "py");
+            var frag = fragment_segmenter(splitted_parameter_block, "py", variable_list, function_list);
             if (frag[0] == "not ready") {
                 command.logError("Error in fragment. " + frag[1]);
                 return command;
@@ -434,14 +418,14 @@ function parse_function_c(splitted_text: string[]) {
     return command;
 }
 
-function parse_switch(splitted_text: string[], language: string) {
+function parse_switch(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
 
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = fragment_segmenter(splitted_text, language);
+    var fragment = fragment_segmenter(splitted_text, language, variable_list, function_list);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;
@@ -451,14 +435,14 @@ function parse_switch(splitted_text: string[], language: string) {
     return command;
 }
 
-function parse_case(splitted_text: string[], language: string) {
+function parse_case(splitted_text: string[], language: string, variable_list: string[], function_list: string[]) {
     var command = new structCommand("block");
     command.isCase = true;
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
         return command;
     }
-    var fragment = fragment_segmenter(splitted_text, language);
+    var fragment = fragment_segmenter(splitted_text, language, variable_list, function_list);
     if (fragment[0] == "not ready") {
         command.logError(fragment[1]);
         return command;

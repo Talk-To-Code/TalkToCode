@@ -118,12 +118,13 @@ export class StructCommandManager {
             prev_struct_command = this.struct_command_list[this.curr_index-1];
         }
         var struct_command = get_struct(this.curr_speech, prev_input_speech, prev_struct_command, 
-                            this.language, this.debugMode, this.holding);
+                            this.language, this.debugMode, this.holding, this.variable_list, this.functions_list);
 
         this.updateStructCommandList(struct_command);
         this.updateVariableAndFunctionList(struct_command);
 
         if (this.debugMode) console.log(this.managerStatus());
+        console.log(this.variable_list);
     }
 
     /* Updating the struct command list */

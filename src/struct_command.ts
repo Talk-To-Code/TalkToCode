@@ -66,7 +66,6 @@ export class simpleStatement {
     parsedStatement: string;
     errorMessage: string;
     hasError: boolean;
-    isInfix: boolean;
     isPostfix: boolean;
     isDeclare: boolean;
     isAssign: boolean;
@@ -79,7 +78,6 @@ export class simpleStatement {
         this.parsedStatement = "";
         this.errorMessage = "";
         this.hasError = false;
-        this.isInfix = false;
         this.isDeclare = false;
         this.isAssign = false;
         this.isPostfix = false;
