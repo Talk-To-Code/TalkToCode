@@ -45,6 +45,7 @@ export class EditCommandManager {
         this.check_if_uncomment_block(transcribedWord);
         this.check_if_search_and_replace(transcribedWord);
         this.check_if_typecast_variable(transcribedWord);
+        this.check_if_post_to_pre_increment(transcribedWord);
     }
 
     check_if_edit_command(text: String){
@@ -100,8 +101,15 @@ export class EditCommandManager {
                     if (countNestedFunctions>0){
                         countNestedFunctions--;
                     }
-                    if (countNestedFunctions==0) end = i;
+                    if (countNestedFunctions==0) {
+                        end = i;
+                        break;
+                    }
                 }
+            }
+            if (start==-1){
+                vscode.window.showInformationMessage("Sorry! Function with name "+functionToDelete+" not found.")
+                return;
             }
             this.manager.splice(start,(end-start)+1);
         } 
@@ -123,12 +131,16 @@ export class EditCommandManager {
                 var res = this.resolve_block_name(arr[2]);
                  if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
-                    if (index==-1) return;
+                    if (index==-1) {
+                        this.show_no_index_message(line_num);
+                        return;
+                    }
 
                     start = index;
                     end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.splice(start,(end-start)+1);
                 }
+                else vscode.window.showInformationMessage("Sorry! Code does not correspond to "+arr[2]+" block");
             }
         }
     }
@@ -185,6 +197,7 @@ export class EditCommandManager {
             console.log("RENAMING THE FUNCTION")
             var functionToReplace = arr[2];
             var replaceWith = arr[4];
+            var count = 0;
             this.push_to_edit_stack();
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 let line = this.manager.struct_command_list[i];
@@ -197,8 +210,13 @@ export class EditCommandManager {
                     } 
                 }
                 if (changed){
+                    count++;
                     this.manager.struct_command_list[i] = text.join(" ");
                 }  
+            }
+            if (count==0){
+                vscode.window.showInformationMessage("Function "+functionToReplace+" cannot be found. No action done.")
+                return;
             }
         }
     }
@@ -417,7 +435,10 @@ export class EditCommandManager {
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
             if (index!=-1){
-                if (!this.manager.struct_command_list[index].startsWith(start_comment)) return;
+                if (!this.manager.struct_command_list[index].startsWith(start_comment)){
+                    vscode.window.showInformationMessage("This line is not a comment. No action done.")
+                    return;
+                }
                 this.push_to_edit_stack();
                 this.manager.struct_command_list[index] = this.manager.struct_command_list[index].substring(start_comment.length,this.manager.struct_command_list[index].length-end_comment.length);
             }
@@ -438,6 +459,17 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var res = this.resolve_block_name(arr[2]);
+                if (line.startsWith("/*")) {
+                    line_num +=1;
+                    line = document.lineAt(line_num-1).text.trimLeft();
+                }
+                else {
+                    var temp = document.lineAt(line_num-2).text.trimLeft();
+                    if (!temp.startsWith("/*")){
+                        vscode.window.showInformationMessage("This block is not commented. No action done.");
+                        return;
+                    }
+                }
                 if (line.indexOf(res.block_name)!=-1 && line.indexOf(res.block_name)==line.lastIndexOf(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
@@ -461,10 +493,15 @@ export class EditCommandManager {
             console.log("IN HERE TO FIND AND REPLACE");
             var word = arr[1];
             var new_word = arr[5];
+            if (!isNaN(parseInt(new_word))){
+                vscode.window.showInformationMessage("Sorry! cant replace word: "+word+" with a number: "+arr[5]);
+                return ;
+            }
             this.push_to_edit_stack();
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].indexOf(word)!=-1){
-                    this.manager.struct_command_list[i] = this.manager.struct_command_list[i].replace(word,new_word);
+                    console.log("DEBUG: "+this.manager.struct_command_list[i]);
+                    this.manager.struct_command_list[i] = this.manager.struct_command_list[i].replace(new RegExp(word,'g'),new_word);
                 }
             }
         }
@@ -493,6 +530,14 @@ export class EditCommandManager {
                 this.manager.struct_command_list[index] = line.substring(0, substring_index)+"#type "+data_type+" ("+line.substring(substring_index,substring_index+phrase.length)+")"+line.substring(substring_index+phrase.length);
                 return;
             }
+        }
+    }
+
+    check_if_post_to_pre_increment(text: String){
+        var arr = text.split(" ");
+        if (arr.length!=8) return;
+        if (arr[0]=="change" && arr[1]=="post" && arr[3]=="pre"){
+            var line_num = parseInt(arr[7]);
         }
     }
 
@@ -637,9 +682,9 @@ resolve_block_name(text: string){
         block_name = "do";
         block_name_end="#while_end";
     }
-    else if (text=="switch_case"|| text=="switch"){
+    else if (text=="switch-case"|| text=="switch"){
         block_name = "switch"; 
-        block_name_end = "#case_end";
+        block_name_end = "#switch_end";
     }
     else {
         block_name = text;
