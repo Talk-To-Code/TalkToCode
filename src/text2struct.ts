@@ -1,7 +1,7 @@
 import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
 
-var arithmetic_operator = ["plus", "divide", "multiply", "minus"];
+var joiningOperators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "==", "&", "&&", "|", "||"];
 /*     
 
 @ Parameters - list of commands, variable list
@@ -30,6 +30,8 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     }
     var input_speech = input_speech_segments.join(" ");
 
+    input_speech = replace_infix_operators(input_speech, prev_struct_command);
+
     var removePreviousStatement = false;
 
     var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
@@ -47,8 +49,6 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         }
         else input_speech = check[1];
     }
-
-    input_speech = replace_infix_operators(input_speech);
 
     if (debugMode) console.log("text going in: " + input_speech);
     var struct_command = parse_command(input_speech, language, variable_list, function_list);
@@ -81,8 +81,10 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 }
 
 /* If the input speech is meant to be an if/loop block */
-function replace_infix_operators(text: string) {
-    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while")) {
+function replace_infix_operators(text: string, previousStructCommand: string) {
+    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while") || 
+    previousStructCommand.includes("#if_branch_start") || previousStructCommand.includes("#elseIf_branch_start") ||
+    previousStructCommand.includes("#while_start")) {
         /* Infix comparison operator. */
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
@@ -118,17 +120,22 @@ function checkPrevStatement(input_text: string, prev_struct_command: string, lan
         input_text.split(" ")[0] == "equal") {
             return true;
         }
-        if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (prev_struct_command.split(" ").length >= 7 && joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }
     else if (prev_struct_command.includes("#create") && language == "py") {
-        if (prev_struct_command.split(" ").length >= 5 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (prev_struct_command.split(" ").length >= 5 && joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }
+    else if (prev_struct_command.includes("#if_branch_start") || prev_struct_command.includes("#elseIf_branch_start") ||
+    prev_struct_command.includes("#while_start")) {
+        if (joiningOperators.includes(input_text.split(" ")[0]))
+            return true;
+    }
     else if (prev_struct_command.includes("#assign")) {
-        if (arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }

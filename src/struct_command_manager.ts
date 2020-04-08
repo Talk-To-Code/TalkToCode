@@ -142,7 +142,8 @@ export class StructCommandManager {
 
             this.curr_index -= 1;
             /* Remove current "" line and prev struct command. */
-            this.struct_command_list.splice(this.curr_index, 2, "");
+            if (struct_command.isBlock) this.struct_command_list.splice(this.curr_index, 3, "");
+            else this.struct_command_list.splice(this.curr_index, 2, "");
         }
         else if (struct_command.removePrevTerminator) {
             /* Remove terminator from prev index. */

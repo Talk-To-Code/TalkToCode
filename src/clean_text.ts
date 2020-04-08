@@ -25,6 +25,7 @@ function fix_common_errors(text: string) {
     text = text.replace('and function', 'end function');
     text = text.replace('and string', 'end string');
     text = text.replace('begin is', 'begin if');
+    text = text.replace('begin look', 'begin loop');
 
     /* line errors */
     text = text.replace('line v', 'line 5');

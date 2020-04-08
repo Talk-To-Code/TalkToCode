@@ -89,7 +89,6 @@ function determine_user_command(text: string) {
     text = text.replace("begin if", "if");
     text = text.replace("else if", "elseIf");
     text = text.replace("begin loop", "loop");
-    text = text.replace("begin look", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
     text = text.replace("create structure", "structure")
