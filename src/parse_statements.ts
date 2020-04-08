@@ -745,6 +745,12 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
 
         return ["ready", "#value \"" + splitted_text.slice(1, splitted_text.length-1).join(" ") + "\""];
     }
+    else if (splitted_text[0] == "char") {
+        if (splitted_text.length < 2) return ["not ready", "no value mentioned"];
+        if (splitted_text[1].length != 1) return ["not ready", "value is not a character."];
+        if (!splitted_text[1].match(/[a-z]/i)) return ["not ready", "value is not a character."];
+        return ["ready", "#value \'" + splitted_text[1] + "\'"];
+    }
     // #access test #function getStuff() #access_end
     // #access test hello #access_end
     // #access test hello test hello #access_end

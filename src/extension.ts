@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
 		listen();
-		// runEditTests();
+		runEditTests();
 		// test_function();
 		// runTestCasesForC();
 		// runTestCasesForPy();
@@ -75,7 +75,6 @@ function listen() {
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
-
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {

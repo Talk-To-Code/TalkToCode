@@ -124,7 +124,6 @@ export class StructCommandManager {
         this.updateVariableAndFunctionList(struct_command);
 
         if (this.debugMode) console.log(this.managerStatus());
-        console.log(this.variable_list);
     }
 
     /* Updating the struct command list */
