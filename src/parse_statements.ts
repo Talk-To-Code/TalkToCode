@@ -738,9 +738,9 @@ function parse_fragment(splitted_text: string[]) {
     }
 
     else if (splitted_text[0] == "string") {
-        /* string literal has to include ["string", <actual string>, "end", "string"], which requires
-        a minimum of 4 words. */
-        if (splitted_text.length < 4) return ["not ready", "no value mentioned."];
+        /* string literal has to include ["string", <actual string>, "end_string"], which requires
+        a minimum of 3 words. */
+        if (splitted_text.length < 3) return ["not ready", "no value mentioned."];
         if (splitted_text[splitted_text.length-1] != "end_string")
             return ["not ready", "last 2 words are not end string"];
 

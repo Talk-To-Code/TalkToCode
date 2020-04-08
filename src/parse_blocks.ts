@@ -434,9 +434,7 @@ function parse_function_c(splitted_text: string[]) {
 }
 
 function parse_switch(splitted_text: string[], language: string) {
-    /* switch is a weird case where it is a block in actual code, but in struct command it is not a block. 
-    It is not considered a block because it lacks and end branch. */
-    var command = new structCommand("non-block");
+    var command = new structCommand("block");
 
     if (splitted_text.length == 0) {
         command.logError("no term mentioned");
@@ -447,7 +445,8 @@ function parse_switch(splitted_text: string[], language: string) {
         command.logError(fragment[1]);
         return command;
     }
-    command.parsedCommand = "switch #condition " + fragment[1] + ";;";
+    command.parsedCommand = "switch #condition " + fragment[1];
+    command.endCommand = "#switch_end;;"
     return command;
 }
 
@@ -464,7 +463,7 @@ function parse_case(splitted_text: string[], language: string) {
         return command;
     }
     command.parsedCommand = "case " + fragment[1] + " #case_start";
-    command.endCommand = "#case_end;;"
+    command.endCommand = "#case_end"
 
     return command;
 }

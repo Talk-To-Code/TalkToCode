@@ -241,7 +241,7 @@ function generate_test_cases_c(cases: string) {
         test_cases[0] = ["begin switch hello", "case 2", "hello equals 5", "exit block", "case 5"];
         test_cases[1] = ["switch #condition #variable hello","case #value 2 #case_start",
         "#assign #variable hello #with #value 5;;","#case_end","case #value 5 #case_start",
-        "#string \"\";;","#case_end;;"];
+        "#string \"\";;","#case_end", "#switch_end;;"];
     }
 
     else if (cases == "structure") {
