@@ -76,8 +76,8 @@ function listen() {
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
-		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 
+		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {
 			microphone = false;
 			vscode.window.showInformationMessage("microphone asleep");

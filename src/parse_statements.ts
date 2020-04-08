@@ -1,5 +1,5 @@
 import { simpleStatement } from './struct_command'
-const { EnPhoneticDistance, FuzzyMatcher } = require("phoneticmatching");
+// const { EnPhoneticDistance, FuzzyMatcher } = require("phoneticmatching");
 
 var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
 var arithmetic_operators = ["plus", "divide", "multiply", "minus"];
