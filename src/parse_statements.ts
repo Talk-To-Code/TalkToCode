@@ -8,8 +8,7 @@ var postfix_prefix_operator = ["++", "--"];
 export function joinName(name_arr: string[]) {
     var var_name = "";
     if (name_arr.length == 1) return name_arr.join(" ");
-    if (name_arr[0] == "dot") var_name = name_arr.slice(1).join(".");
-    else if (name_arr[0] == "underscore") var_name = name_arr.slice(1).join("_");
+    if (name_arr[0] == "underscore" || name_arr[0] == "snake") var_name = name_arr.slice(1).join("_");
     else {
         var_name = name_arr[0].toLowerCase();
         var i;

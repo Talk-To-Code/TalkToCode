@@ -41,6 +41,7 @@
 	},
 	"dependencies": {
 		"@google-cloud/speech": "^3.3.0",
-		"node-record-lpcm16": "^1.0.1"
+		"node-record-lpcm16": "^1.0.1",
+		"phoneticmatching": "^0.3.6"
 	}
 }

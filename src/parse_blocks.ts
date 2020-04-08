@@ -24,7 +24,7 @@ variable list
     list of new variables declared by the user. This is only updated when a declare command is given. */
 
 export function parse_command(text: string, language: string) {
-    var starting_command = determine_user_command(text, language);
+    var starting_command = determine_user_command(text);
 
     /* c does not support exception handling */
     if ((starting_command[0] == "try" && language == "c") || (starting_command[0] == "finally" && language == "c")) {
@@ -33,7 +33,7 @@ export function parse_command(text: string, language: string) {
     }
 
     /* c does not support classes */
-    if (starting_command[0] == "start" && language == "c") {
+    if (starting_command[0] == "class" && language == "c") {
         var errorCommand = new structCommand("non-block");
         errorCommand.logError("C does not support creating classes");
     }
@@ -52,7 +52,7 @@ export function parse_command(text: string, language: string) {
         case "if":
             return parse_if(splitted_text, language);
         case "else":
-            return parse_else(splitted_text);
+            return parse_else();
         case "elseIf":
             return parse_elseIf(splitted_text, language);
         case "loop":
@@ -84,11 +84,12 @@ export function parse_command(text: string, language: string) {
 }
 
 /* To determine what command the user is trying say */
-function determine_user_command(text: string, language: string) {
+function determine_user_command(text: string) {
 
     text = text.replace("begin if", "if");
     text = text.replace("else if", "elseIf");
     text = text.replace("begin loop", "loop");
+    text = text.replace("begin look", "loop");
     text = text.replace("begin switch", "switch");
     text = text.replace("create function", "function");
     text = text.replace("create structure", "structure")
@@ -142,7 +143,7 @@ function parse_elseIf(splitted_text: string[], language: string) {
     return command;
 }
 
-function parse_else(splitted_text: string[]) {
+function parse_else() {
     var command = new structCommand("block");
     command.isElse = true;
     command.parsedCommand = "#else_branch_start";

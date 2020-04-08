@@ -136,11 +136,11 @@ function spellingFunction(text: string) {
                 if (splitted_text[i] == "the") splitted_text[i] = "d";
                 if (splitted_text[i] == "bee") splitted_text[i] = "b";
                 if (splitted_text[i] == "pee") splitted_text[i] = "p";
+                if (splitted_text[i] == "tee") splitted_text[i] = "t";
             }
             newText += " " + splitted_text[i].split("").join(" ");
         }
         else newText += " " + splitted_text[i];
     }
-
     return newText.replace(/  +/g, ' ').trim();
 }
