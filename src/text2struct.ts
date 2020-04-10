@@ -2,6 +2,7 @@ import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
 
 var joiningOperators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "==", "&", "&&", "|", "||"];
+var verbalJoiningOperators = ["plus", "divide", "multiply", "minus", "greater", "less", "equal", "and", "or", "bit"];
 /*     
 
 @ Parameters - list of commands, variable list
@@ -30,16 +31,6 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
     }
     var input_speech = input_speech_segments.join(" ");
 
-    input_speech = replace_infix_operators(input_speech, prev_struct_command);
-
-    var removePreviousStatement = false;
-
-    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
-    if (extendCommand) {
-        input_speech = prev_input_speech + " " + input_speech;
-        removePreviousStatement = true;
-    }
-
     if (input_speech.includes("spell")) {
         var check = getSpelling(input_speech);
         if (check[0] == "not ready") {
@@ -48,6 +39,18 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
             return rejectedStructCommand;
         }
         else input_speech = check[1];
+    }
+
+    input_speech = replace_infix_operators(input_speech, prev_struct_command);
+
+    var removePreviousStatement = false;
+
+    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
+    if (extendCommand) {
+
+        if (prev_input_speech.includes("spell")) prev_input_speech = getSpelling(input_speech)[1];
+        input_speech = prev_input_speech + " " + input_speech;
+        removePreviousStatement = true;
     }
 
     if (debugMode) console.log("text going in: " + input_speech);
@@ -82,9 +85,17 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 
 /* If the input speech is meant to be an if/loop block */
 function replace_infix_operators(text: string, previousStructCommand: string) {
-    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while") || 
-    previousStructCommand.includes("#if_branch_start") || previousStructCommand.includes("#elseIf_branch_start") ||
+
+    var replace = false;
+
+    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while") || text.includes("else if")) replace = true;
+
+    if (previousStructCommand.includes("#if_branch_start") || previousStructCommand.includes("#elseIf_branch_start") ||
     previousStructCommand.includes("#while_start")) {
+        if (verbalJoiningOperators.includes(text.split(" ")[0])) replace = true;
+    }
+
+    if (replace) {
         /* Infix comparison operator. */
         text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');

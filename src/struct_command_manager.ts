@@ -97,7 +97,6 @@ export class StructCommandManager {
 
         /* Normal process. */
         else {
-
             if (transcribed_word.split(" ").includes("spell")) this.spelling = true;
             var cleaned_speech = clean(transcribed_word, this.spelling);
             if (cleaned_speech.split(" ").includes("end_spell")) this.spelling = false;

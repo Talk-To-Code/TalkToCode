@@ -100,6 +100,7 @@ finally
 - <literal>
 <integer> - for number literal
 string "what you want to say" end string
+character "a"
 
 - <complex fragment> - basically a never ending list of stuff
 <var name / literal / <call function> / <array referencing>>
@@ -132,8 +133,6 @@ error when variable name is an integer. fix it later.
 the way replace is done is wrong. do it in parse statement
 
 if delete line with variable. have to remove it from the variable list. function list too.
-
-
 
 
 
