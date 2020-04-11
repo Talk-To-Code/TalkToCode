@@ -19,7 +19,7 @@ public class ASTTypedefStatement extends ASTSimpleStatement {
 		this.name = id;
 	}
 	public String toSyntax(){
-		this.result = "typedef " + this.type + " " + this.name + "\n";
+		this.result = "typedef " + this.type + " " + this.name + ";\n";
 		return this.result;
 	}
 	public String typeof(){
