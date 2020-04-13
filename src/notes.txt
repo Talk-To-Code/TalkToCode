@@ -10,12 +10,12 @@ declare <var_type> array <var name> size <literal>
 declare <var_type> array <var name> size <literal> equal make array parameter ... parameter ...
 
 - Declare variable (py version)
-declare <var name> equal <var_name>
-declare <var name> equal <literal>
-declare <var name> equal <complex fragment>
+<var name> equal <var_name>
+<var name> equal <literal>
+<var name> equal <complex fragment>
 
-declare <var name> equal make list parameter ... parameter ...
-declare <var name> equal make dictionary key ... value ... key ... value ...
+<var name> equal make list parameter ... parameter ...
+<var name> equal make dictionary key ... value ... key ... value ...
 
 - Assign variable (c and py version)
 <var name> equal <var_name>
@@ -133,6 +133,17 @@ error when variable name is an integer. fix it later.
 the way replace is done is wrong. do it in parse statement
 
 if delete line with variable. have to remove it from the variable list. function list too.
+
+python does not have do-while
+
+trying to spell symbol stuff does not work
+
+find symbol should not be in clean text. it only cleans transcribed word. so it has to be said tgt.
+
+plus plus i in for loops and statements in general
+
+struct throws an error when no #create is there
+it also throws an error when #string is inside
 
 
 

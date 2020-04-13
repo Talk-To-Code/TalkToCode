@@ -1,8 +1,8 @@
 import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
 
-var joiningOperators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "==", "&", "&&", "|", "||"];
-var verbalJoiningOperators = ["plus", "divide", "multiply", "minus", "greater", "less", "equal", "and", "or", "bit"];
+var joiningOperators = ["plus", "divide", "multiply", "minus", "modulo", ">", ">=", "<", "<=", "==", "&", "&&", "|", "||"];
+var verbalJoiningOperators = ["plus", "divide", "multiply", "minus", "modulo","greater", "less", "equal", "and", "or", "bit"];
 /*     
 
 @ Parameters - list of commands, variable list

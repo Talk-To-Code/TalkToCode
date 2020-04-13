@@ -1,8 +1,8 @@
 import { simpleStatement } from './struct_command'
 // const { EnPhoneticDistance, FuzzyMatcher } = require("phoneticmatching");
 
-var operators = ["plus", "divide", "multiply", "minus", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
-var arithmetic_operators = ["plus", "divide", "multiply", "minus"];
+var operators = ["plus", "divide", "multiply", "minus", "modulo", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
+var arithmetic_operators = ["plus", "divide", "multiply", "minus", "modulo"];
 var postfix_prefix_operator = ["++", "--"];
 
 /* E.g. hello world -> helloWorld */
@@ -29,6 +29,7 @@ function mapArithmeticOperator(operator: string) {
     operator = operator.replace("divide", "/");
     operator = operator.replace("minus", "-");
     operator = operator.replace("multiply", "*");
+    operator = operator.replace("modulo", "%");
 
     return operator;
 }
@@ -131,7 +132,7 @@ function parse_declare_c(text: string, variable_list: string[], function_list: s
     E.g. declare <struct name> <var name> */
     /* Check if var type is the last word mentioned. */
     if (splitted_text.length <= 2) {
-        statement.logError("var type is the last word mentioned.");
+        statement.logError("Missing variable name.");
         return statement;
     }
 
@@ -146,7 +147,7 @@ function parse_declare_c(text: string, variable_list: string[], function_list: s
         equalPresent = true;
         equal_idx = splitted_text.indexOf("equal");
         if (equal_idx == splitted_text.length-1) {
-            statement.logError("equal was last word mentioned.");
+            statement.logError("Missing portion after \"equal\".");
             return statement;
         }
         fragment1 = splitted_text.slice(2, equal_idx).join(" ");

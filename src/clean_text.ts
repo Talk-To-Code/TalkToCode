@@ -66,10 +66,9 @@ function find_symbol(text: string) {
             if (symbol_flag) {
                 if (splitted_text[i] == "ampersand") splitted_text[i] = "&";
                 else if (splitted_text[i] == "dollar") splitted_text[i] = "$";
-                else if (splitted_text[i] == "percent") splitted_text[i] = "%";
+                else if (splitted_text[i] == "percent" || splitted_text[i] == "percents" || splitted_text[i] == "percentage") splitted_text[i] = "%";
                 else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
                 else if (splitted_text[i] == "colon") splitted_text[i] = ":";
-                else if (splitted_text[i] == "equal") splitted_text[i] = "=";
                 else if (splitted_text[i] == "dot" || splitted_text[i] == "point" || splitted_text[i] == "points") splitted_text[i] = ".";
                 else if (splitted_text[i] == "star") splitted_text[i] = "*";
 
