@@ -54,6 +54,12 @@ export class StructCommandManager {
 
     spelling: boolean;
 
+    isLeftRightCalled: boolean;
+
+    backspace_index: number;
+
+    string_index: number;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -72,6 +78,9 @@ export class StructCommandManager {
         this.count_lines = [];
         this.speech_len = -1;
         this.spelling = false;
+        this.isLeftRightCalled = false;
+        this.backspace_index = -1;
+        this.string_index = -1;
 
     }
 
@@ -89,8 +98,11 @@ export class StructCommandManager {
         this.justReleased = false;
         this.len_cursor = -1;
         this.count_lines = [];
-
+        //this.isLeftRightCalled = false;
+        this.len_cursor = -1;
         this.spelling = false;
+        this.backspace_index = -1;
+        this.string_index = -1;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
@@ -119,7 +131,13 @@ export class StructCommandManager {
             if (cleaned_speech.split(" ").includes("end_spell")) this.spelling = false;
 
             this.edit_stack.push(new edit_stack_item(["non-edit"]));
-            this.curr_speech.push(cleaned_speech);
+            if(this.isLeftRightCalled){
+                var temp = this.curr_speech[this.backspace_index].split(" ");
+                console.log("THIS STRING INDEX: "+this.string_index);
+                temp.splice(this.string_index+1,0,cleaned_speech);
+                this.curr_speech[this.backspace_index]= temp.join(" ");
+            }
+            else this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
             this.curr_speech = this.curr_speech.filter(function(value) {
                 return value != "";
@@ -223,14 +241,18 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
+        console.log("LEFT AND RIGHT: "+this.isLeftRightCalled);
         /* nothing to backspace */
         if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
             console.log("Nothing to backspace");
             return;
         }
+        if (this.isLeftRightCalled==false) {
+            console.log("NO stay command used");
+            return;
+        }
 
         this.edit_stack.push(new edit_stack_item(["backspace", this.deepCopyStringList(this.curr_speech)]));
-
         var arr = command.split(" ");
         var num_to_delete = 0;
         /* if only "backspace" is said */
@@ -242,18 +264,77 @@ export class StructCommandManager {
         }
 
         while (num_to_delete > 0) {
-            var latest_speech_input = this.curr_speech[this.curr_speech.length-1];
-            var temp = latest_speech_input.split(" ");
-            var count = (temp.length-num_to_delete >= 0) ? num_to_delete: temp.length;
-            temp.splice(-count,count);
 
-            if (temp.length == 0 || temp.join(" ") == " ") this.curr_speech.splice(-1,1);
-            else this.curr_speech[this.curr_speech.length-1]  = temp.join(" ");
+            var startWord = this.findWordBeforeCursor();
+            
+            if (startWord=="") return;
+            var result = this.findWordInCurrentSpeech(startWord);
+
+            var latest_speech_input = this.curr_speech[result.curr_speech_index];
+            var temp = latest_speech_input.split(" ");
+
+            var count = ((result.string_index+1)-num_to_delete >= 0) ? num_to_delete: result.string_index+1;
+            var deleted = temp.splice(result.string_index-temp.length-count+1,count);
+
+            this.len_cursor = this.len_cursor-deleted.join(" ").length-1;
+            this.string_index = result.string_index-count;
+            this.backspace_index = result.curr_speech_index;
+
+            if (temp.length == 0 || temp.join(" ") == " ") {
+                this.curr_speech.splice(-1,1);
+            }
+            else {
+                this.curr_speech[result.curr_speech_index]  = temp.join(" ");
+            }
     
             num_to_delete -= count;
+
         }
 
         if (JSON.stringify(this.curr_speech) == JSON.stringify([])) this.curr_speech = [""];  
+    }
+
+    findWordInCurrentSpeech(word: string){
+        var arr = this.curr_speech;
+        var curr_speech_index = -1;
+        var string_index = -1;
+        for (var i=0;i<arr.length;i++){
+            var temp = arr[i].split(" ");
+            for (var j=0;j<temp.length;j++){
+                if (temp[j]==word) {
+                    curr_speech_index = i;
+                    string_index = j;
+                    return {curr_speech_index,string_index};
+                }
+            }
+        }
+        return {curr_speech_index,string_index};
+    }
+
+    findWordBeforeCursor(): string{
+        if (this.len_cursor<=0){
+            vscode.window.showWarningMessage("Nothing to backspace");
+            return "";
+        }
+        var temp = this.curr_speech.join(" ");
+        var end = this.len_cursor;
+        var start = -1;
+        for (var i=this.len_cursor;i>=0;i--){
+            if (i==end){
+                if (i==temp.length && temp.charAt(i)!="") return "";
+                else if(i!=temp.length && temp.charAt(i)!=" ") return "";
+            }
+            else{
+                if (temp.charAt(i)==" "){
+                    start = i;
+                    break;
+                }
+            }
+        }
+        if (start==-1) return "";
+
+        return temp.substring(start+1,end);
+
     }
 
     /* look out for end branches */
@@ -308,9 +389,12 @@ export class StructCommandManager {
                         this.curr_index = struct_line;
                         this.curr_speech = this.heldCommand;
                         this.heldline = line;
+
     
                         this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
                     }
+                    this.isLeftRightCalled = true;
+                    this.len_cursor = this.curr_speech.join(" ").trimRight().length;
                 }
             }
         }
@@ -320,6 +404,7 @@ export class StructCommandManager {
         if (this.holding) {
             this.holding = false;
             this.justReleased = true;
+            this.isLeftRightCalled = false;
 
             var copiedStructCommand = this.deepCopyStructCommand();
             var copiedSpeechHist = this.deepCopySpeechHist();
@@ -367,29 +452,30 @@ export class StructCommandManager {
 
     /* Move left */
     goLeftCommand(){
-        console.log("iN GO LEFT: "+this.len_cursor);
-        if (this.len_cursor==0) return;
+        if (this.len_cursor<=0){
+            vscode.window.showWarningMessage("Sorry! Can't go left any further")
+            return;
+        }
+        this.isLeftRightCalled = true;
         var joined_speech = this.curr_speech.join(" ").trim();
         this.len_cursor = (this.len_cursor==-1)?joined_speech.length: this.len_cursor;
         var temp = joined_speech.substring(0,this.len_cursor).trimRight();
         var arr = temp.split(" ");
-        console.log("DEBUG IN LEFT: "+JSON.stringify(arr));
         this.len_cursor-=(arr[arr.length-1].length+1);
     }
 
     /* Move right */
     goRightCommand(){
-        console.log("iN GO RIGHT: "+this.len_cursor);
         var joined_speech = this.curr_speech.join(" ");
-        console
-        this.len_cursor = (this.len_cursor==-1)?joined_speech.length: this.len_cursor;
-        if (this.len_cursor==joined_speech.length) return;
+        if (this.len_cursor>=joined_speech.length){
+            vscode.window.showWarningMessage("Sorry! Can't go right any further");
+            return;
+        }
+        this.isLeftRightCalled = true;
         var temp = joined_speech.substring(this.len_cursor,joined_speech.length).trimLeft();
-        console.log("TEMP : "+temp);
         var arr = temp.split(" ");
-        console.log("ARR[0]: "+arr[0]);
         this.len_cursor+=(arr[0].length+1);
-        console.log("FINALLY in RIGHT: "+this.len_cursor);
+        if (this.len_cursor>joined_speech.length) this.len_cursor = joined_speech.length;
     }
 
     /* Scroll up by one window*/

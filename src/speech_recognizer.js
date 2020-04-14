@@ -22,7 +22,7 @@ const request = {
     "model":model,
     "speechContexts": [{
       "phrases": ["function main","begin if","do-while","cut block", "exit block", "symbol", "equal 1","equal 2","equal 3","equal 4","equal 5","equal 6","equal 7","equal 8","equal 9",
-    "line 1","line 2","line 3","line 4","line 5","line 6","comment if","paste above","paste below","typecast variable","uncomment block","line 18","line 19","line"]
+    "line 1","line 2","line 3","line 4","line 5","line 6","comment if","paste above","paste below","typecast variable","uncomment block","line 18","line 19","line", "online 3","online 5"]
     }]
   },
   interimResults: false, // If you want interim results, set this to true
