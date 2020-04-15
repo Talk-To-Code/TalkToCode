@@ -132,10 +132,15 @@ export class StructCommandManager {
 
             this.edit_stack.push(new edit_stack_item(["non-edit"]));
             if(this.isLeftRightCalled){
+                console.log("OLD STRING INDEX: "+this.string_index);
+                console.log("LEN CURSOR BEFORE: "+this.len_cursor);
                 var temp = this.curr_speech[this.backspace_index].split(" ");
-                console.log("THIS STRING INDEX: "+this.string_index);
                 temp.splice(this.string_index+1,0,cleaned_speech);
                 this.curr_speech[this.backspace_index]= temp.join(" ");
+                this.string_index +=cleaned_speech.split(" ").length;
+                this.len_cursor+=cleaned_speech.length+1;
+                console.log("NEW STRING INDEX: "+this.string_index);
+                console.log("LEN CURSOR AFTER: "+this.len_cursor);
             }
             else this.curr_speech.push(cleaned_speech);
             /* Remove the "" blanks from the curr speech. */
@@ -241,15 +246,13 @@ export class StructCommandManager {
     }
 
     backspaceCommand(command: string) {
-        console.log("LEFT AND RIGHT: "+this.isLeftRightCalled);
         /* nothing to backspace */
         if (JSON.stringify(this.curr_speech) == JSON.stringify([""])) {
             console.log("Nothing to backspace");
             return;
         }
         if (this.isLeftRightCalled==false) {
-            console.log("NO stay command used");
-            return;
+            this.len_cursor = this.curr_speech.join(" ").length;
         }
 
         this.edit_stack.push(new edit_stack_item(["backspace", this.deepCopyStringList(this.curr_speech)]));
@@ -456,12 +459,18 @@ export class StructCommandManager {
             vscode.window.showWarningMessage("Sorry! Can't go left any further")
             return;
         }
+        console.log("IN LEFT LEN CURSOR: "+this.len_cursor);
         this.isLeftRightCalled = true;
         var joined_speech = this.curr_speech.join(" ").trim();
         this.len_cursor = (this.len_cursor==-1)?joined_speech.length: this.len_cursor;
         var temp = joined_speech.substring(0,this.len_cursor).trimRight();
         var arr = temp.split(" ");
         this.len_cursor-=(arr[arr.length-1].length+1);
+        arr.splice(-1,1);
+        this.string_index -=1;
+        this.backspace_index = this.curr_speech.length-1;
+        console.log("IN GO LEFT: STRING INDEX: "+this.string_index);
+        console.log("IN LEFT AFTER LEN CURSOR: "+this.len_cursor);
     }
 
     /* Move right */
@@ -471,11 +480,14 @@ export class StructCommandManager {
             vscode.window.showWarningMessage("Sorry! Can't go right any further");
             return;
         }
+        console.log("IN RIGHT LEN CURSOR: "+this.len_cursor);
         this.isLeftRightCalled = true;
         var temp = joined_speech.substring(this.len_cursor,joined_speech.length).trimLeft();
         var arr = temp.split(" ");
         this.len_cursor+=(arr[0].length+1);
-        if (this.len_cursor>joined_speech.length) this.len_cursor = joined_speech.length;
+        if (this.len_cursor>joined_speech.length) this.len_cursor = joined_speech.length; 
+        console.log("IN RIGHT AFTER LEN CURSOR: "+this.len_cursor);
+        this.string_index+=1
     }
 
     /* Scroll up by one window*/

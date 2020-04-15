@@ -75,6 +75,7 @@ function listen() {
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
+		console.log("TRANSCRIBED WORD: "+transcribed_word);
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 
@@ -276,7 +277,10 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			then() is called when the callback function is done editing. */
 			if (editor) {
 				var lineAt = editor.document.lineAt(cursor_pos).text;
-				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
+				if (manager.isLeftRightCalled){
+					editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, manager.len_cursor), new vscode.Position(cursor_pos, manager.len_cursor));
+				}
+				else editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
 			}
 		})
 	}

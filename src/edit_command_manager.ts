@@ -45,7 +45,6 @@ export class EditCommandManager {
         this.check_if_uncomment_block(transcribedWord);
         this.check_if_search_and_replace(transcribedWord);
         this.check_if_typecast_variable(transcribedWord);
-        this.check_if_post_to_pre_increment(transcribedWord);
     }
 
     check_if_edit_command(text: String){
@@ -394,8 +393,14 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
-                this.manager.struct_command_list.splice(this.manager.curr_index,1);
+                console.log("IN INSET BEFORE CURR INDEX: "+this.manager.curr_index);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
+                if (index<this.manager.curr_index){
+                    this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
+                }
+                else{
+                    this.manager.struct_command_list.splice(this.manager.curr_index,1);
+                }
                 this.manager.curr_index = index;
         }
     }
@@ -414,14 +419,21 @@ export class EditCommandManager {
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].startsWith(block_name)){
                     if (Math.abs(i-this.manager.curr_index)<minDistance){
+                        console.log("DIFF: "+(i-this.manager.curr_index));
                         minDistance = Math.abs(i-this.manager.curr_index);
                         minIndex = i;
                     }
                 }
             }
+            console.log("MIN INDEX: "+minIndex);
             this.push_to_edit_stack();
-            this.manager.struct_command_list.splice(this.manager.curr_index,1);
             this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
+            if (minIndex<this.manager.curr_index){
+                this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
+            }
+            else{
+                this.manager.struct_command_list.splice(this.manager.curr_index,1);
+            }
             this.manager.curr_index = minIndex;
         }
     }
@@ -530,14 +542,6 @@ export class EditCommandManager {
                 this.manager.struct_command_list[index] = line.substring(0, substring_index)+"#type "+data_type+" ("+line.substring(substring_index,substring_index+phrase.length)+")"+line.substring(substring_index+phrase.length);
                 return;
             }
-        }
-    }
-
-    check_if_post_to_pre_increment(text: String){
-        var arr = text.split(" ");
-        if (arr.length!=8) return;
-        if (arr[0]=="change" && arr[1]=="post" && arr[3]=="pre"){
-            var line_num = parseInt(arr[7]);
         }
     }
 
