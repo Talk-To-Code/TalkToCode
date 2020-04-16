@@ -44,6 +44,12 @@ export function parse_command(text: string, language: string, variable_list: str
         errorCommand.logError("Python does not support switch statements");
     }
 
+    /* Python does not support do-while blocks */
+    if (starting_command[0] == "do" && language == "py") {
+        var errorCommand = new structCommand("non-block");
+        errorCommand.logError("Python does not support do-while blocks");
+    }
+
     /* Splitted_text is the user's command without the leading starting command.
     Starting command refers to "begin if", "begin loop" etc. */
     var splitted_text = starting_command[1].split(" ");

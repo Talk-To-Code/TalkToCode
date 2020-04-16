@@ -145,5 +145,7 @@ plus plus i in for loops and statements in general
 struct throws an error when no #create is there
 it also throws an error when #string is inside
 
+stay and release messed up. for blocks
+
 
 
