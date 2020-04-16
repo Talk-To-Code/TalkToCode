@@ -41,6 +41,8 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         else input_speech = check[1];
     }
 
+    input_speech = find_symbol(input_speech);
+
     input_speech = replace_infix_operators(input_speech, prev_struct_command);
 
     var removePreviousStatement = false;
@@ -201,4 +203,29 @@ function getSpelling(input_speech: string) {
 
     input_speech = (temp.slice(0, spellIdx).join(" ").trim() + " " + spelledWord.join("").trim() + " " + temp.slice(spellEndIdx+1).join(" ")).trim();
     return ["ready", input_speech];
+}
+
+function find_symbol(text: string) {
+    if (text.includes("symbol")) {
+        var splitted_text = text.split(" ");
+        var symbol_flag = false;
+        for(var i = 0; i < splitted_text.length; i++) {
+            if (symbol_flag) {
+                if (splitted_text[i] == "ampersand") splitted_text[i] = "&";
+                else if (splitted_text[i] == "dollar") splitted_text[i] = "$";
+                else if (splitted_text[i] == "percent" || splitted_text[i] == "percents" || splitted_text[i] == "percentage") splitted_text[i] = "%";
+                else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
+                else if (splitted_text[i] == "colon") splitted_text[i] = ":";
+                else if (splitted_text[i] == "dot" || splitted_text[i] == "point" || splitted_text[i] == "points") splitted_text[i] = ".";
+                else if (splitted_text[i] == "star") splitted_text[i] = "*";
+
+                symbol_flag = false;
+            }
+            if (splitted_text[i] == "symbol")  symbol_flag = true;
+        }
+        text = splitted_text.join(" ");
+        text = text.replace(/symbol /g, "");
+    }
+
+    return text;
 }

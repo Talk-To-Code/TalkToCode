@@ -127,11 +127,6 @@ export class StructCommandManager {
 
     /* Updating the struct command list */
     updateStructCommandList(struct_command: structCommand) {
-        if (this.justReleased) {
-            /* make sure that if it is a block command, nothing is broken */
-            this.checkValidity();
-            /* if not valid, set struct command to have error. */
-        }
         /* Previous statement is extendable. */
         if (struct_command.removePreviousStatement) {
             /* join extendable speech to prev input speech */
@@ -148,6 +143,19 @@ export class StructCommandManager {
             /* Remove terminator from prev index. */
             this.struct_command_list[this.curr_index - 1] = this.struct_command_list[this.curr_index - 1].replace(";;", "");
         }
+
+        var checker = "";
+
+        if (this.justReleased) {
+            checker = this.checkValidity(struct_command);
+            this.justReleased = false;
+        }
+
+        /* Do not allow such scenarios */
+        if (checker == "unmatched new_statement" || checker == "Error" || checker.startsWith("normal diff_block")) {
+            struct_command.hasError = true;
+        }
+
         /* Command is parseable, add to struct command! */
         if (!struct_command.hasError) {
             this.curr_speech = [""] // Clear curr speech to prepare for next command.
@@ -158,10 +166,16 @@ export class StructCommandManager {
                 this.curr_index += 1;
                 this.struct_command_list.splice(this.curr_index, 0, cursor_struct);
                 this.curr_index += 1;
-                this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand);
-                this.curr_index -= 1; // Make sure curr_index points at the blank line.
-
-                this.appendSpeechHist("block");
+                if (checker == "normal block") {
+                    this.curr_index -= 1;
+                    this.appendSpeechHist("line");
+                }
+                else {
+                    this.struct_command_list.splice(this.curr_index, 0, struct_command.endCommand);
+                    this.curr_index -= 1; // Make sure curr_index points at the blank line.
+    
+                    this.appendSpeechHist("block");
+                }
             }
             else if (struct_command.isBlock && struct_command.isTry) {
                 this.struct_command_list.splice(this.curr_index, 1, "try");
@@ -243,7 +257,12 @@ export class StructCommandManager {
 
     /* look out for end branches */
     holdCommand(cleaned_speech: string, countlines: number[]) {
+
+        cleaned_speech = cleaned_speech.replace('line v', 'line 5');
+        cleaned_speech = cleaned_speech.replace('line for', 'line 4');
+
         var splitted_speech = cleaned_speech.split(" ");
+
 
         if (cleaned_speech == "stay") {
             /* Perform basic hold */
@@ -316,9 +335,75 @@ export class StructCommandManager {
     }
 
     /* check if curr speech and held command is the same block type */
-    checkValidity() {
-        /* to be done once backspace works */
-        return true;
+    checkValidity(struct_command: structCommand) {
+        
+        if (struct_command.hasError) return "Error";
+        else {
+            var heldCommandJoin = this.heldCommand.join(" ");
+            var heldStartingCommand = heldCommandJoin.split(" ")[0];
+
+            var heldType = "";
+
+            if (heldStartingCommand == "begin" || heldStartingCommand == "while" || heldStartingCommand == "else" || 
+            heldStartingCommand == "create" || heldStartingCommand == "do" || heldStartingCommand == "case") {
+                heldType = "block";
+            }
+            else heldType = "statement";
+
+            var currentType = "";
+
+            if (struct_command.isBlock) currentType = "block";
+            else currentType = "statement";
+
+            if (heldType == currentType && heldType == "statement") return "normal statement";
+            else if (heldType == currentType && heldType == "block") {
+
+                var heldBlockType = "";
+
+                if (struct_command.parsedCommand.includes("#if_branch_start") && heldCommandJoin.includes("begin if")) {
+                    heldBlockType = "if";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#elseIf_branch_start") && heldCommandJoin.includes("else if")) {
+                    heldBlockType = "else if";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#else_branch_start") && heldCommandJoin.includes("else")) {
+                    heldBlockType = "else";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#for_start") && heldCommandJoin.includes("begin loop")) {
+                    heldBlockType = "for";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#while_start") && heldCommandJoin.includes("while")) {
+                    heldBlockType = "while";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#case_start") && heldCommandJoin.includes("case")) {
+                    heldBlockType = "case";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("#function_start") && heldCommandJoin.includes("create function")) {
+                    heldBlockType = "function";
+                    return "normal block";
+                }
+                else if (struct_command.parsedCommand.includes("switch") && heldCommandJoin.includes("begin switch")) {
+                    heldBlockType = "switch";
+                    return "normal block";
+                }
+                /* blocks do not match */
+                else return "normal diff_block " + heldBlockType;
+            }
+
+            else if (heldType != currentType && heldType == "statement") {
+                return "unmatched new_block";
+            }
+            else if (heldType != currentType && heldType == "block") {
+                return "unmatched new_statement";
+            }
+            else return "Error";
+        }
     }
 
     exitBlockCommand() {

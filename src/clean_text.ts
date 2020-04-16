@@ -10,7 +10,6 @@ export function clean(input_speech: string, spelling: boolean) {
     input_speech = fix_common_errors(input_speech);
     input_speech = correct_variables(input_speech);
     input_speech = word_2_num(input_speech);
-    input_speech = find_symbol(input_speech);
 
     if (spelling) input_speech = spellingFunction(input_speech);
     return input_speech;
@@ -26,9 +25,7 @@ function fix_common_errors(text: string) {
     text = text.replace('and string', 'end string');
     text = text.replace('begin is', 'begin if');
     text = text.replace('begin look', 'begin loop');
-
-    /* line errors */
-    text = text.replace('line v', 'line 5');
+    
     return text;
 }
 
@@ -58,31 +55,6 @@ function correct_variables(text: string) {
     return text;
 }
 
-function find_symbol(text: string) {
-    if (text.includes("symbol")) {
-        var splitted_text = text.split(" ");
-        var symbol_flag = false;
-        for(var i = 0; i < splitted_text.length; i++) {
-            if (symbol_flag) {
-                if (splitted_text[i] == "ampersand") splitted_text[i] = "&";
-                else if (splitted_text[i] == "dollar") splitted_text[i] = "$";
-                else if (splitted_text[i] == "percent" || splitted_text[i] == "percents" || splitted_text[i] == "percentage") splitted_text[i] = "%";
-                else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
-                else if (splitted_text[i] == "colon") splitted_text[i] = ":";
-                else if (splitted_text[i] == "dot" || splitted_text[i] == "point" || splitted_text[i] == "points") splitted_text[i] = ".";
-                else if (splitted_text[i] == "star") splitted_text[i] = "*";
-
-                symbol_flag = false;
-            }
-            if (splitted_text[i] == "symbol")  symbol_flag = true;
-        }
-        text = splitted_text.join(" ");
-        text = text.replace(/symbol /g, "");
-    }
-
-    return text;
-}
-
 function word_2_num(text: string) {
     text = text.replace('one', '1');
     text = text.replace('two', '2');
@@ -101,8 +73,6 @@ function word_2_num(text: string) {
 }
 
 function spellingFunction(text: string) {
-
-    console.log("soelling")
 
     text = text.replace("and spell", "end_spell");
     text = text.replace("n spell", "end_spell");
