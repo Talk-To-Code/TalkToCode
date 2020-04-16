@@ -45,10 +45,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		listen();
+		// listen();
 		// runEditTests();
-		// runTestCasesForC();
-		// runTestCasesForPy();
+		runTestCasesForC();
+		runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);

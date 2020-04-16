@@ -20,6 +20,8 @@ export function joinName(name_arr: string[]) {
             var_name = var_name + toAdd;
         }
     }
+    if (!isNaN(Number(var_name[0]))) return "number problem";
+
     return var_name;
 }
 
@@ -193,8 +195,13 @@ function parse_declare_c(text: string, variable_list: string[], function_list: s
             statement.logError("size of array must be a number");
             return statement;
         }
+        var fragment1Name = joinName(fragment1.split(" "));
+        if (fragment1Name == "number problem") {
+            statement.logError("variable name starts with a number.");
+            return statement;
+        }
         // E.g. array number size 100 -> #array #variable number #indexes 100 #index_end #dec_end;;
-        statement.parsedStatement += " #array #variable " + joinName(fragment1.split(" "));
+        statement.parsedStatement += " #array #variable " + fragment1Name;
         statement.parsedStatement += " #indexes " + splitted_text[indexSize+1] + " #index_end";
 
         if (equalPresent) {
@@ -215,7 +222,12 @@ function parse_declare_c(text: string, variable_list: string[], function_list: s
     }
     /* Not array declaration */
     else {
-        statement.parsedStatement += " #variable " + joinName(fragment1.split(" "));
+        var fragment1Name = joinName(fragment1.split(" "));
+        if (fragment1Name == "number problem") {
+            statement.logError("variable name starts with a number.");
+            return statement;
+        }
+        statement.parsedStatement += " #variable " + fragment1Name;
 
         if (equalPresent) {
             var parsedFragment2 = fragment_segmenter(fragment2.split(" "), "c", variable_list, function_list);
@@ -661,6 +673,7 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
         if (!splitted_text.includes("parameter")) {
             /* Not sure if the terminator should be there. since it will be used in assign statement as well.*/
             var function_name = joinName(splitted_text.slice(1));
+            if (function_name == "number problem") return ["not ready", "function name begins with a number."]; 
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
 
@@ -706,6 +719,7 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
             }
             parameter_blocks = parameter_blocks.map(x=>x.trim());
             var function_name = joinName(parameter_blocks[0].split(" ").slice(1));
+            if (function_name == "number problem") return ["not ready", "function name begins with a number."]; 
             if (function_name == "printF") function_name = "printf";
             if (function_name == "scanF") function_name = "scanf";
             var parsed_result = "#function " + function_name + "(";
@@ -796,7 +810,10 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
 
         return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
     }
-    return ["ready", "#variable " + joinName(splitted_text)];
+    
+    var name = joinName(splitted_text);
+    if (name == "number problem") return ["not ready", "variable name begins with number"];
+    return ["ready", "#variable " + name];
 }
 
 /* Command for it is:
@@ -849,19 +866,3 @@ function parse_dictionary(splitted_text: string[]) {
 
     return ["ready", parsed_result];
 }
-
-// function matchVarNameToExistingNames(name: string, variable_list: string[]) {
-//     if (JSON.stringify(variable_list) == JSON.stringify([""])) return name;
-//     const metric = new EnPhoneticDistance();
-
-//     const matcher = new FuzzyMatcher(variable_list, metric);
-//     const result = matcher.nearest(name);
-
-//     if (result.distance < 0.15) name = result.element;
-
-//     return name;
-// }
-
-// function matchFuncNameToExistingNames(name: string, function_list: string[]) {
-
-// }
