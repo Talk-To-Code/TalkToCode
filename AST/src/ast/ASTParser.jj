@@ -380,7 +380,7 @@ ASTExpressionUnitPointer pointer(programType pType) :
         {
           if (pType != programType.P && parameterType == "") throw new ParseException("Must declare type in C and Java!\n");
           ASTExpressionUnitTypes t = new ASTExpressionUnitTypes(parameterType);
-          ASTExpressionUnitIdentifier i = new ASTExpressionUnitIdentifier(parameterName.image);
+          ASTExpressionUnit i = new ASTExpressionUnitIdentifier(parameterName.image);
           switch (pType) {
             case C:
             	((ASTFunctionC) result).addParameter(t, i);
@@ -395,19 +395,20 @@ ASTExpressionUnitPointer pointer(programType pType) :
 	     if(pType != programType.C) throw new ParseException("Not Supported in Java and Python!\n");
 	     if(parameterType == "") throw new ParseException("Must declare type in C!\n");
 	     t = new ASTExpressionUnitTypes(parameterType);
-         i = new ASTExpressionUnitIdentifier(p.toSyntax());
+         i = p;
          ((ASTFunctionC) result).addParameter(t, i);
        }
 	 )    )  |    (      < PARAMETER_A > < DIMENSION > dimension = < INTEGER_LITERAL > parameterType = types_C() < ARRAY >      {
         if (pType == programType.P) throw new ParseException("Not supported in Python!\n");        ASTExpressionUnitTypesArray type = new ASTExpressionUnitTypesArray(parameterType, Integer.parseInt(dimension.image));      }
       (        parameterName = < IDENTIFIER >
         {
-          ASTExpressionUnitIdentifier id = new ASTExpressionUnitIdentifier(parameterName.image);
+          ASTExpressionUnit id = new ASTExpressionUnitIdentifier(parameterName.image);
           ((ASTFunctionC) result).addParameter(type, id);
         }
       | p = pointer(pType)
       	{
-      	  id = new ASTExpressionUnitIdentifier(p.toSyntax());
+      	  id = p;
+      	  type.setPointer(true);
           ((ASTFunctionC) result).addParameter(type, id);
         }
       )    )  )*  < FUNCTION_START >  (    s = statement(result, pType, indent+1)    {

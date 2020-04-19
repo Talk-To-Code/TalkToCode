@@ -45,7 +45,7 @@ public class PointerTest extends TestCase {
 			}
 			for(int j = 0; j < 2; j++) {
 				currentTemp = "";
-				for(int i = 0; i < 2; i++) {
+				for(int i = 0; i < 3; i++) {
 					if ((temp = br.readLine()) != null) currentTemp = currentTemp.concat(temp);
 					currentTemp = currentTemp.concat("\n");
 				}

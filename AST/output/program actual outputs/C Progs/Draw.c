@@ -15,7 +15,7 @@ void printStar(){
 }
 
 void printTriangle(int );
-void printTriangle(int  a){
+void printTriangle(int a){
 	int i, j, k;
 
 	for (i = 0;i <= a;i++){
@@ -36,7 +36,7 @@ void printTriangle(int  a){
 }
 
 void printRectangle(int , int );
-void printRectangle(int  n, int  l){
+void printRectangle(int n, int l){
 	int i, j;
 
 	for (i = 0;i < n;i++){
@@ -63,7 +63,7 @@ void printRectangle(int  n, int  l){
 
 }
 
-int  main(){
+int main(){
 	int a;
 
 	LOOP:

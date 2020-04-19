@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 void quicksort(int [], int , int );
-void quicksort(int  X[], int  first, int  last){
+void quicksort(int X[], int first, int last){
 	int pivot, j, temp, i;
 
 	if(first < last) {
@@ -37,7 +37,7 @@ void quicksort(int  X[], int  first, int  last){
 
 }
 
-int  main(){
+int main(){
 	int size, i, X[100];
 
 	printf("Enter size of the array: ");

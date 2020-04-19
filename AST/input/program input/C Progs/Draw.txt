@@ -65,7 +65,8 @@ case #value 2
 case #value 3
 #case_start #function printf(#parameter #value "END\n");; break;; #case_end
 default
-#case_start goto LOOP;; #case_end;;
+#case_start goto LOOP;; #case_end
+#switch_end;;
 return #parameter #value 0;;
 #function_end;;
 #program_end
