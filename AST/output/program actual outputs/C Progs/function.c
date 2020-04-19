@@ -8,7 +8,7 @@ void my_function(){
 
 }
 
-int  main(){
+int main(){
 	printf("Main function.\n");
 
 	my_function();

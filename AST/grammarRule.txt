@@ -235,6 +235,7 @@ infixOperators() :
 	| < SC_AND >
 	| < PY_OR >
 	| < PY_AND >
+	| < IS >
 	| < BIT_AND >
 	| < BIT_OR >
 	| < XOR >

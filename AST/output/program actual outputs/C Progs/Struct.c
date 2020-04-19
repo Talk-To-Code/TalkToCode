@@ -4,7 +4,7 @@ typedef struct point {
 	int x, y;
 } point;
 
-int  main(){
+int main(){
 	point p;
 
 	p.x = 1;

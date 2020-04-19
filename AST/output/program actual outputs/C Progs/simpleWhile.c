@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int  main(){
+int main(){
 	int value = 1;
 
 	while (value <= 3){

@@ -11,13 +11,13 @@ public class ASTFunctionC extends ASTFunction {
 	private ArrayList<String> modifiers;
 	private ASTExpressionUnitTypes returnType;
 	private ArrayList<ASTExpressionUnitTypes> types;
-	private ArrayList<ASTExpressionUnitIdentifier> parameters;
+	private ArrayList<ASTExpressionUnit> parameters;
 	
 	public ASTFunctionC(String name) {
 		super(name);
-		this.returnType = new ASTExpressionUnitTypes("void");//default
+		this.returnType = new ASTExpressionUnitTypes("void ");//default
 		this.types = new ArrayList<ASTExpressionUnitTypes>();
-		this.parameters = new ArrayList<ASTExpressionUnitIdentifier>();
+		this.parameters = new ArrayList<ASTExpressionUnit>();
 		this.modifiers = new ArrayList<String>();
 		
 	}
@@ -25,7 +25,7 @@ public class ASTFunctionC extends ASTFunction {
 		this.modifiers.add(modifier);
 		
 	}
-	public void addParameter(ASTExpressionUnitTypes t,ASTExpressionUnitIdentifier p){
+	public void addParameter(ASTExpressionUnitTypes t,ASTExpressionUnit p){
 		this.parameters.add(p);
 		p.addParent(this);
 		this.types.add(t);
@@ -45,11 +45,20 @@ public class ASTFunctionC extends ASTFunction {
 				this.result += " ";
 			}
 			this.result+=this.returnType.toSyntax();
-			this.result+=" ";
 			this.result+=this.name.toSyntax();
 			this.result+="(";
 			for(int i =0;i<this.types.size();i++){
 				this.result+=this.types.get(i).toSyntax();
+				if(this.parameters.get(i) instanceof ASTExpressionUnitPointer) {
+					if(!(this.types.get(i) instanceof ASTExpressionUnitTypesArray)) {
+						ASTExpressionUnit name = ((ASTExpressionUnitPointer) this.parameters.get(i)).getIdentifier();
+						this.result += "*";
+						while(name instanceof ASTExpressionUnitPointer) {
+							this.result += "*";
+							name = ((ASTExpressionUnitPointer) name).getIdentifier();
+						}
+					}
+				}
 				if(i!=this.types.size()-1){
 					this.result+=", ";
 				}
@@ -63,7 +72,6 @@ public class ASTFunctionC extends ASTFunction {
 			this.result += " ";
 		}
 		this.result+=this.returnType.toSyntax();
-		this.result+=" ";
 		this.result+=this.name.toSyntax();
 		this.result+="(";
 		//adding parameters
@@ -75,15 +83,13 @@ public class ASTFunctionC extends ASTFunction {
 			//this difference requires modification in syntax generation
 			if(this.types.get(j).getClass()==new ASTExpressionUnitTypesArray().getClass()){
 				String temp = this.types.get(j).toSyntax();
-				String typeName = temp.substring(0,temp.indexOf("["));
+				String typeName = (this.parameters.get(j) instanceof ASTExpressionUnitPointer) ? temp.substring(0, temp.indexOf('*')) : temp.substring(0,temp.indexOf("["));
 				String dimension = temp.substring(temp.indexOf("["));
-				this.result+=typeName + " ";
-				this.result+=this.parameters.get(j).toSyntax();
+				this.result+= typeName + this.parameters.get(j).toSyntax();
 				this.result+=dimension;
 				
 			} else{
 				this.result+=this.types.get(j).toSyntax();
-				this.result+=" ";
 				this.result+=this.parameters.get(j).toSyntax();
 			}
 			

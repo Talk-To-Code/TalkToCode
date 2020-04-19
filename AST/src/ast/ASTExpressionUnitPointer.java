@@ -17,6 +17,7 @@ public class ASTExpressionUnitPointer extends ASTExpressionUnit{
 		this();
 		this.name = name;
 	}
+	public ASTExpressionUnit getIdentifier() { return this.name; }
 	public String toSyntax(){
 		this.result = "*" + this.name.toSyntax();
 		if(this.isQuoted) quote();
