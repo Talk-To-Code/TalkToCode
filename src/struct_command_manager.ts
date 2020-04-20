@@ -49,6 +49,8 @@ export class StructCommandManager {
 
     spelling: boolean;
 
+    string: boolean;
+
     constructor(language: string, debugMode: boolean) {
         this.language = language;
         this.curr_index = 0;
@@ -65,7 +67,7 @@ export class StructCommandManager {
         this.justReleased = false;
         this.speech_len = -1;
         this.spelling = false;
-
+        this.string = false;
     }
 
     reset() {
@@ -81,6 +83,7 @@ export class StructCommandManager {
         this.heldline = 0;
         this.justReleased = false;
         this.spelling = false;
+        this.string = false;
     }
 
     parse_speech(transcribed_word: string, countlines: number[]) {
@@ -98,8 +101,10 @@ export class StructCommandManager {
         /* Normal process. */
         else {
             if (transcribed_word.split(" ").includes("spell")) this.spelling = true;
-            var cleaned_speech = clean(transcribed_word, this.spelling);
+            if (transcribed_word.split(" ").includes("string")) this.string = true;
+            var cleaned_speech = clean(transcribed_word, this.spelling, this.string);
             if (cleaned_speech.split(" ").includes("end_spell")) this.spelling = false;
+            if (cleaned_speech.includes("end string")) this.string = false;
 
             this.edit_stack.push(new edit_stack_item(["non-edit"]));
             this.curr_speech.push(cleaned_speech);
@@ -564,6 +569,7 @@ export class StructCommandManager {
             }
             /* check if "spell" still within the curr_speech */
             if (!this.curr_speech.join(" ").includes("spell")) this.spelling = false;
+            if (!this.curr_speech.join(" ").includes("string")) this.string = false;
         }
 
         /* Perform enter block */
