@@ -93,7 +93,6 @@ function listen() {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 
 			console.log(transcribed_word)
-			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus());
@@ -105,7 +104,6 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word, count_lines);
-			// writeToEditor(manager.managerStatus());
 			displayCode(manager.struct_command_list);
 		}
 	});

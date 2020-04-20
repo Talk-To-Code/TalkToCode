@@ -383,8 +383,8 @@ export class EditCommandManager {
     check_if_insert_before_line(text: String) {
         var arr = text.split(" ");
         if (arr.length!=4) return;
-        if (arr[0]=="insert" && arr[1]=="before" && arr[2]=="line"){
-            console.log("IN HERE to insert before line");
+        if (arr[0]=="insert" && arr[1]=="before"  && arr[2]=="line"){
+            console.log("IN HERE to insert before/after line");
                 let line_num = parseInt(arr[3]);
                 let index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
                 if (index==-1){
@@ -395,8 +395,9 @@ export class EditCommandManager {
                     return;
                 }
                 this.push_to_edit_stack();
-                console.log("IN INSET BEFORE CURR INDEX: "+this.manager.curr_index);
+                console.log("IN INSERT BEFORE CURR INDEX: "+this.manager.curr_index);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
+
                 if (index<this.manager.curr_index){
                     this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
                 }
@@ -431,9 +432,12 @@ export class EditCommandManager {
             this.push_to_edit_stack();
             this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
             if (minIndex<this.manager.curr_index){
+                console.log("IN IF: "+this.manager.curr_index+1);
                 this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
+                
             }
             else{
+                console.log("IN IF: "+this.manager.curr_index+1);
                 this.manager.struct_command_list.splice(this.manager.curr_index,1);
             }
             this.manager.curr_index = minIndex;

@@ -114,8 +114,8 @@ export class StructCommandManager {
         else if (transcribed_word == "exit block") this.exitBlockCommand();
         else if (transcribed_word == "go down" || transcribed_word == "move down") this.goDownCommand();
         else if (transcribed_word == "go up" || transcribed_word == "move up") this.goUpCommand();
-        else if (transcribed_word=="move left"|| transcribed_word =="go left") this.goLeftCommand();
-        else if (transcribed_word=="move right"|| transcribed_word =="go right") this.goRightCommand();
+        else if (transcribed_word=="previous word"|| transcribed_word =="go left") this.goLeftCommand();
+        else if (transcribed_word=="next word"|| transcribed_word =="go right") this.goRightCommand();
         else if (transcribed_word.startsWith("stay")) this.holdCommand(transcribed_word, countlines);
         else if (transcribed_word.startsWith("release")) this.releaseCommand();
         else if (transcribed_word.startsWith("backspace")) this.backspaceCommand(transcribed_word);
