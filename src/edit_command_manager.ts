@@ -96,7 +96,7 @@ export class EditCommandManager {
                         countNestedFunctions+=1;
                     } 
                 }
-                else if (structuredText.startsWith("#function_end")){
+                else if (flag && structuredText.startsWith("#function_end")){
                     if (countNestedFunctions>0){
                         countNestedFunctions--;
                     }
@@ -173,7 +173,6 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
-                if (arr[2]=="is") arr[2]="if";
                 var res = this.resolve_block_name(arr[2]);
                 if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
@@ -183,6 +182,9 @@ export class EditCommandManager {
                     end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.struct_command_list[start] = start_comment +  this.manager.struct_command_list[start]
                     this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + end_comment;  
+                }
+                else{
+                    vscode.window.showInformationMessage("Sorry! code at line 7 is not a "+arr[2]+" block!")
                 }
             }
         }
@@ -203,7 +205,7 @@ export class EditCommandManager {
                 let text = line.split(" ");
                 var changed = false;
                 for (var j=1;j<text.length;j++){
-                    if (text[j].startsWith(functionToReplace) && (text[j-1]=="#function_declare" || text[j-1]=="#function")){
+                    if ((text[j] == functionToReplace || text[j].startsWith(functionToReplace+"(")) && (text[j-1]=="#function_declare" || text[j-1]=="#function")){
                         text[j] = text[j].replace(functionToReplace,replaceWith);
                         changed = true;
                     } 
@@ -676,7 +678,7 @@ find_nearest_creation_of_variable(index:number, variable_name: string){
 }
 
 resolve_block_name(text: string){
-    var block_name = text;
+    var block_name = (text=="is")? "if": text;
     var block_name_end = text;
     if (text=="else"){
         block_name=="#else_branch_start";
