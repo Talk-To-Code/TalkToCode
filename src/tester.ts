@@ -83,7 +83,7 @@ export function runTestCasesForPy() {
 }
 
 export function test_function() {
-    var test_fragment = "declare integer hello";
+    var test_fragment = "hello equal call function tester end function array index 5";
     console.log(parse_statement(test_fragment, "normal", "c", [""], [""]));
 }
 
@@ -93,7 +93,7 @@ function generate_test_cases_c(cases: string) {
     var test_cases = [[""], [""]];
 
     if (cases == "tester") {
-        test_cases[0] = ["hello array index 2 equals call function hello parameter 1 parameter call function hello world end function end function"];
+        test_cases[0] = ["hello equal call function tester end function array index 5"];
 
         test_cases[1] = [""];
     }
@@ -202,11 +202,14 @@ function generate_test_cases_c(cases: string) {
     else if (cases == "for_loop") {
         test_cases[0] = ["declare integer i", 
         "begin Loop condition i equal 0 condition i less than 5 condition i plus plus",
-        "declare integer hello equals 5"];
+        "declare integer hello equals 5", "exit block", 
+        "begin loop condition c equal character a condition c less than equal character z condition c plus plus"];
 
         test_cases[1] = ["#create int #variable i #dec_end;;",
         "for #condition #assign #variable i #with #value 0 #condition #variable i < #value 5 #condition #post #variable i ++ #for_start",
-        "#create int #variable hello #value 5 #dec_end;;","#string \"\";;","#for_end;;"];
+        "#create int #variable hello #value 5 #dec_end;;","#for_end;;",
+        "for #condition #assign #variable c #with #value 'a' #condition #variable c <= #value 'z' #condition #post #variable c ++ #for_start",
+        "#string \"\";;","#for_end;;"];
     }
 
     else if (cases == "create_function") {

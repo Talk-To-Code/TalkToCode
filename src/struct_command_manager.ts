@@ -316,6 +316,7 @@ export class StructCommandManager {
                         this.edit_stack.push(new edit_stack_item(["stay change", copiedStructCommand, copiedSpeechHist, oldIdx]));
                     }
                 }
+                else vscode.window.showInformationMessage("Not a valid line");
             }
         }
     }

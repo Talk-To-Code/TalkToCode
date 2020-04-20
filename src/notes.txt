@@ -124,14 +124,9 @@ unsigned and signed for c
 
 add testing for pointers
 
-error when stay from the start
-
 the way replace is done is wrong. do it in parse statement
 
 plus plus i in for loops and statements in general
-
-stay and release messed up. for blocks
-
 
 struct throws an error when no #create is there
 it also throws an error when #string is inside

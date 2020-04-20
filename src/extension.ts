@@ -45,10 +45,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
 		initManager();
-		// listen();
+		listen();
 		// runEditTests();
-		runTestCasesForC();
-		runTestCasesForPy();
+		// test_function();
+		// runTestCasesForC();
+		// runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -71,7 +72,7 @@ function initManager() {
 function listen() {
 	displayCode([""]);
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+	const child = spawn('node', ['infinite_stream.js infiniteStream'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 
@@ -254,7 +255,6 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + 
 			temp.slice(spellEndIdx + 1).join(" ").trim();
 		}
-
 		code_segments.splice(manager.heldline - 1, 1, numTabs + speech + " *stay");
 		code = code_segments.join("\n");
 		cursor_pos = manager.heldline - 1;

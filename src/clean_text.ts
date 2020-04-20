@@ -107,6 +107,7 @@ function spellingFunction(text: string) {
                 if (splitted_text[i] == "bee") splitted_text[i] = "b";
                 if (splitted_text[i] == "pee") splitted_text[i] = "p";
                 if (splitted_text[i] == "tee") splitted_text[i] = "t";
+                if (splitted_text[i] == "see") splitted_text[i] = "c";
             }
             newText += " " + splitted_text[i].split("").join(" ");
         }

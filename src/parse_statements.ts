@@ -810,7 +810,6 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
 
         return ["ready", "#array " + var_name + " #indexes " + fragment[1] + " #index_end"];
     }
-    
     var name = joinName(splitted_text);
     if (name == "number problem") return ["not ready", "variable name begins with number"];
     return ["ready", "#variable " + name];

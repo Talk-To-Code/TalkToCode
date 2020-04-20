@@ -99,10 +99,10 @@ function replace_infix_operators(text: string, previousStructCommand: string) {
 
     if (replace) {
         /* Infix comparison operator. */
-        text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
-        text = text.replace(/less than/g, '<');
         text = text.replace(/less than equal/g, '<=');
+        text = text.replace(/greater than/g, '>');
+        text = text.replace(/less than/g, '<');
         text = text.replace(/not equal/g, '!=');
         text = text.replace(/equal/g, '==');
 
