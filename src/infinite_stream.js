@@ -62,7 +62,7 @@ function infiniteStream(
     sampleRateHertz: sampleRateHertz,
     languageCode: languageCode,
     "speechContexts": [{
-        "phrases": ["begin if","do-while","cut block", "exit block", "symbol", "ampersand", "print", "equal 1","equal 2","equal 3","equal 4","equal 5","equal 6","equal 7","equal 8","equal 9",
+        "phrases": ["backspace", "begin if","do-while","cut block", "exit block", "symbol", "ampersand", "print", "equal 1","equal 2","equal 3","equal 4","equal 5","equal 6","equal 7","equal 8","equal 9",
       "line 1","line 2","line 3","line 4","line 5","line 6","comment if","paste above","paste below","typecast variable","uncomment block","line 18","line 19","line"]
     }]
   };

@@ -1,7 +1,7 @@
 import { simpleStatement } from './struct_command'
 // const { EnPhoneticDistance, FuzzyMatcher } = require("phoneticmatching");
 
-var operators = ["plus", "divide", "multiply", "minus", "modulo", ">", ">=", "<", "<=", "!=", "==", "||", "&&", "&", "|"]
+var operators = ["plus", "divide", "multiply", "minus", "modulo", ">", ">=", "<", "<=", "!=", "==", "||", "&&"]
 var arithmetic_operators = ["plus", "divide", "multiply", "minus", "modulo"];
 var postfix_prefix_operator = ["++", "--"];
 
@@ -668,7 +668,9 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
                 splitted_text.splice(endFuncIdx); // continue with parsing the call function
             }
         }
-        else return ["not ready", "end function not mentioned."];
+        else {
+            return ["not ready", "end function not mentioned."];
+        }
 
         if (!splitted_text.includes("parameter")) {
             /* Not sure if the terminator should be there. since it will be used in assign statement as well.*/

@@ -264,6 +264,7 @@ export class StructCommandManager {
     holdCommand(cleaned_speech: string, countlines: number[]) {
 
         cleaned_speech = cleaned_speech.replace('line v', 'line 5');
+        cleaned_speech = cleaned_speech.replace('line V', 'line 5');
         cleaned_speech = cleaned_speech.replace('line for', 'line 4');
 
         var splitted_speech = cleaned_speech.split(" ");
@@ -277,9 +278,13 @@ export class StructCommandManager {
         }
         
         else if (cleaned_speech.startsWith("stay on line") || cleaned_speech.startsWith("stay online")) {
+            console.log("stay on line")
             var lastArg = splitted_speech[splitted_speech.length-1];
 
             var line = 0;
+
+            console.log("finding line " + lastArg)
+
             /* If the second argument is a valid number */
             if (!isNaN(Number(lastArg))) {
                 line = parseInt(lastArg);
@@ -292,7 +297,7 @@ export class StructCommandManager {
                 }
                 /* it is a valid line. */
                 if (struct_line != -1 && struct_line < this.struct_command_list.length) {
-
+                    console.log("valid line")
                     if (struct_line == this.curr_index) {
                         /* Perform basic hold */
                         this.holding = true;

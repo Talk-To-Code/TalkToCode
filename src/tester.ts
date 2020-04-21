@@ -83,7 +83,7 @@ export function runTestCasesForPy() {
 }
 
 export function test_function() {
-    var test_fragment = "hello equal call function tester end function array index 5";
+    var test_fragment = "call function scanf parameter string % d end string parameter & n end function";
     console.log(parse_statement(test_fragment, "normal", "c", [""], [""]));
 }
 
@@ -93,7 +93,7 @@ function generate_test_cases_c(cases: string) {
     var test_cases = [[""], [""]];
 
     if (cases == "tester") {
-        test_cases[0] = ["hello equal call function tester end function array index 5"];
+        test_cases[0] = ["call function scanf parameter string % d end string parameter & n end function"];
 
         test_cases[1] = [""];
     }
