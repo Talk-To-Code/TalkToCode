@@ -68,6 +68,7 @@ export class EditCommandManager {
             if (index!=-1){
                 this.manager.splice(index,1);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -95,14 +96,20 @@ export class EditCommandManager {
                         countNestedFunctions+=1;
                     } 
                 }
-                else if (structuredText.startsWith("#function_end")){
+                else if (flag && structuredText.startsWith("#function_end")){
                     if (countNestedFunctions>0){
                         countNestedFunctions--;
                     }
-                    if (countNestedFunctions==0) end = i;
+                    if (countNestedFunctions==0) {
+                        end = i;
+                        break;
+                    }
                 }
             }
-            console.log("START: "+start+" END: "+end);
+            if (start==-1){
+                vscode.window.showInformationMessage("Sorry! Function with name "+functionToDelete+" not found.")
+                return;
+            }
             this.manager.splice(start,(end-start)+1);
         } 
     }
@@ -123,12 +130,16 @@ export class EditCommandManager {
                 var res = this.resolve_block_name(arr[2]);
                  if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
-                    if (index==-1) return;
+                    if (index==-1) {
+                        this.show_no_index_message(line_num);
+                        return;
+                    }
 
                     start = index;
                     end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.splice(start,(end-start)+1);
                 }
+                else vscode.window.showInformationMessage("Sorry! Code does not correspond to "+arr[2]+" block");
             }
         }
     }
@@ -145,6 +156,7 @@ export class EditCommandManager {
                 this.push_to_edit_stack();
                 this.manager.struct_command_list[index] = start_comment + this.manager.struct_command_list[index] + end_comment;
             }
+            else this.show_no_index_message(line_num);
         }      
     }
 
@@ -161,7 +173,6 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var end = -1;
-                if (arr[2]=="is") arr[2]="if";
                 var res = this.resolve_block_name(arr[2]);
                 if (line.startsWith(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
@@ -171,6 +182,9 @@ export class EditCommandManager {
                     end = this.determine_end(index,res.block_name,res.block_name_end);
                     this.manager.struct_command_list[start] = start_comment +  this.manager.struct_command_list[start]
                     this.manager.struct_command_list[end] = this.manager.struct_command_list[end] + end_comment;  
+                }
+                else{
+                    vscode.window.showInformationMessage("Sorry! code at line 7 is not a "+arr[2]+" block!")
                 }
             }
         }
@@ -184,20 +198,26 @@ export class EditCommandManager {
             console.log("RENAMING THE FUNCTION")
             var functionToReplace = arr[2];
             var replaceWith = arr[4];
+            var count = 0;
             this.push_to_edit_stack();
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 let line = this.manager.struct_command_list[i];
                 let text = line.split(" ");
                 var changed = false;
                 for (var j=1;j<text.length;j++){
-                    if (text[j].startsWith(functionToReplace) && (text[j-1]=="#function_declare" || text[j-1]=="#function")){
+                    if ((text[j] == functionToReplace || text[j].startsWith(functionToReplace+"(")) && (text[j-1]=="#function_declare" || text[j-1]=="#function")){
                         text[j] = text[j].replace(functionToReplace,replaceWith);
                         changed = true;
                     } 
                 }
                 if (changed){
+                    count++;
                     this.manager.struct_command_list[i] = text.join(" ");
                 }  
+            }
+            if (count==0){
+                vscode.window.showInformationMessage("Function "+functionToReplace+" cannot be found. No action done.")
+                return;
             }
         }
     }
@@ -228,7 +248,7 @@ export class EditCommandManager {
                 let text = line.split(" ");
                 var changed = false;
                 for (var j=1;j<text.length;j++){
-                    if (text[j].startsWith(wordToReplace) && text[j-1]=="#variable"){
+                    if (text[j].startsWith(wordToReplace) && (text[j-1]=="#variable"|| text[j-1]=="(#variable")){
 
                         text[j] = text[j].replace(wordToReplace,replaceWith);
                         changed = true;
@@ -253,7 +273,7 @@ export class EditCommandManager {
                 index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
             }
             if (index==-1){
-                vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                this.show_no_index_message(line_num);
                 return;
             }
             this.push_to_edit_stack();
@@ -280,6 +300,7 @@ export class EditCommandManager {
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
                 this.manager.splice(index,1);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -295,6 +316,7 @@ export class EditCommandManager {
             if (index!=-1){
                 this.cut_copy_struct_buffer[0] = this.manager.struct_command_list[index];
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -361,20 +383,27 @@ export class EditCommandManager {
     check_if_insert_before_line(text: String) {
         var arr = text.split(" ");
         if (arr.length!=4) return;
-        if (arr[0]=="insert" && arr[1]=="before" && arr[2]=="line"){
-            console.log("IN HERE to insert before line");
+        if (arr[0]=="insert" && arr[1]=="before"  && arr[2]=="line"){
+            console.log("IN HERE to insert before/after line");
                 let line_num = parseInt(arr[3]);
                 let index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
                 if (index==-1){
                     index = this.binarySearch(line_num+1,0,this.line_counts.length, this.line_counts);
                 }
                 if (index==-1){
-                    vscode.window.showInformationMessage("THIS LINE DOES NOT CORRESPOND TO CODE ON EDITOR");
+                    this.show_no_index_message(line_num);
                     return;
                 }
                 this.push_to_edit_stack();
-                this.manager.struct_command_list.splice(this.manager.curr_index,1);
+                console.log("IN INSERT BEFORE CURR INDEX: "+this.manager.curr_index);
                 this.manager.struct_command_list.splice(index,0,insert_cursor);
+
+                if (index<this.manager.curr_index){
+                    this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
+                }
+                else{
+                    this.manager.struct_command_list.splice(this.manager.curr_index,1);
+                }
                 this.manager.curr_index = index;
         }
     }
@@ -393,14 +422,24 @@ export class EditCommandManager {
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].startsWith(block_name)){
                     if (Math.abs(i-this.manager.curr_index)<minDistance){
+                        console.log("DIFF: "+(i-this.manager.curr_index));
                         minDistance = Math.abs(i-this.manager.curr_index);
                         minIndex = i;
                     }
                 }
             }
+            console.log("MIN INDEX: "+minIndex);
             this.push_to_edit_stack();
-            this.manager.struct_command_list.splice(this.manager.curr_index,1);
             this.manager.struct_command_list.splice(minIndex,0,insert_cursor);
+            if (minIndex<this.manager.curr_index){
+                console.log("IN IF: "+this.manager.curr_index+1);
+                this.manager.struct_command_list.splice(this.manager.curr_index+1,1);
+                
+            }
+            else{
+                console.log("IN IF: "+this.manager.curr_index+1);
+                this.manager.struct_command_list.splice(this.manager.curr_index,1);
+            }
             this.manager.curr_index = minIndex;
         }
     }
@@ -414,10 +453,14 @@ export class EditCommandManager {
             let line_num = parseInt(arr[2]);
             var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
             if (index!=-1){
-                if (!this.manager.struct_command_list[index].startsWith(start_comment)) return;
+                if (!this.manager.struct_command_list[index].startsWith(start_comment)){
+                    vscode.window.showInformationMessage("This line is not a comment. No action done.")
+                    return;
+                }
                 this.push_to_edit_stack();
                 this.manager.struct_command_list[index] = this.manager.struct_command_list[index].substring(start_comment.length,this.manager.struct_command_list[index].length-end_comment.length);
             }
+            else this.show_no_index_message(line_num);
         }
     }
 
@@ -434,6 +477,17 @@ export class EditCommandManager {
                 var line = document.lineAt(line_num-1).text.trimLeft();
                 var start = -1;
                 var res = this.resolve_block_name(arr[2]);
+                if (line.startsWith("/*")) {
+                    line_num +=1;
+                    line = document.lineAt(line_num-1).text.trimLeft();
+                }
+                else {
+                    var temp = document.lineAt(line_num-2).text.trimLeft();
+                    if (!temp.startsWith("/*")){
+                        vscode.window.showInformationMessage("This block is not commented. No action done.");
+                        return;
+                    }
+                }
                 if (line.indexOf(res.block_name)!=-1 && line.indexOf(res.block_name)==line.lastIndexOf(res.block_name)){
                     var index = this.binarySearch(line_num,0,this.line_counts.length,this.line_counts);
                     if (index==-1) return;
@@ -457,10 +511,15 @@ export class EditCommandManager {
             console.log("IN HERE TO FIND AND REPLACE");
             var word = arr[1];
             var new_word = arr[5];
+            if (!isNaN(parseInt(new_word))){
+                vscode.window.showInformationMessage("Sorry! cant replace word: "+word+" with a number: "+arr[5]);
+                return ;
+            }
             this.push_to_edit_stack();
             for (var i=0;i<this.manager.struct_command_list.length;i++){
                 if (this.manager.struct_command_list[i].indexOf(word)!=-1){
-                    this.manager.struct_command_list[i] = this.manager.struct_command_list[i].replace(word,new_word);
+                    console.log("DEBUG: "+this.manager.struct_command_list[i]);
+                    this.manager.struct_command_list[i] = this.manager.struct_command_list[i].replace(new RegExp(word,'g'),new_word);
                 }
             }
         }
@@ -476,6 +535,10 @@ export class EditCommandManager {
             var data_type = arr[4];
             var line_num = parseInt(arr[7]);
             var index = this.binarySearch(line_num,0,this.line_counts.length, this.line_counts);
+            if (index==-1){
+                this.show_no_index_message(line_num);
+                return;
+            }
             var phrase = "#variable "+variable_name;
             var substring_index = this.manager.struct_command_list[index].indexOf(phrase);
             if (substring_index!=-1){
@@ -619,7 +682,7 @@ find_nearest_creation_of_variable(index:number, variable_name: string){
 }
 
 resolve_block_name(text: string){
-    var block_name = text;
+    var block_name = (text=="is")? "if": text;
     var block_name_end = text;
     if (text=="else"){
         block_name=="#else_branch_start";
@@ -629,9 +692,9 @@ resolve_block_name(text: string){
         block_name = "do";
         block_name_end="#while_end";
     }
-    else if (text=="switch_case"|| text=="switch"){
+    else if (text=="switch-case"|| text=="switch"){
         block_name = "switch"; 
-        block_name_end = "#case_end";
+        block_name_end = "#switch_end";
     }
     else {
         block_name = text;
@@ -639,6 +702,10 @@ resolve_block_name(text: string){
         if (block_name =="if") block_name_end = "#if_branch_end";
     }
     return {block_name,block_name_end};
+}
+
+show_no_index_message(line: number){
+    vscode.window.showInformationMessage("Sorry! No code on line "+line+". Please provide a line number that has code.")
 }
 
 

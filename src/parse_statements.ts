@@ -754,6 +754,7 @@ function parse_fragment(splitted_text: string[], variable_list: string[], functi
     }
 
     else if (splitted_text[0] == "string") {
+
         /* string literal has to include ["string", <actual string>, "end_string"], which requires
         a minimum of 3 words. */
         if (splitted_text.length < 3) return ["not ready", "no value mentioned."];

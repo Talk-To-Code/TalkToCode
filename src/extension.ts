@@ -72,9 +72,12 @@ function initManager() {
 function listen() {
 	displayCode([""]);
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
-	const child = spawn('node', ['infinite_stream.js infiniteStream'], {shell:true, cwd: cwd, env: {GOOGLE_APPLICATION_CREDENTIALS: cred}});
+
+	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
+
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
+		console.log("TRANSCRIBED WORD: "+transcribed_word);
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
 		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {
@@ -91,7 +94,6 @@ function listen() {
 			vscode.window.showInformationMessage("You just said the following edit command: " + transcribed_word);
 
 			console.log(transcribed_word)
-			// writeToEditor(manager.managerStatus());
 			editManager.checkAll(transcribed_word,count_lines);
 			displayCode(manager.struct_command_list);
 			console.log(manager.managerStatus());
@@ -103,7 +105,6 @@ function listen() {
 			codeBuffer = "";
 
 			manager.parse_speech(transcribed_word, count_lines);
-			// writeToEditor(manager.managerStatus());
 			displayCode(manager.struct_command_list);
 		}
 	});
@@ -274,7 +275,10 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			then() is called when the callback function is done editing. */
 			if (editor) {
 				var lineAt = editor.document.lineAt(cursor_pos).text;
-				editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
+				if (manager.isLeftRightCalled){
+					editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, manager.len_cursor), new vscode.Position(cursor_pos, manager.len_cursor));
+				}
+				else editor.selection = new vscode.Selection(new vscode.Position(cursor_pos, lineAt.length), new vscode.Position(cursor_pos, lineAt.length));
 			}
 		})
 	}

@@ -8,6 +8,7 @@ package ast;
 public class ASTExpressionUnitTypesArray extends ASTExpressionUnitTypes {
 	private static final String NODE_TYPE = "Array Type";
 	private int dimension;
+	private boolean isPointer;
 	public ASTExpressionUnitTypesArray(){
 		super();
 	}
@@ -16,16 +17,21 @@ public class ASTExpressionUnitTypesArray extends ASTExpressionUnitTypes {
 		super();
 		this.type = type;
 		this.dimension = 1;
-		
+		this.isPointer = false;
 	}
 	public ASTExpressionUnitTypesArray(String type,int dimension){
 		this();
 		this.type = type;
 		this.dimension = dimension;
+		this.isPointer = false;
+	}
+	public void setPointer(boolean isPointer) {
+		this.isPointer = isPointer;
 	}
 	//syntax generation
 	public String toSyntax(){
 		this.result = this.type;
+		if(isPointer) this.result += "*";
 		for(int i = 0;i<this.dimension;i++){
 			this.result+="[]";
 		}

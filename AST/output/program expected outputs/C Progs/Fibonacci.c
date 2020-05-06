@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-int  main(){
+int main(){
 	int n, first = 0, second = 1, next, c;
 
 	printf("Enter the number of terms\n");
