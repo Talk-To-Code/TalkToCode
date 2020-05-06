@@ -1,7 +1,8 @@
 import { parse_command } from './parse_blocks'
 import { structCommand } from './struct_command';
 
-var arithmetic_operator = ["plus", "divide", "multiply", "minus"];
+var joiningOperators = ["plus", "divide", "multiply", "minus", "modulo", ">", ">=", "<", "<=", "==", "&", "&&", "|", "||"];
+var verbalJoiningOperators = ["plus", "divide", "multiply", "minus", "modulo","greater", "less", "equal", "and", "or", "bit"];
 /*     
 
 @ Parameters - list of commands, variable list
@@ -23,20 +24,12 @@ Declaration: Python requires that variable be declared with something. Variable 
 */
 
 export function get_struct(input_speech_segments: string[], prev_input_speech: string, prev_struct_command: string,
-    language: string, debugMode: boolean, holding: boolean) {
+    language: string, debugMode: boolean, holding: boolean, variable_list: string[], function_list: string[]) {
     if (debugMode) {
         console.log("prev input speech: " + prev_input_speech)
         console.log("prev struct command: " + prev_struct_command)
     }
     var input_speech = input_speech_segments.join(" ");
-
-    var removePreviousStatement = false;
-
-    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
-    if (extendCommand) {
-        input_speech = prev_input_speech + " " + input_speech;
-        removePreviousStatement = true;
-    }
 
     if (input_speech.includes("spell")) {
         var check = getSpelling(input_speech);
@@ -48,10 +41,22 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
         else input_speech = check[1];
     }
 
-    input_speech = replace_infix_operators(input_speech);
+    input_speech = find_symbol(input_speech);
+
+    input_speech = replace_infix_operators(input_speech, prev_struct_command);
+
+    var removePreviousStatement = false;
+
+    var extendCommand = checkPrevStatement(input_speech, prev_struct_command, language);
+    if (extendCommand) {
+
+        if (prev_input_speech.includes("spell")) prev_input_speech = getSpelling(input_speech)[1];
+        input_speech = prev_input_speech + " " + input_speech;
+        removePreviousStatement = true;
+    }
 
     if (debugMode) console.log("text going in: " + input_speech);
-    var struct_command = parse_command(input_speech, language);
+    var struct_command = parse_command(input_speech, language, variable_list, function_list);
     if (debugMode) console.log("segmented results: " + struct_command.parsedCommand);
 
     if (struct_command.hasError) {
@@ -81,13 +86,23 @@ export function get_struct(input_speech_segments: string[], prev_input_speech: s
 }
 
 /* If the input speech is meant to be an if/loop block */
-function replace_infix_operators(text: string) {
-    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while")) {
+function replace_infix_operators(text: string, previousStructCommand: string) {
+
+    var replace = false;
+
+    if (text.includes("begin if") || text.includes("begin loop") ||text.includes("while") || text.includes("else if")) replace = true;
+
+    if (previousStructCommand.includes("#if_branch_start") || previousStructCommand.includes("#elseIf_branch_start") ||
+    previousStructCommand.includes("#while_start")) {
+        if (verbalJoiningOperators.includes(text.split(" ")[0])) replace = true;
+    }
+
+    if (replace) {
         /* Infix comparison operator. */
-        text = text.replace(/greater than/g, '>');
         text = text.replace(/greater than equal/g, '>=');
-        text = text.replace(/less than/g, '<');
         text = text.replace(/less than equal/g, '<=');
+        text = text.replace(/greater than/g, '>');
+        text = text.replace(/less than/g, '<');
         text = text.replace(/not equal/g, '!=');
         text = text.replace(/equal/g, '==');
 
@@ -118,17 +133,22 @@ function checkPrevStatement(input_text: string, prev_struct_command: string, lan
         input_text.split(" ")[0] == "equal") {
             return true;
         }
-        if (prev_struct_command.split(" ").length >= 7 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (prev_struct_command.split(" ").length >= 7 && joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }
     else if (prev_struct_command.includes("#create") && language == "py") {
-        if (prev_struct_command.split(" ").length >= 5 && arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (prev_struct_command.split(" ").length >= 5 && joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }
+    else if (prev_struct_command.includes("#if_branch_start") || prev_struct_command.includes("#elseIf_branch_start") ||
+    prev_struct_command.includes("#while_start")) {
+        if (joiningOperators.includes(input_text.split(" ")[0]))
+            return true;
+    }
     else if (prev_struct_command.includes("#assign")) {
-        if (arithmetic_operator.includes(input_text.split(" ")[0])) {
+        if (joiningOperators.includes(input_text.split(" ")[0])) {
             return true;
         }
     }
@@ -145,7 +165,6 @@ function checkPrevBlock(struct_command: structCommand, prev_command: string) {
     if (prev_command == "#catch_end;;" && struct_command.isFinally) return true;
     if (prev_command == "#else_branch_end;;" && struct_command.isFinally) return true;
     if (prev_command == "#if_branch_end;;" && struct_command.isElseIf) return true;
-    if (prev_command == "#case_end;;" && struct_command.isCase) return true;
     if (prev_command == "#case_end" && struct_command.isCase) return true;
     if (prev_command.includes("switch #condition #variable") && struct_command.isCase) return true;
 
@@ -184,4 +203,29 @@ function getSpelling(input_speech: string) {
 
     input_speech = (temp.slice(0, spellIdx).join(" ").trim() + " " + spelledWord.join("").trim() + " " + temp.slice(spellEndIdx+1).join(" ")).trim();
     return ["ready", input_speech];
+}
+
+function find_symbol(text: string) {
+    if (text.includes("symbol")) {
+        var splitted_text = text.split(" ");
+        var symbol_flag = false;
+        for(var i = 0; i < splitted_text.length; i++) {
+            if (symbol_flag) {
+                if (splitted_text[i] == "ampersand") splitted_text[i] = "&";
+                else if (splitted_text[i] == "dollar") splitted_text[i] = "$";
+                else if (splitted_text[i] == "percent" || splitted_text[i] == "percents" || splitted_text[i] == "percentage") splitted_text[i] = "%";
+                else if (splitted_text[i] == "backslash") splitted_text[i] = "\\";
+                else if (splitted_text[i] == "colon") splitted_text[i] = ":";
+                else if (splitted_text[i] == "dot" || splitted_text[i] == "point" || splitted_text[i] == "points") splitted_text[i] = ".";
+                else if (splitted_text[i] == "star") splitted_text[i] = "*";
+
+                symbol_flag = false;
+            }
+            if (splitted_text[i] == "symbol")  symbol_flag = true;
+        }
+        text = splitted_text.join(" ");
+        text = text.replace(/symbol /g, "");
+    }
+
+    return text;
 }

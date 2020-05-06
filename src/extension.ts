@@ -43,13 +43,13 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("archana"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("lawrence"); /* change here to set new user */
 		initManager();
 		listen();
-		//runEditTests();
+		// runEditTests();
 		// test_function();
-		//runTestCasesForC();
-		//runTestCasesForPy();
+		// runTestCasesForC();
+		// runTestCasesForPy();
 
 	});
 	context.subscriptions.push(disposable);
@@ -72,13 +72,14 @@ function initManager() {
 function listen() {
 	displayCode([""]);
 	// env: {GOOGLE_APPLICATION_CREDENTIALS: cred}
+
 	const child = spawn('node', ['speech_recognizer.js'], {shell:true, cwd: cwd});
+
 	child.stdout.on('data', (data: string)=>{
 		let transcribed_word = data.toString().trim();
 		console.log("TRANSCRIBED WORD: "+transcribed_word);
 
 		if (transcribed_word == 'Listening') vscode.window.showInformationMessage('Begin Speaking!');
-
 		else if (transcribed_word == "microphone off" || transcribed_word == "sleep" || transcribed_word == "go to sleep") {
 			microphone = false;
 			vscode.window.showInformationMessage("microphone asleep");
@@ -255,7 +256,6 @@ function writeToEditor(code: string, struct_command_list: string[]) {
 			temp.slice(spellIdx + 1, spellEndIdx).join("").trim() + " " + 
 			temp.slice(spellEndIdx + 1).join(" ").trim();
 		}
-
 		code_segments.splice(manager.heldline - 1, 1, numTabs + speech + " *stay");
 		code = code_segments.join("\n");
 		cursor_pos = manager.heldline - 1;

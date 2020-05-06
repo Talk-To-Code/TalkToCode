@@ -15,5 +15,13 @@ export function getUserSpecs(username: string) {
         cred = '/Users/Archana/Desktop/TalkToCode-f3a307e35758.json';
     }
 
+    // For new user
+    /*
+    else if (username == "new name") {
+        ast_cwd = "path to src folder of AST in the main src folder";
+        cwd = "path to current src folder";
+        cred = "path to the google credentials file";
+    }
+    */
     return [cwd, cred, ast_cwd];
 }
