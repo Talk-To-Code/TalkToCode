@@ -26,10 +26,20 @@ For Windows users, download the [binaries](https://sourceforge.net/projects/sox/
 
 For mac OS users, running `brew install sox` should suffice.
 
+## Credentials
+
+Generate the credentials json file from Google.
+https://cloud.google.com/docs/authentication/getting-started
+
 ## Starting Up
 
-Within VSCode editor, go to root directory. `extensions.ts` is the main file. Make sure the cred path is set correctly to your credentials json file from Google. 
+First go to `src\user_specs.ts`, add new user and fill in the paths.
+
+Then proceed to `src\extensions.ts` and change the user's name in the argument of the initUser() function. Use
+the name that you added in the `src\user_specs.ts`.
+
 Finally, debug the code with `F5`. This will run the extension in a new Extension Development Host Window.
+Open up a new file.
 
 Open the Command Palette (`Ctrl Shift P`) and search for the command "Hello World".
 

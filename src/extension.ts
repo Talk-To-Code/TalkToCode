@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('coding by dictation!');
 
-		initUser("lawrence"); /* Currently only has "lawrence" and "archana" as the users. */
+		initUser("lawrence"); /* change here to set new user */
 		initManager();
 		listen();
 		// runEditTests();
