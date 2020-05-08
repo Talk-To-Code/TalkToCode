@@ -33,10 +33,8 @@ https://cloud.google.com/docs/authentication/getting-started
 
 ## Starting Up
 
-First go to `src\user_specs.ts`, add new user and fill in the paths.
+First go to `src\user_specs.ts`, add new user and fill in the paths as shown below:
 
-Then proceed to `src\extensions.ts` and change the user's name in the argument of the initUser() function. Use
-the name that you added in the `src\user_specs.ts` as shown below:
 ```
 else if (username == "name_of_user") {
         ast_cwd = '/Users/Path/Path2/TalkToCode/AST/src';
@@ -44,6 +42,9 @@ else if (username == "name_of_user") {
         cred = '/Users/Path/Path2/creds.json'; (the path to the google credentials in .json format that you have downloaded)
     }
 ```
+
+Then proceed to `src\extensions.ts` and change the user's name in the argument of the initUser() function. Use
+the name that you added in the `src\user_specs.ts`.
 
 Finally, debug the code with `F5`. This will run the extension in a new Extension Development Host Window.
 Open up a new file.
